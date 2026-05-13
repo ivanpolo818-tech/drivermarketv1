@@ -1,0 +1,3 @@
+0000000000000000000000000000000000000000 4508f84db0573d18c6353cae2e550b970c99f628 adsotareas <adsotareas@gmail.com> 1776122489 -0500	commit (initial):
+4508f84db0573d18c6353cae2e550b970c99f628 4fcc0504c620d3b70211bd69f0f3dedebe788e3a adsotareas <adsotareas@gmail.com> 1778676780 -0500	commit: Actualización: cambios en rutas, modelos, templates, estilos y documentación
+4fcc0504c620d3b70211bd69f0f3dedebe788e3a fcf07a9a8fe97cdf85e73be3628e31cf240b99bd adsotareas <adsotareas@gmail.com> 1778677702 -0500	commit: Security: Remove secrets from code, use environment variables
