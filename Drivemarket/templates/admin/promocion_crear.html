@@ -1,0 +1,321 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Admin · {% if promo %}Editar{% else %}Crear{% endif %} Promoción{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right" style="font-size:.6rem; margin: 0 8px;"></i>
+          <a href="{{ url_for('admin.admin_promociones') }}">Promociones</a>
+          <i class="fas fa-chevron-right" style="font-size:.6rem; margin: 0 8px;"></i>
+          <span>{% if promo %}Editar{% else %}Crear{% endif %}</span>
+        </nav>
+      </div>
+    </header>
+    
+    <div class="page-content">
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas {% if promo %}fa-edit{% else %}fa-plus-circle{% endif %}"></i></div>
+        <div>
+          <h1>{% if promo %}Editar Promoción{% else %}Nueva Promoción{% endif %}</h1>
+          <p class="subtext">Configurá la imagen, texto y botones del banner principal.</p>
+        </div>
+      </div>
+      
+      <div class="form-layout">
+        <!-- AVATAR / IMAGE PREVIEW CARD -->
+        <div class="preview-card">
+          <div class="preview-title"><i class="fas fa-image"></i> Vista Previa</div>
+          <div class="image-preview" id="imagePreview" style="{% if promo and promo.imagen %}background-image: url('{% if promo.imagen.startswith('http') %}{{ promo.imagen }}{% else %}{{ url_for('static', filename=promo.imagen) }}{% endif %}'); border:none;{% endif %}">
+            {% if not promo or not promo.imagen %}
+            <div class="preview-text" id="previewText">
+              <i class="fas fa-cloud-upload-alt fa-2x mb-2 text-muted"></i>
+              <p>Sin imagen</p>
+            </div>
+            {% endif %}
+          </div>
+          <button type="button" class="btn-reset" style="margin-top:1rem; width:100%; justify-content:center;" onclick="document.getElementById('imagen').click()">
+            <i class="fas fa-upload"></i> Cambiar Fondo
+          </button>
+          <div class="preview-divider"></div>
+          <div class="preview-name" id="previewTitle">{% if promo %}{{ promo.titulo }}{% else %}Título Principal{% endif %}</div>
+          <div class="preview-username" id="previewDesc">{% if promo %}{{ promo.descripcion }}{% else %}Subtítulo breve...{% endif %}</div>
+          <div class="preview-role mt-2" id="previewTag" style="background:color-mix(in srgb, {{ promo.color_etiqueta if promo else '#ff6b1a' }} 12%, transparent); color: {{ promo.color_etiqueta if promo else '#ff6b1a' }}; border-color:color-mix(in srgb, {{ promo.color_etiqueta if promo else '#ff6b1a' }} 25%, transparent);">
+            <i class="fas fa-tag"></i> <span id="previewTagText">{% if promo %}{{ promo.etiqueta }}{% else %}Etiqueta{% endif %}</span>
+          </div>
+          <div class="preview-info-list" style="margin-top:1rem;">
+            <div class="pil-item">
+              <i class="fas fa-mouse-pointer"></i>
+              <strong id="previewBtn">{% if promo %}{{ promo.texto_boton }}{% else %}Ver más{% endif %}</strong>
+            </div>
+            <div class="pil-item" style="color:var(--text2); font-size:.7rem;">
+              <i class="fas fa-link"></i>
+              <span id="previewLink">{% if promo %}{{ promo.enlace_boton }}{% else %}/buscar{% endif %}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM CARD -->
+        <div class="form-card">
+          <form action="" method="POST" enctype="multipart/form-data" id="createForm">
+            <!-- Hidden input for file via trigger -->
+            <input type="file" style="display:none;" id="imagen" name="imagen" accept="image/*" {% if not promo %}required{% endif %} onchange="previewImage(this);">
+            
+            <!-- SECTION 1 -->
+            <div class="form-section">
+              <div class="section-hd">
+                <span class="step-chip">01</span>
+                <h3>Contenido Principal</h3>
+              </div>
+              <div class="form-grid">
+                <div class="fg fg-full">
+                  <label for="titulo">Título de la Promoción <span class="req">*</span></label>
+                  <div class="iw">
+                    <i class="fas fa-heading"></i>
+                    <input type="text" id="titulo" name="titulo" value="{{ promo.titulo if promo else '' }}" required placeholder="Ejem: Promoción Especial de Verano" oninput="updatePreviewText()">
+                    <span class="iw-valid"><i class="fas fa-check"></i></span>
+                  </div>
+                  <span class="field-err" id="err-titulo"></span>
+                </div>
+                <div class="fg fg-full">
+                  <label for="descripcion">Descripción (Opcional)</label>
+                  <div class="iw" style="align-items:flex-start;">
+                    <i class="fas fa-align-left" style="top:.9rem;"></i>
+                    <textarea id="descripcion" name="descripcion" rows="2" placeholder="Detalles de la promo..." oninput="updatePreviewText()" style="width:100%; border:1.5px solid var(--border); border-radius:10px; font-size:.88rem; color:var(--text); background:var(--surface); padding:.65rem .9rem .65rem 2.5rem; outline:none; font-family:var(--font); resize:vertical;">{{ promo.descripcion if promo else '' }}</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2 -->
+            <div class="form-section">
+              <div class="section-hd">
+                <span class="step-chip">02</span>
+                <h3>Etiquetas y Colores</h3>
+              </div>
+              <div class="form-grid">
+                <div class="fg">
+                  <label for="etiqueta">Texto de Etiqueta <span class="req">*</span></label>
+                  <div class="iw">
+                    <i class="fas fa-tag"></i>
+                    <input type="text" id="etiqueta" name="etiqueta" value="{{ promo.etiqueta if promo else '' }}" required placeholder="Ejem: Financiamiento" oninput="updatePreviewText()">
+                    <span class="iw-valid"><i class="fas fa-check"></i></span>
+                  </div>
+                  <span class="field-err" id="err-etiqueta"></span>
+                </div>
+                <div class="fg">
+                  <label for="color_etiqueta">Color de Etiqueta</label>
+                  <div class="iw" style="padding:0;">
+                    <input type="color" id="colorPicker" value="{{ promo.color_etiqueta if promo and promo.color_etiqueta.startswith('#') else '#ff6b1a' }}" style="width:40px;height:40px;border:none;background:none;padding:0;cursor:pointer;position:absolute;left:.5rem;z-index:10;border-radius:8px;">
+                    <input type="text" id="color_etiqueta" name="color_etiqueta" value="{{ promo.color_etiqueta if promo else '#ff6b1a' }}" placeholder="Ejem: #ff6b1a" oninput="document.getElementById('colorPicker').value = this.value; updatePreviewText()" style="padding-left:3.2rem;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3 -->
+            <div class="form-section">
+              <div class="section-hd">
+                <span class="step-chip">03</span>
+                <h3>Llamado a la Acción (CTA)</h3>
+              </div>
+              <div class="form-grid">
+                <div class="fg">
+                  <label for="texto_boton">Texto del Botón</label>
+                  <div class="iw">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <input type="text" id="texto_boton" name="texto_boton" value="{{ promo.texto_boton if promo else 'Ver más' }}" required placeholder="Ejem: Ver Vehículos" oninput="updatePreviewText()">
+                    <span class="iw-valid"><i class="fas fa-check"></i></span>
+                  </div>
+                </div>
+                <div class="fg">
+                  <label for="enlace_boton">Enlace (URL)</label>
+                  <div class="iw">
+                    <i class="fas fa-link"></i>
+                    <input type="text" id="enlace_boton" name="enlace_boton" value="{{ promo.enlace_boton if promo else '/buscar' }}" required placeholder="Ejem: /buscar?promo=credito" oninput="updatePreviewText()">
+                    <span class="iw-valid"><i class="fas fa-check"></i></span>
+                  </div>
+                </div>
+                <div class="fg">
+                  <label for="orden">Orden de aparición</label>
+                  <div class="iw">
+                    <i class="fas fa-sort-numeric-down"></i>
+                    <input type="number" id="orden" name="orden" value="{{ promo.orden if promo else 0 }}" min="0" required>
+                    <span class="iw-valid"><i class="fas fa-check"></i></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="form-foot">
+              <a href="{{ url_for('admin.admin_promociones') }}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+              <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-save"></i> {% if promo %}Guardar Promoción{% else %}Crear Promoción{% endif %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div><!-- /form-layout -->
+    </div><!-- /page-content -->
+  </main>
+</div>
+
+<style>
+/* ── Base ─────────────────────────────────────────── */
+:root {
+  --bg:#f1f5f9; --surface:#fff; --surface2:#f8fafc;
+  --border:#e5e7eb; --text:#0f172a; --text2:#64748b;
+  --primary:#6366f1; --primary2:#a855f7;
+  --shadow:0 4px 24px rgba(0,0,0,.08); --radius:16px; font-family:'Inter',sans-serif;
+}
+[data-theme="dark"] {
+  --bg:#0f172a; --surface:#1e293b; --surface2:#162032;
+  --border:#334155; --text:#f1f5f9; --text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+/* Layout */
+.adm{display:flex;min-height:100vh;background:var(--bg);color:var(--text);}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+/* Page content */
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.5rem;}
+.page-heading{display:flex;align-items:center;gap:1rem;}
+.page-heading h1{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;margin:0;}
+.page-heading .subtext{color:var(--text2);font-size:.88rem;margin-top:.2rem;}
+.heading-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;box-shadow:0 6px 16px rgba(99,102,241,.3);}
+
+/* Form layout */
+.form-layout{display:grid;grid-template-columns:300px 1fr;gap:1.8rem;align-items:start;}
+
+/* Preview card */
+.preview-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.8rem 1.5rem;display:flex;flex-direction:column;align-items:center;text-align:center;position:sticky;top:80px;}
+.preview-title{font-size:.75rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:.4rem;align-self:flex-start;margin-bottom:1rem;}
+.preview-title i{color:var(--primary);}
+.image-preview{width:100%;height:140px;border-radius:12px;border:2px dashed var(--border);background-color:var(--surface2);display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center;transition:all .3s;}
+.preview-text{color:var(--text2);font-size:.8rem;font-weight:500;}
+.preview-name{font-size:1.1rem;font-weight:800;color:var(--text);margin-top:1rem;line-height:1.2;}
+.preview-username{font-size:.8rem;color:var(--text2);margin-top:.3rem;}
+.preview-divider{width:100%;height:1px;background:var(--border);margin:1.2rem 0;}
+.preview-role{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .8rem;border-radius:20px;font-size:.75rem;font-weight:700;border:1px solid;transition:all .3s;}
+.preview-info-list{width:100%;display:flex;flex-direction:column;gap:.6rem;text-align:left;}
+.pil-item{display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:var(--text);padding:.3rem 0;}
+.pil-item i{color:var(--primary);width:16px;}
+
+/* Form card */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;}
+.form-section{margin-bottom:2.2rem;padding-bottom:2.2rem;border-bottom:1px solid var(--border);}
+.form-section:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.section-hd{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;}
+.section-hd h3{font-size:1.1rem;font-weight:800;color:var(--text);margin:0;}
+.step-chip{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);font-size:.7rem;font-weight:800;padding:.3rem .7rem;border-radius:6px;}
+
+/* Fields */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;}
+.fg{display:flex;flex-direction:column;gap:.5rem;}
+.fg-full{grid-column:span 2;}
+.fg label{font-size:.85rem;font-weight:700;color:var(--text2);}
+.req{color:#ef4444;}
+.iw{position:relative;display:flex;align-items:center;}
+.iw > i:first-child{position:absolute;left:1rem;color:var(--text2);font-size:.9rem;pointer-events:none;}
+.iw input{width:100%;padding:.7rem 1rem .7rem 2.8rem;border:1.5px solid var(--border);border-radius:10px;font-size:.9rem;color:var(--text);background:var(--surface);transition:all .2s;outline:none;}
+.iw input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+.iw input:focus ~ i,.iw input:not(:placeholder-shown) ~ .iw-valid{opacity:1;}
+.iw-valid{position:absolute;right:1rem;opacity:0;color:#10b981;font-size:.85rem;transition:opacity .2s;pointer-events:none;}
+.field-err{font-size:.75rem;color:#ef4444;display:none;margin-top:.2rem;}
+
+/* Buttons */
+.form-foot{display:flex;align-items:center;justify-content:flex-end;gap:.8rem;padding-top:1.5rem;border-top:1px solid var(--border);margin-top:2rem;}
+.btn-cancel{display:flex;align-items:center;gap:.4rem;padding:.7rem 1.2rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-cancel:hover{border-color:#ef4444;color:#ef4444;}
+.btn-reset{display:flex;align-items:center;gap:.4rem;padding:.7rem 1.2rem;background:none;border:1px solid var(--border);border-radius:10px;font-size:.85rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;}
+.btn-reset:hover{border-color:var(--primary);color:var(--primary);}
+.btn-submit{display:flex;align-items:center;gap:.5rem;padding:.7rem 1.8rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.35);transition:all .3s;}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(99,102,241,.45);}
+
+@media(max-width:1000px){
+  .form-layout{grid-template-columns:1fr;}
+  .preview-card{position:static;}
+}
+@media(max-width:600px){
+  .form-grid{grid-template-columns:1fr;}
+  .fg{grid-column:1 / -1;}
+}
+</style>
+
+<script>
+  function updatePreviewText() {
+    document.getElementById('previewTitle').textContent = document.getElementById('titulo').value || 'Título Principal';
+    document.getElementById('previewDesc').textContent = document.getElementById('descripcion').value || 'Subtítulo breve...';
+    document.getElementById('previewTagText').textContent = document.getElementById('etiqueta').value || 'Etiqueta';
+    document.getElementById('previewBtn').textContent = document.getElementById('texto_boton').value || 'Ver más';
+    document.getElementById('previewLink').textContent = document.getElementById('enlace_boton').value || '/buscar';
+    
+    let color = document.getElementById('color_etiqueta').value || '#ff6b1a';
+    let tagEl = document.getElementById('previewTag');
+    tagEl.style.color = color;
+    tagEl.style.background = `color-mix(in srgb, ${color} 12%, transparent)`;
+    tagEl.style.borderColor = `color-mix(in srgb, ${color} 25%, transparent)`;
+  }
+
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var preview = document.getElementById('imagePreview');
+        preview.style.backgroundImage = 'url(' + e.target.result + ')';
+        preview.style.border = 'none';
+        var text = document.getElementById('previewText');
+        if (text) text.style.display = 'none';
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // Pre-fill color picker from text field
+  document.getElementById('colorPicker').addEventListener('input', function() {
+    document.getElementById('color_etiqueta').value = this.value;
+    updatePreviewText();
+  });
+</script>
+{% endblock %}
+
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

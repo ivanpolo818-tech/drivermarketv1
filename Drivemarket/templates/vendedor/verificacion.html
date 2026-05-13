@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Verificación | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+#dm-widget { display: none !important; }
+.drop-zone { border:2px dashed var(--bd);border-radius:12px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .3s;background:var(--bg); }
+.drop-zone:hover { border-color:var(--pr);background:var(--pr-l); }
+.drop-zone.drag-over { border-color:var(--pr);background:var(--pr-l); }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'verificacion' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+
+    <div class="db-header">
+      <div>
+        <h1>Verificación de Vendedor</h1>
+        <p>Completa tus datos para obtener el badge de <strong>Vendedor Verificado</strong>.</p>
+      </div>
+      <a href="{{ url_for('vendedor.dashboard') }}" class="db-btn db-btn-ghost"><i class="fas fa-arrow-left"></i> Volver al Dashboard</a>
+    </div>
+
+
+
+    {% if estado_verificacion == 'aprobado' %}
+    <!-- YA VERIFICADO -->
+    <div class="db-card" style="text-align:center;padding:60px 30px;">
+      <div style="width:80px;height:80px;border-radius:50%;background:rgba(16,185,129,.15);color:#10B981;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:16px;">
+        <i class="fas fa-shield-check"></i>
+      </div>
+      <h2 style="color:var(--t1);margin:0 0 8px;">¡Ya eres un Vendedor Verificado!</h2>
+      <p style="color:var(--t2);max-width:400px;margin:0 auto;">Tu cuenta fue revisada y aprobada. Disfruta de mayor visibilidad y confianza con tus compradores.</p>
+    </div>
+
+    {% elif estado_verificacion == 'pendiente' and perfil_vend and perfil_vend.foto_id_frontal and perfil_vend.foto_id_trasera %}
+    <!-- EN REVISIÓN (Completado) -->
+    <div class="db-card" style="text-align:center;padding:60px 30px;">
+      <div style="width:80px;height:80px;border-radius:50%;background:rgba(245,158,11,.15);color:#F59E0B;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:16px;">
+        <i class="fas fa-hourglass-half"></i>
+      </div>
+      <h2 style="color:var(--t1);margin:0 0 8px;">Solicitud en revisión</h2>
+      <p style="color:var(--t2);max-width:450px;margin:0 auto;">Tu solicitud está siendo revisada por nuestro equipo. Te notificaremos cuando sea aprobada. Esto puede tomar entre 24–48 horas.</p>
+      <div style="margin-top:20px;display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--am-l);border-radius:10px;font-size:.85rem;color:var(--am);font-weight:600;">
+        <i class="fas fa-clock"></i> Estado: Pendiente de revisión
+      </div>
+    </div>
+
+    {% else %}
+    <!-- FORMULARIO INCOMPLETO O RECHAZADO -->
+    {% if estado_verificacion == 'rechazado' %}
+    <div class="db-alert db-alert-warn" style="margin-bottom:20px;">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>Tu solicitud anterior fue <strong>rechazada</strong>. Revisa los datos e intenta nuevamente.</span>
+    </div>
+    {% elif estado_verificacion == 'pendiente' %}
+    <div style="margin-bottom:20px;background:var(--bl-l);color:var(--bl);border-left:4px solid var(--bl);padding:14px;border-radius:6px;display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:600;">
+      <i class="fas fa-info-circle"></i>
+      <span>Completa y envía el formulario adjuntando tus fotos para iniciar el proceso de revisión.</span>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('vendedor.solicitar_verificacion') }}" enctype="multipart/form-data" id="verForm">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+        <!-- COL IZQUIERDA: Datos del negocio -->
+        <div class="db-card">
+          <div class="db-card-head"><div><h2><i class="fas fa-store" style="color:var(--pr);margin-right:8px;"></i>Datos del Negocio</h2><p>Información comercial</p></div></div>
+          <div style="display:flex;flex-direction:column;gap:16px;margin-top:12px;">
+            <div>
+              <label style="display:block;font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Nombre de Tienda *</label>
+              <input type="text" name="nombre_tienda" required value="{{ perfil_vend.nombre_tienda if perfil_vend else '' }}" placeholder="Ej: AutoMax Colombia" style="width:100%;padding:11px 14px;border:1px solid var(--bd);border-radius:10px;font-size:.88rem;background:var(--bg);color:var(--t1);outline:none;transition:border .2s;" onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+            </div>
+            <div>
+              <label style="display:block;font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Email Comercial *</label>
+              <input type="email" name="email_comercial" required value="{{ perfil_vend.email_comercial if perfil_vend else '' }}" placeholder="contacto@tutienda.com" style="width:100%;padding:11px 14px;border:1px solid var(--bd);border-radius:10px;font-size:.88rem;background:var(--bg);color:var(--t1);outline:none;transition:border .2s;" onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+            </div>
+            <div>
+              <label style="display:block;font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Número de Identificación (CC/NIT) *</label>
+              <input type="text" name="numero_id" required value="{{ perfil_vend.numero_id if perfil_vend else '' }}" placeholder="1234567890" style="width:100%;padding:11px 14px;border:1px solid var(--bd);border-radius:10px;font-size:.88rem;background:var(--bg);color:var(--t1);outline:none;transition:border .2s;" onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+            </div>
+            <div>
+              <label style="display:block;font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Teléfono de Contacto *</label>
+              <input type="tel" name="telefono_contacto" required value="{{ perfil_vend.telefono_contacto if perfil_vend else '' }}" placeholder="3001234567" style="width:100%;padding:11px 14px;border:1px solid var(--bd);border-radius:10px;font-size:.88rem;background:var(--bg);color:var(--t1);outline:none;transition:border .2s;" onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+            </div>
+            <div>
+              <label style="display:block;font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Descripción del Negocio *</label>
+              <textarea name="descripcion" required rows="4" placeholder="Cuéntanos sobre tu negocio..." style="width:100%;padding:11px 14px;border:1px solid var(--bd);border-radius:10px;font-size:.88rem;background:var(--bg);color:var(--t1);outline:none;transition:border .2s;resize:vertical;font-family:inherit;" onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">{{ perfil_vend.descripcion if perfil_vend else '' }}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- COL DERECHA: Fotos de documento -->
+        <div class="db-card">
+          <div class="db-card-head"><div><h2><i class="fas fa-id-card" style="color:var(--bl);margin-right:8px;"></i>Documento de Identidad</h2><p>Fotos de tu cédula (ambas caras)</p></div></div>
+          <div style="display:flex;flex-direction:column;gap:20px;margin-top:12px;">
+            <!-- FOTO FRONTAL -->
+            <div>
+              <label style="display:block;font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">
+                <i class="fas fa-image" style="margin-right:4px;"></i> Cara Frontal de la CC *
+              </label>
+              <div class="drop-zone" id="dropFront"
+                   onclick="document.getElementById('fotoFrontal').click()"
+                   ondragover="event.preventDefault();this.classList.add('drag-over')"
+                   ondragleave="this.classList.remove('drag-over')"
+                   ondrop="event.preventDefault();this.classList.remove('drag-over');document.getElementById('fotoFrontal').files=event.dataTransfer.files;previewImg('fotoFrontal','prevFront')">
+                <div id="prevFront">
+                  {% if perfil_vend and perfil_vend.foto_id_frontal %}
+                  <img src="{{ url_for('static', filename=perfil_vend.foto_id_frontal) }}" style="max-height:140px;border-radius:8px;margin-bottom:8px;">
+                  <p style="font-size:.8rem;color:var(--ok);margin:0;"><i class="fas fa-check-circle"></i> Foto cargada</p>
+                  {% else %}
+                  <i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:var(--t3);margin-bottom:8px;"></i>
+                  <p style="margin:0;color:var(--t2);font-size:.85rem;font-weight:600;">Arrastra o haz clic para subir</p>
+                  <p style="margin:4px 0 0;color:var(--t3);font-size:.75rem;">JPG, PNG o WEBP — máx 5MB</p>
+                  {% endif %}
+                </div>
+              </div>
+              <input type="file" name="foto_frontal" id="fotoFrontal" accept="image/*" style="display:none;" onchange="previewImg('fotoFrontal','prevFront')" {% if not perfil_vend or not perfil_vend.foto_id_frontal %}required{% endif %}>
+            </div>
+
+            <!-- FOTO TRASERA -->
+            <div>
+              <label style="display:block;font-size:.75rem;font-weight:700;color:var(--t2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">
+                <i class="fas fa-image" style="margin-right:4px;"></i> Cara Trasera de la CC *
+              </label>
+              <div class="drop-zone" id="dropBack"
+                   onclick="document.getElementById('fotoTrasera').click()"
+                   ondragover="event.preventDefault();this.classList.add('drag-over')"
+                   ondragleave="this.classList.remove('drag-over')"
+                   ondrop="event.preventDefault();this.classList.remove('drag-over');document.getElementById('fotoTrasera').files=event.dataTransfer.files;previewImg('fotoTrasera','prevBack')">
+                <div id="prevBack">
+                  {% if perfil_vend and perfil_vend.foto_id_trasera %}
+                  <img src="{{ url_for('static', filename=perfil_vend.foto_id_trasera) }}" style="max-height:140px;border-radius:8px;margin-bottom:8px;">
+                  <p style="font-size:.8rem;color:var(--ok);margin:0;"><i class="fas fa-check-circle"></i> Foto cargada</p>
+                  {% else %}
+                  <i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:var(--t3);margin-bottom:8px;"></i>
+                  <p style="margin:0;color:var(--t2);font-size:.85rem;font-weight:600;">Arrastra o haz clic para subir</p>
+                  <p style="margin:4px 0 0;color:var(--t3);font-size:.75rem;">JPG, PNG o WEBP — máx 5MB</p>
+                  {% endif %}
+                </div>
+              </div>
+              <input type="file" name="foto_trasera" id="fotoTrasera" accept="image/*" style="display:none;" onchange="previewImg('fotoTrasera','prevBack')" {% if not perfil_vend or not perfil_vend.foto_id_trasera %}required{% endif %}>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;margin-top:20px;">
+        <span style="font-size:.8rem;color:var(--t3);"><i class="fas fa-lock" style="margin-right:4px;"></i> Tus datos están protegidos y no se comparten con terceros</span>
+        <button type="submit" class="db-btn db-btn-primary" style="padding:12px 28px;font-size:.95rem;">
+          <i class="fas fa-paper-plane"></i> {% if estado_verificacion == 'rechazado' %}Re-enviar Solicitud{% else %}Solicitar Verificación{% endif %}
+        </button>
+      </div>
+    </form>
+    {% endif %}
+
+  </main>
+</div>
+
+<script>
+function previewImg(inputId, containerId) {
+  const input = document.getElementById(inputId);
+  const container = document.getElementById(containerId);
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      container.innerHTML = '<img src="'+e.target.result+'" style="max-height:140px;border-radius:8px;margin-bottom:8px;">' +
+        '<p style="font-size:.8rem;color:var(--ok);margin:0;"><i class="fas fa-check-circle"></i> ' + input.files[0].name + '</p>';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

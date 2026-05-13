@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════
+   PREMIUM ANIMATIONS (ANTIGRAVITY)
+   ═══════════════════════════════════════ */
+
+/* --- Entrance Animations --- */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blurIn {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.reveal-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.8s var(--ease-out) forwards;
+}
+
+.reveal-blur-in {
+  opacity: 0;
+  animation: blurIn 1s var(--ease-out) forwards;
+}
+
+/* Delay Utilites */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* --- Interactive Micro-animations --- */
+.premium-hover {
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out), filter 0.3s var(--ease-out);
+}
+
+.premium-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--sh-lg), 0 0 20px var(--acc-glow);
+}
+
+.magnetic-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s var(--ease-spring);
+}
+
+.magnetic-btn:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+.magnetic-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(circle, hsla(0, 0%, 100%, 0.2) 0%, transparent 60%);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.5s var(--ease-out);
+  pointer-events: none;
+}
+
+.magnetic-btn:active::after {
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0s;
+}
+
+/* --- Special Effects --- */
+.glass-panel {
+  background: hsla(255, 100%, 100%, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsla(255, 100%, 100%, 0.3);
+}
+
+.dark .glass-panel {
+  background: hsla(220, 15%, 10%, 0.7);
+  border: 1px solid hsla(220, 15%, 20%, 0.3);
+}
+
+.premium-glow {
+  position: relative;
+}
+
+.premium-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: var(--acc-grad);
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.premium-glow:hover::before {
+  opacity: 0.4;
+}

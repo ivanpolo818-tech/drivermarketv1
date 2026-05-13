@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+{% block title %}Mi Perfil | Drive Market{% endblock %}
+
+{% block content %}
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+<div class="elite-dashboard-wrapper">
+
+    
+    <!-- Botón de Hamburguesa para Móvil -->
+    <button id="mobileSidebarToggle" style="display: none; width: 100%; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; padding: 14px 20px; font-weight: 700; color: var(--c-text); align-items: center; justify-content: space-between; cursor: pointer; box-shadow: var(--shadow-soft); margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class='bx bx-menu' style="font-size: 1.4rem; color: var(--c-brand);"></i>
+            Menú de Navegación
+        </div>
+        <i class='bx bx-chevron-down' id="toggleChevron" style="transition: 0.3s; font-size: 1.2rem;"></i>
+    </button>
+    <style>@media (max-width: 768px) { #mobileSidebarToggle { display: flex !important; } }</style>
+
+    <aside class="elite-sidebar">
+        <div class="sidebar-profile">
+            <div class="profile-avatar">
+                {% set foto_filename = usuario.foto | default('') | string | trim %}
+                {% if foto_filename %}
+                    <img id="sidebarAvatar" src="{{ url_for('static', filename='uploads/usuarios/' + foto_filename) }}" alt="Avatar">
+                {% else %}
+                    <img id="sidebarAvatar" src="{{ url_for('static', filename='img/default_user.png') }}" alt="Avatar Default">
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <span class="profile-role">Gestión de Cuenta</span>
+                <span class="profile-name">{{ session.get('nombre', usuario.nombre) }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Mi Cuenta</div>
+            <a href="{{ url_for('users.perfil') }}" class="menu-item active">
+                <i class='bx bx-id-card'></i> Información Personal
+            </a>
+            <a href="{{ url_for('users.mis_vehiculos') }}" class="menu-item">
+                <i class='bx bx-car'></i> Mis Vehículos
+            </a>
+            <a href="{{ url_for('users.favoritos') }}" class="menu-item">
+                <i class='bx bx-heart'></i> Guardados
+            </a>
+            {% if session.get('rol') == 'vendedor' %}
+            <a href="{{ url_for('vendedor.dashboard') }}" class="menu-item">
+                <i class='bx bx-store-alt'></i> Dashboard Vendedor
+            </a>
+            {% endif %}
+            
+            <a href="{{ url_for('mensajes.centro_mensajes') }}" class="menu-item">
+                <i class='bx bx-message-square-dots'></i> Bandeja de Entrada
+                {% if mensajes_no_leidos and mensajes_no_leidos > 0 %}
+                    <span class="badge-pulse">{{ mensajes_no_leidos }}</span>
+                {% endif %}
+            </a>
+            
+            {% if session.get('rol') in ['admin', 'superadmin', 'editor', 'moderador'] %}
+            <div class="menu-divider"></div>
+            <div class="menu-label text-purple">Administración</div>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="menu-item admin">
+                <i class='bx bx-shield-quarter'></i> Panel de Admin
+            </a>
+            {% endif %}
+
+            <div class="menu-divider"></div>
+            <a href="{{ url_for('users.ajustes') }}" class="menu-item">
+                <i class='bx bx-cog'></i> Ajustes
+            </a>
+            <a href="{{ url_for('logout') }}" class="menu-item danger">
+                <i class='bx bx-log-out-circle'></i> Cerrar Sesión
+            </a>
+        </nav>
+    </aside>
+
+    <main class="elite-main">
+
+        <header class="main-header-elite">
+            <div>
+                <h1 class="elite-title">Configuración de Perfil</h1>
+                <p class="elite-subtitle">Gestiona tus datos personales y preferencias de seguridad.</p>
+            </div>
+            
+            <div class="completion-widget">
+                <div class="completion-info">
+                    <span>Perfil completado</span>
+                    <strong class="text-brand">85%</strong>
+                </div>
+                <div class="completion-track">
+                    <div class="completion-bar" style="width: 85%;"></div>
+                </div>
+            </div>
+        </header>
+
+
+
+        <section class="elite-form-card">
+            <div class="card-header">
+                <h2><i class='bx bx-user-circle'></i> Información Pública</h2>
+                <p>Estos datos serán visibles para otros usuarios cuando interactúes en la plataforma.</p>
+            </div>
+
+            <form id="perfilForm" method="POST" enctype="multipart/form-data" action="{{ url_for('users.perfil') }}" class="settings-form">
+                <input type="hidden" name="action" value="update_profile">
+
+                <div class="form-layout-split">
+                    <div class="photo-widget">
+                        <div class="photo-wrapper">
+                            <img id="preview" src="{% if foto_filename %}{{ url_for('static', filename='uploads/usuarios/' + foto_filename) }}{% else %}{{ url_for('static', filename='img/default_user.png') }}{% endif %}" alt="Tu foto">
+                            <div class="photo-overlay">
+                                <label for="foto" class="upload-trigger">
+                                    <i class='bx bx-camera'></i>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="photo-text">
+                            <h4>Foto de Perfil</h4>
+                            <p>JPG o PNG. Máx 2MB.</p>
+                        </div>
+                        <input type="file" id="foto" name="foto" accept="image/*" style="display: none;">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Nombres</label>
+                            <input type="text" name="nombre" value="{{ usuario.nombre }}" required placeholder="Ej. Juan Carlos">
+                        </div>
+                        <div class="input-group">
+                            <label>Apellidos</label>
+                            <input type="text" name="apellidos" value="{{ usuario.apellidos or '' }}" required placeholder="Ej. Pérez">
+                        </div>
+                        <div class="input-group">
+                            <label>Teléfono Celular</label>
+                            <div class="input-icon-wrap">
+                                <i class='bx bx-phone'></i>
+                                <input type="tel" name="telefono" value="{{ usuario.telefono or '' }}" required placeholder="+57 300 000 0000" class="with-icon">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Nombre de Usuario</label>
+                            <div class="input-prefix-wrap">
+                                <span class="prefix-addon">@</span>
+                                <input type="text" name="username" value="{{ usuario.username }}" required>
+                            </div>
+                        </div>
+                        <div class="input-group full-width">
+                            <label>Correo Electrónico (Solo lectura)</label>
+                            <div class="input-icon-wrap">
+                                <i class='bx bx-envelope'></i>
+                                <input type="email" name="email" value="{{ usuario.email }}" required readonly class="readonly-input with-icon" title="El correo no se puede modificar">
+                            </div>
+                        </div>
+
+                        {% if tienda %}
+                        <div class="input-group">
+                            <label>Identificador de Tienda</label>
+                            <input type="text" value="{{ tienda.numero_id }}" readonly class="readonly-input" title="ID de tienda asignado" style="background:#e4e4e7; cursor:not-allowed;">
+                        </div>
+                        <div class="input-group full-width">
+                            <label>Sobre Mi / La Empresa</label>
+                            <textarea name="sobre_mi" rows="4" style="width: 100%; padding: 14px 20px; border: 1px solid var(--c-border); border-radius: 12px; font-size: 1rem; color: var(--c-text); background: var(--c-bg); font-family: inherit; transition: var(--transition); resize: vertical;" placeholder="Breve descripción que verán los compradores...">{{ tienda.descripcion or '' }}</textarea>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button class="btn-ultra-primary" type="submit">
+                        Guardar Cambios <i class='bx bx-check'></i>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="elite-form-card">
+            <div class="card-header">
+                <h2><i class='bx bx-shield-quarter'></i> Seguridad y Acceso</h2>
+                <p>Actualiza tu contraseña para mantener tu cuenta protegida.</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('users.perfil') }}" class="settings-form">
+                <input type="hidden" name="action" value="change_password">
+                
+                <div class="form-grid align-end">
+                    <div class="input-group full-width">
+                        <label>Contraseña Actual</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password_actual" required placeholder="Ingresa tu contraseña actual">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Nueva Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password_nueva" id="nueva_password" required placeholder="Mínimo 8 caracteres">
+                            <button type="button" class="password-toggle" data-target="nueva_password"><i class='bx bx-show'></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Confirmar Contraseña</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password_confirmar" id="confirmar_password" required placeholder="Repite la nueva contraseña">
+                            <button type="button" class="password-toggle" data-target="confirmar_password"><i class='bx bx-show'></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button class="btn-ultra-secondary" type="submit">
+                        Actualizar Contraseña
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="elite-form-card danger-zone">
+            <div class="danger-content">
+                <div class="danger-text">
+                    <h2><i class='bx bx-error-circle'></i> Desactivar Cuenta</h2>
+                    <p>Al desactivar tu cuenta, todos tus vehículos se eliminarán permanentemente y no podrás recibir mensajes de compradores.</p>
+                </div>
+                <form method="POST" action="{{ url_for('users.perfil') }}" onsubmit="return confirm('¿Seguro que deseas ELIMINAR tu cuenta permanentemente? Perderás el acceso, tus vehículos y tus mensajes. Esta acción no se puede deshacer.');" style="margin: 0;">
+                    <input type="hidden" name="action" value="delete_account">
+                    <button class="btn-danger-outline" type="submit">
+                        Eliminar mi cuenta
+                    </button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<style>
+/* ========================================================= */
+/* VARIABLES Y RESET (ELITE DASHBOARD)                       */
+/* ========================================================= */
+:root {
+    --c-brand: #FF6A00;
+    --c-brand-dark: #E64E00;
+    --c-bg: #f4f4f5;
+    --c-surface: #ffffff;
+    --c-text: #09090b;
+    --c-text-muted: #71717a;
+    --c-border: #e4e4e7;
+    --c-success: #10b981;
+    --c-danger: #ef4444;
+    --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    --radius-xl: 20px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--c-bg); color: var(--c-text); }
+
+/* Layout Global */
+.elite-dashboard-wrapper { display: flex; max-width: 1400px; margin: 30px auto 80px; padding: 0 20px; gap: 30px; }
+
+/* ========================================================= */
+/* SIDEBAR (Consistente con toda la suite)                   */
+/* ========================================================= */
+.elite-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 30px; height: fit-content; z-index: 10;}
+
+.sidebar-profile { background: var(--c-surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.profile-avatar { width: 54px; height: 54px; border-radius: 14px; overflow: hidden; background: #f4f4f5; border: 2px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-info { display: flex; flex-direction: column; }
+.profile-role { font-size: 0.75rem; color: var(--c-text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.profile-name { font-size: 1.1rem; font-weight: 800; color: var(--c-text); line-height: 1.2;}
+
+.sidebar-menu { background: var(--c-surface); border-radius: var(--radius-lg); padding: 20px 12px; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); }
+.menu-label { font-size: 0.7rem; font-weight: 800; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 12px; }
+.text-purple { color: #8b5cf6; }
+.menu-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; color: var(--c-text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: var(--transition); }
+.menu-item i { font-size: 1.3rem; width: 24px; text-align: center;}
+.menu-item:hover { background: #f4f4f5; color: var(--c-text); transform: translateX(4px);}
+.menu-item.active { background: rgba(255, 106, 0, 0.1); color: var(--c-brand); }
+.menu-item.active i { color: var(--c-brand); }
+.menu-item.admin:hover { background: #f5f3ff; color: #8b5cf6; }
+.menu-item.danger:hover { background: #fef2f2; color: #ef4444; }
+.menu-divider { height: 1px; background: var(--c-border); margin: 15px 12px; }
+
+/* Badge para mensajes */
+.badge-pulse { background: var(--c-brand); color: white; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; margin-left: auto; animation: pulse 2s infinite; box-shadow: 0 2px 8px rgba(255,106,0,0.4);}
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 106, 0, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(255, 106, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 106, 0, 0); } }
+
+/* ========================================================= */
+/* MAIN CONTENT & HEADER                                     */
+/* ========================================================= */
+.elite-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 24px;}
+
+.main-header-elite { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.elite-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+.elite-subtitle { color: var(--c-text-muted); font-size: 1rem; margin: 0; }
+
+.completion-widget { background: var(--c-surface); padding: 12px 20px; border-radius: 14px; border: 1px solid var(--c-border); box-shadow: var(--shadow-soft); min-width: 220px; }
+.completion-info { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--c-text-muted); margin-bottom: 8px; }
+.text-brand { color: var(--c-brand); font-weight: 800;}
+.completion-track { width: 100%; height: 6px; background: var(--c-bg); border-radius: 10px; overflow: hidden; }
+.completion-bar { height: 100%; background: linear-gradient(90deg, var(--c-brand), #ff9a44); border-radius: 10px; transition: width 1s ease-out; }
+
+/* Alertas Estilo Toast Fijo */
+.flash-alerts-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;}
+.elite-alert { display: flex; align-items: center; gap: 12px; background: var(--c-surface); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--c-border); box-shadow: var(--shadow-soft); font-weight: 600; font-size: 0.95rem; border-left: 4px solid var(--c-brand);}
+.elite-alert.success { border-left-color: var(--c-success); }
+.elite-alert i { font-size: 1.4rem; color: var(--c-success); }
+.elite-alert .alert-close { margin-left: auto; background: none; border: none; font-size: 1.4rem; color: var(--c-text-muted); cursor: pointer; transition: var(--transition);}
+.elite-alert .alert-close:hover { color: var(--c-text); }
+
+/* ========================================================= */
+/* FORMS & CARDS BENTO STYLE                                 */
+/* ========================================================= */
+.elite-form-card { background: var(--c-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); padding: 32px; }
+.card-header { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--c-bg); }
+.card-header h2 { font-size: 1.25rem; font-weight: 800; color: var(--c-text); display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.card-header h2 i { color: var(--c-brand); font-size: 1.5rem;}
+.card-header p { color: var(--c-text-muted); font-size: 0.95rem; margin: 0;}
+
+/* Split Layout (Foto Izq, Form Der) */
+.form-layout-split { display: flex; gap: 40px; }
+
+/* Upload Widget */
+.photo-widget { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 200px; flex-shrink: 0;}
+.photo-wrapper { position: relative; width: 140px; height: 140px; border-radius: 50%; overflow: hidden; border: 4px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.08); background: var(--c-bg); }
+.photo-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.photo-overlay { position: absolute; inset: 0; background: rgba(9, 9, 11, 0.6); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; opacity: 0; transition: var(--transition); }
+.photo-wrapper:hover .photo-overlay { opacity: 1; }
+.upload-trigger { color: white; font-size: 2rem; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;}
+.photo-text { text-align: center; }
+.photo-text h4 { margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--c-text); }
+.photo-text p { margin: 4px 0 0; font-size: 0.8rem; color: var(--c-text-muted); }
+
+/* Grid de Inputs */
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; flex: 1; }
+.form-grid.align-end { align-items: end; }
+.full-width { grid-column: 1 / -1; }
+
+.input-group { display: flex; flex-direction: column; gap: 8px; }
+.input-group label { font-size: 0.85rem; font-weight: 700; color: var(--c-text); letter-spacing: 0.3px;}
+
+/* Inputs Normales */
+.input-group input { width: 100%; padding: 14px 20px; border: 1px solid var(--c-border); border-radius: 12px; font-size: 1rem; color: var(--c-text); font-weight: 500; transition: var(--transition); background: var(--c-bg); font-family: inherit; }
+.input-group input:focus { outline: none; border-color: var(--c-brand); background: var(--c-surface); box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.1); }
+
+/* Inputs con Icono / Prefijo */
+.input-icon-wrap, .input-prefix-wrap { position: relative; display: flex; align-items: center; }
+.input-icon-wrap i { position: absolute; left: 16px; color: var(--c-text-muted); font-size: 1.2rem; pointer-events: none;}
+.input-group input.with-icon { padding-left: 45px; }
+
+.input-prefix-wrap { border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden; background: var(--c-bg); transition: var(--transition); display: flex;}
+.input-prefix-wrap:focus-within { border-color: var(--c-brand); background: var(--c-surface); box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.1); }
+.prefix-addon { padding: 0 16px; background: #e4e4e7; color: var(--c-text-muted); font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 1rem; border-right: 1px solid var(--c-border);}
+.input-prefix-wrap input { border: none !important; box-shadow: none !important; border-radius: 0; background: transparent; flex: 1;}
+
+.readonly-input { background: #e4e4e7 !important; color: var(--c-text-muted) !important; cursor: not-allowed; border-style: dashed !important;}
+
+/* Input Contraseña */
+.password-wrapper { position: relative; }
+.password-wrapper input { padding-right: 50px; }
+.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--c-text-muted); font-size: 1.2rem; cursor: pointer; transition: var(--transition); padding: 4px; display: flex; align-items: center;}
+.password-toggle:hover { color: var(--c-text); }
+
+/* Botones Formulario */
+.form-footer { display: flex; justify-content: flex-end; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--c-bg); }
+.btn-ultra-primary { background: linear-gradient(135deg, var(--c-brand) 0%, #FF4500 100%); color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 20px rgba(255, 106, 0, 0.25); }
+.btn-ultra-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 106, 0, 0.35); }
+
+.btn-ultra-secondary { background: #18181b; color: white; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: var(--transition); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); }
+.btn-ultra-secondary:hover { background: #27272a; transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2); }
+
+/* ========================================================= */
+/* DANGER ZONE                                               */
+/* ========================================================= */
+.danger-zone { border: 1px solid #fecaca; background: #fffcfc; }
+.danger-content { display: flex; justify-content: space-between; align-items: center; gap: 20px;}
+.danger-text h2 { color: var(--c-danger); font-size: 1.2rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-weight: 800;}
+.danger-text p { color: var(--c-text-muted); font-size: 0.95rem; margin: 0; line-height: 1.5;}
+.btn-danger-outline { background: white; border: 2px solid var(--c-danger); color: var(--c-danger); padding: 12px 24px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: var(--transition); white-space: nowrap; font-size: 0.95rem;}
+.btn-danger-outline:hover { background: var(--c-danger); color: white; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);}
+
+/* ========================================================= */
+/* RESPONSIVE                                                */
+/* ========================================================= */
+@media (max-width: 1024px) {
+    .elite-dashboard-wrapper { flex-direction: column; margin: 15px auto 40px; padding: 0 12px;}
+    .elite-sidebar { width: 100%; position: static; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .sidebar-profile { margin-bottom: 0; }
+}
+@media (max-width: 768px) {
+    /* Toggle & Sidebar móvil (Hamburguesa) */
+    .elite-sidebar { display: none; width: 100%; grid-template-columns: 1fr; margin-top: 10px; animation: slideDown 0.3s ease-out forwards; }
+    .elite-sidebar.show-mobile { display: block; }
+    @keyframes slideDown { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: translateY(0); } }
+
+    /* Ajustes para no verse apretado */
+    .main-header-elite { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px;}
+    .elite-title { font-size: 1.6rem; }
+    .elite-subtitle { font-size: 0.85rem; }
+    .elite-dashboard-wrapper { gap: 16px; padding: 0 10px; margin-top: 15px;}
+    
+    .form-layout-split { flex-direction: column; align-items: center; gap: 20px;}
+    .photo-widget { width: 100%; border-bottom: 1px solid var(--c-border); padding-bottom: 20px;}
+    
+    .elite-form-card { padding: 20px 16px; }
+    .card-header h2 { font-size: 1.1rem; }
+    .card-header p { font-size: 0.85rem; }
+
+    .form-grid { grid-template-columns: 1fr; width: 100%; gap: 12px;}
+    .input-group input { padding: 12px 14px; font-size: 0.95rem; border-radius: 10px; }
+    
+    .danger-content { flex-direction: column; align-items: flex-start; gap: 12px;}
+    .danger-text h2 { font-size: 1.05rem; }
+    
+    .completion-widget { width: 100%; box-sizing: border-box; }
+}
+
+/* FIX MOBILE SIDEBAR HAMBURGER */
+@media (max-width: 768px) {
+    .elite-sidebar { display: none !important; width: 100%; grid-template-columns: 1fr; margin-top: 10px; animation: slideDownElite 0.3s ease-out forwards; }
+    .elite-sidebar.show-mobile { display: block !important; }
+    @keyframes slideDownElite { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: translateY(0); } }
+    
+    .main-header-elite { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px;}
+    .elite-title { font-size: 1.6rem !important; }
+    .elite-dashboard-wrapper { gap: 16px; padding: 0 10px; margin-top: 15px;}
+    .elite-form-card { padding: 20px 16px !important; }
+    .card-header h2 { font-size: 1.2rem !important; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Previsualización de imagen fluida (Avatar)
+    document.getElementById("foto").addEventListener("change", function(e) {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById("preview").src = e.target.result;
+                document.getElementById("sidebarAvatar").src = e.target.result;
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // 1.5 Previsualización de portada fluida (Banner)
+    const fotoPortadaInput = document.getElementById("foto_portada");
+    if(fotoPortadaInput) {
+        fotoPortadaInput.addEventListener("change", function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const coverPreview = document.getElementById("coverPreview");
+                    coverPreview.src = e.target.result;
+                    coverPreview.style.display = 'block';
+                    const overlay = coverPreview.nextElementSibling;
+                    overlay.style.opacity = '0';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    // 2. Toggle password visibility (BoxIcons)
+    document.querySelectorAll(".password-toggle").forEach(toggle => {
+        toggle.addEventListener("click", function() {
+            const inputId = this.getAttribute('data-target');
+            const input = document.getElementById(inputId);
+            const icon = this.querySelector('i');
+            
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("bx-show");
+                icon.classList.add("bx-hide");
+            } else {
+                input.type = "password";
+                icon.classList.remove("bx-hide");
+                icon.classList.add("bx-show");
+            }
+        });
+    });
+});
+
+
+</script>
+{% endblock %}
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    if(mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.elite-sidebar');
+            if(sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const chevron = document.getElementById('toggleChevron');
+                if(sidebar.classList.contains('show-mobile')) {
+                    chevron.style.transform = 'rotate(180deg)';
+                    mobileToggle.style.borderColor = 'var(--c-brand)';
+                } else {
+                    chevron.style.transform = 'rotate(0deg)';
+                    mobileToggle.style.borderColor = 'var(--c-border)';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

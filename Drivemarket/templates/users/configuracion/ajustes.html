@@ -1,0 +1,655 @@
+{% extends "base.html" %}
+{% block title %}Ajustes — Drive Market{% endblock %}
+
+{% block head %}
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --brand:#FF6A00; --brand-dark:#E64E00;
+    --bg:#f4f4f5; --surface:#fff;
+    --text:#09090b; --muted:#71717a; --border:#e4e4e7;
+    --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
+    --purple:#8b5cf6; --blue:#3b82f6;
+    --r-xl:20px; --r-lg:16px; --r-md:12px;
+    --shadow:0 4px 20px -2px rgba(0,0,0,0.05);
+    --t:all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);}
+
+.cfg-wrapper{display:flex;max-width:1380px;margin:30px auto 80px;padding:0 20px;gap:28px;}
+.cfg-sidebar{width:272px;flex-shrink:0;position:sticky;top:30px;height:fit-content;display:flex;flex-direction:column;gap:14px;}
+.cfg-profile-card{background:var(--surface);border-radius:var(--r-lg);padding:22px;box-shadow:var(--shadow);border:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+.cfg-avatar{width:50px;height:50px;border-radius:13px;overflow:hidden;background:var(--bg);flex-shrink:0;}
+.cfg-avatar img{width:100%;height:100%;object-fit:cover;}
+.cfg-user-name{font-weight:800;font-size:.97rem;line-height:1.2;}
+.cfg-user-role{font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.cfg-nav{background:var(--surface);border-radius:var(--r-lg);padding:14px 8px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.cfg-nav-label{font-size:.67rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:6px 12px 10px;}
+.cfg-nav-item{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:11px;color:var(--muted);font-weight:600;font-size:.88rem;cursor:pointer;transition:var(--t);border:none;background:transparent;width:100%;text-align:left;}
+.cfg-nav-item i{font-size:1.2rem;width:20px;text-align:center;}
+.cfg-nav-item:hover{background:var(--bg);color:var(--text);}
+.cfg-nav-item.active{background:rgba(255,106,0,.1);color:var(--brand);font-weight:700;}
+.cfg-nav-item.active i{color:var(--brand);}
+.cfg-nav-divider{height:1px;background:var(--border);margin:7px 10px;}
+.back-link{display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:11px;color:var(--muted);font-size:.86rem;font-weight:600;text-decoration:none;transition:var(--t);}
+.back-link:hover{color:var(--text);background:var(--bg);}
+
+.cfg-main{flex:1;min-width:0;}
+.cfg-panel{display:none;flex-direction:column;gap:22px;animation:fadeUp .35s ease forwards;}
+.cfg-panel.active{display:flex;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.cfg-card{background:var(--surface);border-radius:var(--r-xl);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+.cfg-card-header{padding:26px 30px 18px;border-bottom:1px solid var(--bg);}
+.cfg-card-header h2{font-size:1.1rem;font-weight:800;display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.cfg-card-header h2 i{font-size:1.3rem;color:var(--brand);}
+.cfg-card-header p{color:var(--muted);font-size:.88rem;}
+.cfg-card-body{padding:22px 30px;}
+.card-footer{padding:16px 30px;border-top:1px solid var(--bg);display:flex;justify-content:flex-end;gap:12px;align-items:center;}
+
+/* TOGGLE */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--bg);}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-info h4{font-size:.94rem;font-weight:700;margin-bottom:3px;}
+.toggle-info p{font-size:.83rem;color:var(--muted);}
+.toggle-switch{position:relative;width:50px;height:26px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:34px;cursor:pointer;transition:.35s;}
+.toggle-slider::before{content:'';position:absolute;width:20px;height:20px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.35s;box-shadow:0 2px 5px rgba(0,0,0,.12);}
+.toggle-switch input:checked+.toggle-slider{background:var(--brand);}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(24px);}
+
+/* BOTONES */
+.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:white;border:none;padding:12px 24px;border-radius:var(--r-md);font-weight:700;font-size:.92rem;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(255,106,0,.25);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(255,106,0,.35);}
+.btn-secondary{background:var(--text);color:white;border:none;padding:12px 24px;border-radius:var(--r-md);font-weight:700;font-size:.92rem;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:8px;}
+.btn-secondary:hover{background:#27272a;transform:translateY(-2px);}
+.btn-outline{background:white;color:var(--text);border:1.5px solid var(--border);padding:10px 20px;border-radius:var(--r-md);font-weight:700;font-size:.86rem;cursor:pointer;transition:var(--t);}
+.btn-outline:hover{border-color:var(--text);}
+.btn-danger-soft{background:rgba(239,68,68,.08);color:var(--danger);border:1.5px solid rgba(239,68,68,.2);padding:10px 20px;border-radius:var(--r-md);font-weight:700;font-size:.86rem;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:8px;}
+.btn-danger-soft:hover{background:var(--danger);color:white;border-color:var(--danger);}
+.btn-download{background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none;padding:12px 24px;border-radius:var(--r-md);font-weight:700;font-size:.92rem;cursor:pointer;transition:var(--t);display:inline-flex;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(59,130,246,.25);text-decoration:none;}
+.btn-download:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(59,130,246,.35);}
+
+/* FLASH */
+.flash-alerts{display:flex;flex-direction:column;gap:10px;margin-bottom:4px;}
+.flash-alert{display:flex;align-items:center;gap:12px;padding:13px 17px;border-radius:var(--r-md);font-weight:600;font-size:.88rem;}
+.flash-alert.success{background:rgba(16,185,129,.1);color:#059669;border-left:4px solid var(--success);}
+.flash-alert.error{background:rgba(239,68,68,.08);color:#dc2626;border-left:4px solid var(--danger);}
+.flash-alert button{margin-left:auto;background:none;border:none;color:inherit;cursor:pointer;opacity:.7;font-size:1rem;}
+
+/* 2FA BANNER */
+.security-banner{display:flex;align-items:center;gap:16px;padding:20px 24px;border-radius:var(--r-md);margin-bottom:4px;}
+.security-banner.safe{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.25);}
+.security-banner.warning{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.3);}
+.security-banner i{font-size:2rem;}
+.security-banner.safe i{color:var(--success);}
+.security-banner.warning i{color:var(--warning);}
+.security-banner h4{font-size:.97rem;font-weight:800;margin-bottom:3px;}
+.security-banner p{font-size:.83rem;color:var(--muted);}
+
+/* HISTORIAL TABLE */
+.session-table{width:100%;border-collapse:collapse;font-size:.875rem;}
+.session-table thead tr{background:var(--bg);}
+.session-table th{padding:10px 14px;font-weight:800;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;border-bottom:1px solid var(--border);}
+.session-table td{padding:12px 14px;border-bottom:1px solid var(--bg);vertical-align:middle;}
+.session-table tr:last-child td{border-bottom:none;}
+.session-table tr:hover td{background:rgba(244,244,245,.5);}
+.device-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;font-size:.8rem;font-weight:700;background:var(--bg);color:var(--text);}
+.device-chip i{font-size:1rem;color:var(--muted);}
+.badge-current{background:rgba(16,185,129,.1);color:var(--success);padding:4px 10px;border-radius:7px;font-size:.75rem;font-weight:800;}
+
+/* DATA GRID */
+.data-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+.data-action-card{border:1.5px solid var(--border);border-radius:var(--r-md);padding:20px;transition:var(--t);}
+.data-action-card:hover{border-color:var(--brand);background:rgba(255,106,0,.02);}
+.data-action-card h4{font-size:.95rem;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.data-action-card h4 i{color:var(--brand);font-size:1.1rem;}
+.data-action-card p{font-size:.83rem;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+
+/* APP CONNECTED */
+.app-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--bg);}
+.app-row:last-child{border-bottom:none;}
+.app-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.app-icon.google{background:#fff0f0;color:#ea4335;}
+.app-icon.facebook{background:#f0f4ff;color:#1877f2;}
+.app-icon.apple{background:#f4f4f5;color:#09090b;}
+.app-name{font-weight:700;font-size:.95rem;margin-bottom:2px;}
+.app-status{font-size:.81rem;color:var(--muted);}
+.badge-connected{background:rgba(16,185,129,.1);color:var(--success);padding:4px 10px;border-radius:8px;font-size:.78rem;font-weight:800;margin-left:auto;}
+.badge-disconnected{background:var(--bg);color:var(--muted);padding:4px 10px;border-radius:8px;font-size:.78rem;font-weight:700;margin-left:auto;}
+
+/* SELECTS */
+.cfg-select-wrap{position:relative;}
+.cfg-select{width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:var(--r-md);font-size:.92rem;font-family:inherit;color:var(--text);background:var(--bg);appearance:none;cursor:pointer;transition:var(--t);}
+.cfg-select:focus{outline:none;border-color:var(--brand);background:white;box-shadow:0 0 0 4px rgba(255,106,0,.1);}
+.cfg-label{font-size:.83rem;font-weight:700;color:var(--text);margin-bottom:7px;display:block;}
+.cfg-hint{font-size:.78rem;color:var(--muted);margin-top:3px;}
+.cfg-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+/* RADIO GRID */
+.radio-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.radio-card{border:2px solid var(--border);border-radius:var(--r-md);padding:16px;cursor:pointer;transition:var(--t);display:flex;flex-direction:column;gap:7px;position:relative;}
+.radio-card:hover{border-color:var(--brand);background:rgba(255,106,0,.02);}
+.radio-card.selected{border-color:var(--brand);background:rgba(255,106,0,.04);}
+.radio-card input[type=radio]{position:absolute;opacity:0;}
+.radio-card-header{display:flex;justify-content:space-between;align-items:center;}
+.radio-card-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:var(--t);}
+.radio-card.selected .radio-card-check{border-color:var(--brand);background:var(--brand);}
+.radio-card.selected .radio-card-check::after{content:'';width:7px;height:7px;background:white;border-radius:50%;}
+.radio-card-icon{font-size:1.5rem;}
+.radio-card-title{font-weight:800;font-size:.92rem;}
+.radio-card-desc{font-size:.8rem;color:var(--muted);line-height:1.4;}
+
+/* THEME GRID */
+.theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.theme-card{border:2px solid var(--border);border-radius:var(--r-md);padding:13px;cursor:pointer;transition:var(--t);text-align:center;}
+.theme-card:hover{border-color:var(--brand);}
+.theme-card.selected{border-color:var(--brand);box-shadow:0 0 0 4px rgba(255,106,0,.1);}
+.theme-preview{height:54px;border-radius:9px;margin-bottom:9px;}
+.theme-label{font-size:.8rem;font-weight:700;color:var(--muted);}
+.theme-card.selected .theme-label{color:var(--brand);}
+
+@media(max-width:1024px){.cfg-wrapper{flex-direction:column;}.cfg-sidebar{width:100%;position:static;display:grid;grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){.cfg-sidebar{grid-template-columns:1fr;}.data-grid,.radio-grid,.theme-grid,.cfg-grid-2{grid-template-columns:1fr;}.cfg-card-body,.cfg-card-header,.card-footer{padding-left:18px;padding-right:18px;}.session-table{font-size:.78rem;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cfg-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="cfg-sidebar">
+        <div class="cfg-profile-card">
+            <div class="cfg-avatar">
+                {% set f = usuario.foto | default('') | string | trim if usuario else '' %}
+                <img src="{{ url_for('static', filename='uploads/usuarios/' + f) if f else url_for('static', filename='img/default_car.jpg') }}" 
+                     alt="Avatar"
+                     onerror="if(this.src.includes('usuarios')){ this.src='{{ url_for('static', filename='uploads/vendedores/') }}' + '{{ f }}'; } else { this.src='https://ui-avatars.com/api/?name={{ (session.get('nombre', 'U') | urlencode) }}&background=FF6A00&color=fff&size=128'; }">
+            </div>
+            <div>
+                <div class="cfg-user-name">{{ session.get('nombre', usuario.nombre) }}</div>
+                <div class="cfg-user-role">{{ usuario.rol | capitalize }}</div>
+            </div>
+        </div>
+        <nav class="cfg-nav">
+            <div class="cfg-nav-label">Configuración</div>
+            <button class="cfg-nav-item active" data-panel="notificaciones"><i class='bx bx-bell'></i> Notificaciones</button>
+            <button class="cfg-nav-item" data-panel="seguridad"><i class='bx bx-lock-alt'></i> Seguridad Avanzada</button>
+            <button class="cfg-nav-item" data-panel="privacidad"><i class='bx bx-shield'></i> Privacidad</button>
+            <button class="cfg-nav-item" data-panel="datos"><i class='bx bx-data'></i> Mis Datos</button>
+            <button class="cfg-nav-item" data-panel="apariencia"><i class='bx bx-palette'></i> Apariencia</button>
+            <button class="cfg-nav-item" data-panel="idioma"><i class='bx bx-globe'></i> Idioma y Región</button>
+            <div class="cfg-nav-divider"></div>
+            <a href="{{ url_for('users.perfil') }}" class="back-link"><i class='bx bx-arrow-back'></i> Mi Perfil</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="cfg-main">
+
+
+        <!-- ===================== NOTIFICACIONES ===================== -->
+        <div id="panel-notificaciones" class="cfg-panel active">
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-bell'></i> Preferencias de Notificaciones</h2>
+                    <p>Controla exactamente qué alertas recibes y cómo.</p>
+                </div>
+                <form method="POST" action="{{ url_for('users.ajustes') }}">
+                    <input type="hidden" name="action" value="update_notifications">
+                    <div class="cfg-card-body">
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>Mensajes de compradores</h4>
+                                <p>Notificación cuando alguien te escribe sobre un vehículo tuyo.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="notif_mensajes" {% if not prefs or prefs.notif_mensajes %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>Nuevas ofertas recibidas</h4>
+                                <p>Cuando alguien hace una oferta económica en tu vehículo.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="notif_ofertas" {% if not prefs or prefs.notif_ofertas %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>Bajada de precio en favoritos</h4>
+                                <p>Aviso cuando un vehículo guardado reduce su precio.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="notif_precio" {% if prefs and prefs.notif_precio %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>Nuevas publicaciones en mi zona</h4>
+                                <p>Vehículos publicados cerca de ti que coinciden con tu interés.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="notif_nuevas_pub" {% if prefs and prefs.notif_nuevas_pub %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>Radar de Favoritos</h4>
+                                <p>Estado de disponibilidad de los vehículos que has guardado.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="notif_favoritos" {% if prefs and prefs.notif_favoritos %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <h4>Actualizaciones de DriveMarket</h4>
+                                <p>Noticias, nuevas funciones y mejoras de la plataforma.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="notif_updates" {% if prefs and prefs.notif_updates %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Guardar preferencias</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===================== SEGURIDAD AVANZADA ===================== -->
+        <div id="panel-seguridad" class="cfg-panel">
+
+            <!-- Banner de estado 2FA -->
+            {% if prefs and prefs.dos_fa_activo %}
+            <div class="security-banner safe">
+                <i class='bx bx-check-shield'></i>
+                <div>
+                    <h4>Cuenta protegida con 2FA ✅</h4>
+                    <p>La verificación en dos pasos está activa. Tu cuenta tiene una capa extra de seguridad.</p>
+                </div>
+            </div>
+            {% else %}
+            <div class="security-banner warning">
+                <i class='bx bx-shield-x'></i>
+                <div>
+                    <h4>Verificación en 2 pasos desactivada</h4>
+                    <p>Te recomendamos activarla para proteger tu cuenta contra accesos no autorizados.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 2FA Toggle -->
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-key'></i> Verificación en 2 Pasos (2FA)</h2>
+                    <p>Añade una capa extra: cada inicio de sesión requerirá un código enviado a tu correo.</p>
+                </div>
+                <form method="POST" action="{{ url_for('users.ajustes') }}">
+                    <input type="hidden" name="action" value="toggle_2fa">
+                    <div class="cfg-card-body">
+                        <div class="toggle-row" style="padding: 0;">
+                            <div class="toggle-info">
+                                <h4>Activar verificación en 2 pasos</h4>
+                                <p>Recibirás un OTP por email en cada nuevo acceso desde un dispositivo no reconocido.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="dos_fa_activo" {% if prefs and prefs.dos_fa_activo %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Actualizar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Alertas de seguridad -->
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-bell-ring'></i> Alertas de Seguridad</h2>
+                    <p>Recibe notificaciones automáticas si detectamos actividad sospechosa en tu cuenta.</p>
+                </div>
+                <form method="POST" action="{{ url_for('users.ajustes') }}">
+                    <input type="hidden" name="action" value="toggle_alertas">
+                    <div class="cfg-card-body">
+                        <div class="toggle-row" style="padding:0;">
+                            <div class="toggle-info">
+                                <h4>Alertas de nuevo inicio de sesión</h4>
+                                <p>Te avisamos por email si se accede desde una IP o dispositivo nuevo.</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" name="alerta_nuevo_login" {% if not prefs or prefs.alerta_nuevo_login %}checked{% endif %}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Historial de sesiones -->
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-history'></i> Historial de Inicios de Sesión</h2>
+                    <p>Últimos accesos registrados a tu cuenta. Si ves algo sospechoso, cambia tu contraseña.</p>
+                </div>
+                <div class="cfg-card-body">
+                    {% if historial %}
+                    <table class="session-table">
+                        <thead>
+                            <tr>
+                                <th>Dispositivo</th>
+                                <th>Dirección IP</th>
+                                <th>Fecha y Hora</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in historial %}
+                            <tr>
+                                <td>
+                                    <div class="device-chip">
+                                        <i class='bx bx-{% if item.dispositivo == "Móvil" %}mobile{% elif item.dispositivo == "Tablet" %}tab{% else %}desktop{% endif %}'></i>
+                                        {{ item.dispositivo }}
+                                    </div>
+                                </td>
+                                <td style="font-family:monospace; color:var(--muted);">{{ item.ip }}</td>
+                                <td style="color:var(--muted);font-size:.83rem;">
+                                    {{ item.fecha.strftime('%d %b %Y · %H:%M') if item.fecha else '—' }}
+                                </td>
+                                <td>
+                                    {% if loop.first %}
+                                    <span class="badge-current">Esta sesión</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div style="text-align:center;padding:30px;color:var(--muted);">
+                        <i class='bx bx-history' style="font-size:2.5rem;display:block;margin-bottom:10px;"></i>
+                        <p>Sin historial registrado aún.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <form method="POST" action="{{ url_for('users.ajustes') }}" onsubmit="return confirm('¿Cerrar todas las otras sesiones activas?');" style="margin:0;">
+                        <input type="hidden" name="action" value="cerrar_otras_sesiones">
+                        <button type="submit" class="btn-danger-soft"><i class='bx bx-log-out'></i> Cerrar otras sesiones</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== PRIVACIDAD ===================== -->
+        <div id="panel-privacidad" class="cfg-panel">
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-shield'></i> Visibilidad de Perfil</h2>
+                    <p>Decide cómo apareces para otros usuarios de la plataforma.</p>
+                </div>
+                <form method="POST" action="{{ url_for('users.ajustes') }}">
+                    <input type="hidden" name="action" value="update_privacy">
+                    <div class="cfg-card-body">
+                        <div class="radio-grid" style="margin-bottom:24px;">
+                            <label class="radio-card {% if not prefs or prefs.visibilidad == 'publico' %}selected{% endif %}" id="rc-publico">
+                                <input type="radio" name="visibilidad" value="publico" {% if not prefs or prefs.visibilidad == 'publico' %}checked{% endif %} onchange="selectRadioCard(this)">
+                                <div class="radio-card-header">
+                                    <i class='bx bx-globe radio-card-icon' style="color:var(--brand);"></i>
+                                    <div class="radio-card-check"></div>
+                                </div>
+                                <div class="radio-card-title">Modo Público</div>
+                                <div class="radio-card-desc">Todos ven tu perfil, autos y teléfono verificado.</div>
+                            </label>
+                            <label class="radio-card {% if prefs and prefs.visibilidad == 'incognito' %}selected{% endif %}" id="rc-incognito">
+                                <input type="radio" name="visibilidad" value="incognito" {% if prefs and prefs.visibilidad == 'incognito' %}checked{% endif %} onchange="selectRadioCard(this)">
+                                <div class="radio-card-header">
+                                    <i class='bx bx-user-x radio-card-icon' style="color:var(--purple);"></i>
+                                    <div class="radio-card-check"></div>
+                                </div>
+                                <div class="radio-card-title">Modo Incógnito</div>
+                                <div class="radio-card-desc">Tus contactos se ocultan hasta que apruebes al comprador.</div>
+                            </label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info"><h4>Mostrar número de teléfono</h4><p>Los compradores verán tu teléfono en las publicaciones.</p></div>
+                            <label class="toggle-switch"><input type="checkbox" name="mostrar_telefono" {% if not prefs or prefs.mostrar_telefono %}checked{% endif %}><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="toggle-info"><h4>Aparecer en búsquedas</h4><p>Tu perfil y vehículos aparecerán en los resultados de búsqueda.</p></div>
+                            <label class="toggle-switch"><input type="checkbox" name="en_busquedas" {% if not prefs or prefs.en_busquedas %}checked{% endif %}><span class="toggle-slider"></span></label>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Actualizar privacidad</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===================== MIS DATOS ===================== -->
+        <div id="panel-datos" class="cfg-panel">
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-data'></i> Control de mis Datos</h2>
+                    <p>Gestiona, descarga o elimina la información que Drive Market tiene sobre ti.</p>
+                </div>
+                <div class="cfg-card-body">
+                    <div class="data-grid">
+                        <!-- Descargar datos -->
+                        <div class="data-action-card">
+                            <h4><i class='bx bx-cloud-download'></i> Descargar mis datos</h4>
+                            <p>Obtén un archivo PDF con toda tu información: perfil, preferencias e historial de sesiones.</p>
+                            <a href="{{ url_for('users.download_data') }}" class="btn-download">
+                                <i class='bx bx-download'></i> Descargar (.json)
+                            </a>
+                        </div>
+                        <!-- Eliminar historial de búsqueda -->
+                        <div class="data-action-card">
+                            <h4><i class='bx bx-search-alt'></i> Historial de búsquedas</h4>
+                            <p>Borra todas las búsquedas recientes guardadas asociadas a tu cuenta.</p>
+                            <form method="POST" action="{{ url_for('users.ajustes') }}" onsubmit="return confirm('¿Eliminar todo el historial de búsquedas?');" style="margin:0;">
+                                <input type="hidden" name="action" value="delete_search_history">
+                                <button type="submit" class="btn-danger-soft"><i class='bx bx-trash'></i> Borrar historial</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apps conectadas -->
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-link'></i> Apps Conectadas</h2>
+                    <p>Servicios de terceros autorizados a acceder a tu cuenta de Drive Market.</p>
+                </div>
+                <div class="cfg-card-body">
+                    <div class="app-row">
+                        <div class="app-icon google"><i class='bx bxl-google'></i></div>
+                        <div style="flex: 1;">
+                            <div class="app-name">Google</div>
+                            <div class="app-status">Inicio de sesión rápido</div>
+                        </div>
+                        
+                        {% if prefs and prefs.google_connected == 1 %}
+                            <span class="badge-connected" style="margin-left:0; margin-right:15px;">Conectado</span>
+                            <form method="POST" action="{{ url_for('users.ajustes') }}" onsubmit="return confirm('¿Seguro que deseas desvincular tu cuenta de Google?');" style="margin:0;">
+                                <input type="hidden" name="action" value="disconnect_google">
+                                <button type="submit" class="btn-outline" style="padding: 6px 14px; font-size: 0.8rem;">Desvincular</button>
+                            </form>
+                        {% else %}
+                            <span class="badge-disconnected" style="margin-left:0; margin-right:15px;">No conectado</span>
+                            <a href="{{ url_for('google_login') }}" class="btn-outline" style="text-decoration:none; padding: 6px 14px; font-size: 0.8rem;">Vincular</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== APARIENCIA ===================== -->
+        <div id="panel-apariencia" class="cfg-panel">
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-palette'></i> Apariencia</h2>
+                    <p>Personaliza cómo se ve DriveMarket para ti. Se guarda en tu navegador.</p>
+                </div>
+                <div class="cfg-card-body">
+                    <p class="cfg-label">Tema de color</p>
+                    <div class="theme-grid" style="margin-bottom:28px;">
+                        <div class="theme-card selected" onclick="selectTheme(this,'light')">
+                            <div class="theme-preview" style="background:linear-gradient(135deg,#f4f4f5,#e4e4e7);"></div>
+                            <div class="theme-label">Claro</div>
+                        </div>
+                        <div class="theme-card" onclick="selectTheme(this,'dark')">
+                            <div class="theme-preview" style="background:linear-gradient(135deg,#18181b,#09090b);"></div>
+                            <div class="theme-label">Oscuro</div>
+                        </div>
+                        <div class="theme-card" onclick="selectTheme(this,'system')">
+                            <div class="theme-preview" style="background:linear-gradient(135deg,#f4f4f5 50%,#18181b 50%);"></div>
+                            <div class="theme-label">Sistema</div>
+                        </div>
+                    </div>
+                    <label class="cfg-label">Tamaño de texto</label>
+                    <input type="range" min="1" max="3" value="2" id="textSizeRange" style="width:100%;accent-color:var(--brand);margin-bottom:6px;" oninput="previewTextSize(this.value)">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:24px;">
+                        <span class="cfg-hint">Pequeño</span>
+                        <span class="cfg-hint" id="sizeLabel">Normal</span>
+                        <span class="cfg-hint">Grande</span>
+                    </div>
+                    <div class="toggle-row" style="padding:0;">
+                        <div class="toggle-info"><h4>Animaciones reducidas</h4><p>Desactiva animaciones para una experiencia más simple.</p></div>
+                        <label class="toggle-switch"><input type="checkbox" id="reduceMotion"><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-primary" onclick="saveAppearance()"><i class='bx bx-check'></i> Aplicar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===================== IDIOMA & REGIÓN ===================== -->
+        <div id="panel-idioma" class="cfg-panel">
+            <div class="cfg-card">
+                <div class="cfg-card-header">
+                    <h2><i class='bx bx-globe'></i> Idioma y Región</h2>
+                    <p>Configura el idioma de la interfaz y tu zona horaria.</p>
+                </div>
+                <form method="POST" action="{{ url_for('users.ajustes') }}">
+                    <input type="hidden" name="action" value="update_locale">
+                    <div class="cfg-card-body">
+                        <div class="cfg-grid-2">
+                            <div>
+                                <label class="cfg-label">Idioma de la interfaz</label>
+                                <div class="cfg-select-wrap">
+                                    <select class="cfg-select" name="idioma">
+                                        <option value="es" selected>🇨🇴 Español (Colombia)</option>
+                                        <option value="en">🇺🇸 English</option>
+                                        <option value="pt">🇧🇷 Português</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="cfg-label">Zona Horaria</label>
+                                <div class="cfg-select-wrap">
+                                    <select class="cfg-select" name="timezone">
+                                        <option value="America/Bogota" selected>América/Bogotá (UTC-5)</option>
+                                        <option value="America/New_York">América/Nueva York</option>
+                                        <option value="America/Mexico_City">América/Ciudad de México</option>
+                                        <option value="Europe/Madrid">Europa/Madrid</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top:18px;">
+                            <label class="cfg-label">Formato de moneda</label>
+                            <div class="cfg-select-wrap" style="max-width:280px;">
+                                <select class="cfg-select" name="moneda">
+                                    <option value="COP" selected>Peso Colombiano (COP $)</option>
+                                    <option value="USD">Dólar Americano (USD $)</option>
+                                    <option value="EUR">Euro (€)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn-primary"><i class='bx bx-save'></i> Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+// TAB NAVIGATION
+document.querySelectorAll('.cfg-nav-item[data-panel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.cfg-nav-item').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.cfg-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+    });
+});
+
+// RADIO CARD
+document.querySelectorAll('.radio-card input[type=radio]').forEach(input => {
+    if(input.checked) input.closest('.radio-card').classList.add('selected');
+    input.addEventListener('change', function(){
+        selectRadioCard(this);
+    });
+});
+function selectRadioCard(input){
+    document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+    input.closest('.radio-card').classList.add('selected');
+}
+
+// THEME
+function selectTheme(card, theme){
+    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    localStorage.setItem('dm_theme', theme);
+}
+
+// TEXT SIZE
+const sizeLabels = {'1':'Pequeño','2':'Normal','3':'Grande'};
+function previewTextSize(val){ document.getElementById('sizeLabel').textContent = sizeLabels[val]; }
+
+// SAVE APPEARANCE
+function saveAppearance(){
+    const size = document.getElementById('textSizeRange').value;
+    const reduced = document.getElementById('reduceMotion').checked;
+    localStorage.setItem('dm_textSize', size);
+    localStorage.setItem('dm_reducedMotion', reduced);
+    showToast('¡Apariencia guardada!', 'success');
+}
+
+// TOAST
+function showToast(msg, type='success'){
+    const t = document.createElement('div');
+    const color = type === 'success' ? '#10b981' : '#ef4444';
+    const icon  = type === 'success' ? 'bx-check-circle' : 'bx-error-circle';
+    t.style.cssText = `position:fixed;bottom:24px;right:24px;background:#18181b;color:white;padding:14px 20px;border-radius:12px;font-weight:700;font-size:.88rem;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;animation:slideIn .3s ease;`;
+    t.innerHTML = `<i class='bx ${icon}' style="font-size:1.2rem;color:${color};"></i> ${msg}`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+}
+</script>
+{% endblock %}

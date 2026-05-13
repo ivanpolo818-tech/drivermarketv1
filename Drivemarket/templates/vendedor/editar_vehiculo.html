@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Editar Vehículo | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Padding+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'mis_vehiculos' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <!-- Header -->
+    <div class="db-page-header">
+      <div>
+        <h1><i class="fas fa-pen" style="color:var(--pr);margin-right:10px;font-size:1.2rem;"></i>Editar Vehículo</h1>
+        <p>Modifica los datos de tu publicación</p>
+      </div>
+      <a href="{{ url_for('vendedor.mis_vehiculos') }}" class="db-btn" style="background:var(--card);border:1px solid var(--bd);color:var(--t1);">
+        <i class="fas fa-arrow-left"></i> Volver
+      </a>
+    </div>
+
+
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+
+      <!-- Main form -->
+      <form method="POST" action="{{ url_for('vendedor.editar_vehiculo', vid=vehiculo.id) }}">
+        <!-- Vehicle info -->
+        <div class="db-card" style="margin-bottom:16px;">
+          <div class="db-card-head">
+            <div><h2>Información del vehículo</h2><p>Puedes ajustar año y placa aquí.</p></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;padding-top:4px;">
+            <div>
+              <label style="font-size:.75rem;font-weight:600;color:var(--t2);display:block;margin-bottom:5px;">Marca</label>
+              <div style="padding:9px 12px;background:var(--bd-l);border-radius:8px;font-size:.84rem;color:var(--t2);font-weight:500;">{{ vehiculo.marca_nombre or '—' }}</div>
+            </div>
+            <div>
+              <label style="font-size:.75rem;font-weight:600;color:var(--t2);display:block;margin-bottom:5px;">Año</label>
+              <input type="number" name="anio" value="{{ vehiculo.anio or '' }}" min="1950" max="2100"
+                     style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--t1);font-size:.84rem;font-weight:500;box-sizing:border-box;">
+            </div>
+            <div>
+              <label style="font-size:.75rem;font-weight:600;color:var(--t2);display:block;margin-bottom:5px;">Placa</label>
+              <input type="text" name="placa" value="{{ vehiculo.placa or '' }}" maxlength="10"
+                     style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--t1);font-size:.84rem;font-weight:500;box-sizing:border-box;text-transform:uppercase;">
+            </div>
+          </div>
+        <!-- Hidden inputs for AI metadata -->
+        <input type="hidden" id="marca" value="{{ vehiculo.marca_nombre }}">
+        <input type="hidden" id="modelo" value="{{ vehiculo.modelo_nombre }}">
+        <input type="hidden" id="otro_modelo" value="">
+        </div>
+
+        <!-- Editable fields -->
+        <div class="db-card" style="margin-bottom:16px;">
+          <div class="db-card-head">
+            <div><h2><i class="fas fa-edit" style="color:var(--pr);"></i> Datos editables</h2></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding-top:4px;">
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;">Precio (COP) *</label>
+              <div style="position:relative;">
+                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-weight:700;">$</span>
+                <input type="number" name="precio" value="{{ vehiculo.precio or 0 }}" required min="0"
+                       style="width:100%;padding:10px 12px 10px 26px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;"
+                       onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;">Kilometraje</label>
+              <div style="position:relative;">
+                <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.75rem;">km</span>
+                <input type="number" name="kilometraje" value="{{ vehiculo.kilometraje or 0 }}" min="0"
+                       style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;"
+                       onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+              </div>
+            </div>
+
+            <div style="grid-column:span 2;">
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;">Ciudad de venta</label>
+              <input type="text" name="ciudad_venta" value="{{ vehiculo.ciudad_venta or '' }}" placeholder="Ej: Bogotá, Medellín..."
+                     style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;"
+                     onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;">Versión / Línea</label>
+              <input type="text" name="version" value="{{ vehiculo.version or '' }}" placeholder="Ej: Touring, LX, GT..."
+                     style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;"
+                     onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+            </div>
+
+            <div style="grid-column:span 2;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin:0;">Descripción</label>
+                <button type="button" id="btn-generar-ia" class="db-btn db-btn-ghost" style="padding:4px 10px; font-size:.7rem; border-color:var(--vi); color:var(--vi); height:auto;">
+                  <i class="fas fa-magic"></i> ✨ Mejorar con IA
+                </button>
+              </div>
+              <textarea id="descripcion" name="descripcion" rows="6" placeholder="Actualiza la descripción de tu anuncio"
+                        style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;resize:vertical;"
+                        onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">{{ vehiculo.descripcion or '' }}</textarea>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;grid-column:span 2;">
+              <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;">
+                <input type="checkbox" name="negociable" {% if vehiculo.negociable %}checked{% endif %}
+                       style="opacity:0;width:0;height:0;" id="toggleNeg">
+                <span id="sliderNeg"
+                      style="position:absolute;inset:0;background:{% if vehiculo.negociable %}var(--pr){% else %}var(--bd){% endif %};border-radius:22px;transition:.3s;">
+                  <span style="position:absolute;left:3px;bottom:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.3s;transform:{% if vehiculo.negociable %}translateX(18px){% else %}translateX(0){% endif %};"></span>
+                </span>
+              </label>
+              <span style="font-size:.84rem;font-weight:600;color:var(--t1);">Precio negociable</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Ficha Mecánica -->
+        <div class="db-card" style="margin-bottom:16px;">
+          <div class="db-card-head">
+            <div><h2><i class="fas fa-cogs" style="color:var(--pr);"></i> Ficha Mecánica</h2></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding-top:4px;">
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;"><i class="fas fa-cogs"></i> Transmisión</label>
+              <select name="transmision" style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;">
+                <option value="">Sin especificar</option>
+                <option value="Automática" {{ 'selected' if vehiculo.transmision == 'Automática' }}>Automática</option>
+                <option value="Manual" {{ 'selected' if vehiculo.transmision == 'Manual' }}>Manual</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;"><i class="fas fa-gas-pump"></i> Combustible</label>
+              <select name="combustible" style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;">
+                <option value="">Sin especificar</option>
+                <option value="Gasolina" {{ 'selected' if vehiculo.combustible == 'Gasolina' }}>Gasolina</option>
+                <option value="Diésel" {{ 'selected' if vehiculo.combustible == 'Diésel' }}>Diésel</option>
+                <option value="Híbrido" {{ 'selected' if vehiculo.combustible == 'Híbrido' }}>Híbrido</option>
+                <option value="Eléctrico" {{ 'selected' if vehiculo.combustible == 'Eléctrico' }}>Eléctrico</option>
+                <option value="Gas" {{ 'selected' if vehiculo.combustible == 'Gas' }}>Gas Natural</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;"><i class="fas fa-dharmachakra"></i> Motor (CC / L)</label>
+              <input type="text" name="motor" value="{{ vehiculo.motor or '' }}" placeholder="Ej: 1600cc, 2.0L"
+                     style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;"
+                     onfocus="this.style.borderColor='var(--pr)'" onblur="this.style.borderColor='var(--bd)'">
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;"><i class="fas fa-truck-pickup"></i> Tracción</label>
+              <select name="traccion" style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;">
+                <option value="">Sin especificar</option>
+                <option value="4x2" {{ 'selected' if vehiculo.traccion == '4x2' }}>4x2 (FWD/RWD)</option>
+                <option value="4x4" {{ 'selected' if vehiculo.traccion == '4x4' }}>4x4 / AWD</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size:.78rem;font-weight:600;color:var(--t2);display:block;margin-bottom:6px;"><i class="fas fa-door-open"></i> Núm. Puertas</label>
+              <select name="puertas" style="width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--t1);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;box-sizing:border-box;">
+                <option value="">Sin especificar</option>
+                <option value="2" {{ 'selected' if vehiculo.puertas|string == '2' }}>2 Puertas</option>
+                <option value="3" {{ 'selected' if vehiculo.puertas|string == '3' }}>3 Puertas</option>
+                <option value="4" {{ 'selected' if vehiculo.puertas|string == '4' }}>4 Puertas</option>
+                <option value="5" {{ 'selected' if vehiculo.puertas|string == '5' }}>5 Puertas</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <a href="{{ url_for('vendedor.mis_vehiculos') }}"
+             style="padding:11px 22px;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--t1);font-size:.86rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+            Cancelar
+          </a>
+          <button type="submit"
+                  style="padding:11px 26px;border-radius:10px;border:none;background:var(--pr);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;transition:background .2s;display:inline-flex;align-items:center;gap:6px;"
+                  onmouseover="this.style.background='var(--pr-d)'" onmouseout="this.style.background='var(--pr)'">
+            <i class="fas fa-save"></i> Guardar cambios
+          </button>
+        </div>
+      </form>
+
+      <!-- Sidebar: Current images -->
+      <div>
+        <div class="db-card">
+          <div class="db-card-head">
+            <div><h2><i class="fas fa-images" style="color:var(--pr);"></i> Fotos actuales</h2></div>
+          </div>
+          {% if imagenes %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+            {% for img in imagenes %}
+            <div style="border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:var(--bd-l);position:relative;">
+              <img src="{{ url_for('static', filename=img.url_imagen) }}" alt="Foto"
+                   style="width:100%;height:100%;object-fit:cover;"
+                   onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:var(--t3);\'><i class=\'fas fa-image\' style=\'font-size:1.5rem;\'></i></div>'">
+              <form method="POST" action="{{ url_for('vendedor.eliminar_imagen_vehiculo', vid=vehiculo.id, img_id=img.id) }}" style="position:absolute;top:6px;right:6px;">
+                <button type="submit" style="border:none;background:rgba(0,0,0,.6);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div style="padding:24px;text-align:center;color:var(--t3);">
+            <i class="fas fa-image" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+            <span style="font-size:.82rem;">Sin fotos subidas aún</span>
+          </div>
+          {% endif %}
+          <div style="margin-top:12px;padding:10px;border:1px dashed var(--bd);border-radius:10px;background:var(--bd-l);">
+            <p style="margin:0 0 8px;font-size:.78rem;color:var(--t2);display:flex;align-items:center;gap:8px;">
+              <i class="fas fa-cloud-upload-alt" style="color:var(--pr);"></i> Puedes subir nuevas imágenes (máx 5MB c/u).
+            </p>
+            <form method="POST" action="{{ url_for('vendedor.subir_imagen_vehiculo', vid=vehiculo.id) }}" enctype="multipart/form-data" style="display:flex;gap:10px;align-items:center;">
+              <label style="flex:1;display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid var(--bd);border-radius:9px;cursor:pointer;">
+                <i class="fas fa-image" style="color:var(--t3);"></i>
+                <span id="fileLabel" style="color:var(--t2);font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Elige un archivo</span>
+                <input type="file" name="imagen" accept="image/*" required style="display:none;" onchange="document.getElementById('fileLabel').textContent = this.files[0]?.name || 'Elige un archivo';">
+              </label>
+              <button type="submit" class="db-btn" style="padding:10px 16px;border:none;background:var(--pr);color:#fff;border-radius:9px;font-weight:700;cursor:pointer;">Subir</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Quick status change -->
+        <div class="db-card" style="margin-top:16px;">
+          <div class="db-card-head">
+            <div><h2><i class="fas fa-toggle-on" style="color:var(--pr);"></i> Estado rápido</h2></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+            {% for est, label, icon, color in [
+              ('activo','Publicar / Activar','fa-play-circle','#10B981'),
+              ('pausado','Pausar publicación','fa-pause-circle','#6B7280'),
+              ('vendido','Marcar como vendido','fa-check-circle','#3B82F6')
+            ] %}
+            <button onclick="cambiarEstadoEdit({{ vehiculo.id }},'{{ est }}')"
+                    style="padding:10px 14px;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--t1);font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;font-family:'Inter',sans-serif;width:100%;"
+                    onmouseover="this.style.borderColor='{{ color }}';this.style.color='{{ color }}';"
+                    onmouseout="this.style.borderColor='var(--bd)';this.style.color='var(--t1)';">
+              <i class="fas {{ icon }}" style="color:{{ color }};"></i> {{ label }}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/vendedor_edit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/listing_tools.js') }}"></script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

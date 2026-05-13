@@ -1,0 +1,611 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Editar Usuario · {{ usuario.username }}{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- UNSAVED CHANGES WARNING (handled by JS) -->
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="{{ url_for('admin.admin_usuarios') }}">Usuarios</a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="{{ url_for('admin.ver_usuario', id=usuario.id) }}">{{ usuario.nombre }}</a>
+          <i class="fas fa-chevron-right"></i>
+          <span>Editar</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="unsaved-indicator" id="unsavedIndicator" style="display:none">
+          <i class="fas fa-circle"></i> Cambios sin guardar
+        </div>
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <a href="{{ url_for('admin.ver_usuario', id=usuario.id) }}" class="btn-back-top">
+          <i class="fas fa-arrow-left"></i> Volver
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas fa-user-edit"></i></div>
+        <div>
+          <h1>Editar Usuario</h1>
+          <p class="subtext">Modificando el perfil de <strong>@{{ usuario.username }}</strong> — ID #{{ usuario.id }}</p>
+        </div>
+      </div>
+      <!-- FLASH -->
+      <div class="form-layout">
+        <!-- PREVIEW CARD -->
+        <div class="preview-card">
+          <div class="preview-label"><i class="fas fa-id-badge"></i> Vista Previa</div>
+          <div class="p-avatar" id="pAvatar">{{ usuario.nombre[0]|upper }}</div>
+          <div class="p-name" id="pName">{{ usuario.nombre }}</div>
+          <div class="p-username" id="pUsername">@{{ usuario.username }}</div>
+          <div class="p-role" id="pRole">
+            <i class="fas fa-user"></i> <span id="pRoleTxt">{{ usuario.rol|capitalize }}</span>
+          </div>
+          <div class="p-status" id="pStatus">
+            <span class="st-dot" id="pStatusDot"></span>
+            <span id="pStatusTxt">{{ usuario.estado|capitalize }}</span>
+          </div>
+          <div class="p-divider"></div>
+          <div class="p-info-row">
+            <i class="fas fa-envelope"></i>
+            <span id="pEmail">{{ usuario.email }}</span>
+          </div>
+          <div class="p-info-row">
+            <i class="fas fa-hashtag"></i>
+            <span>ID #{{ usuario.id }}</span>
+          </div>
+          <!-- Danger zone -->
+          <div class="danger-zone">
+            <div class="dz-label"><i class="fas fa-exclamation-triangle"></i> Zona Peligrosa</div>
+            <form method="POST" action="{{ url_for('admin.borrar_usuario', id=usuario.id) }}" id="deleteForm" style="display:none"></form>
+            <button type="button" class="dz-btn" onclick="confirmDelete()">
+              <i class="fas fa-trash-alt"></i> Eliminar Usuario
+            </button>
+          </div>
+        </div>
+        <!-- FORM CARD -->
+        <div class="form-card">
+          <form method="POST" id="editForm" novalidate>
+            <!-- SECTION 1: Personal -->
+            <div class="form-section">
+              <div class="section-hd">
+                <span class="step-chip">01</span>
+                <h3>Información Personal</h3>
+              </div>
+              <div class="form-grid">
+                <div class="fg">
+                  <label for="nombre">Nombre completo <span class="req">*</span></label>
+                  <div class="iw">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="nombre" name="nombre"
+                           value="{{ usuario.nombre }}" required
+                           oninput="markDirty();updatePreview()">
+                  </div>
+                  <span class="field-err" id="err-nombre"></span>
+                </div>
+                <div class="fg">
+                  <label for="email">Correo electrónico <span class="req">*</span></label>
+                  <div class="iw">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" name="email"
+                           value="{{ usuario.email }}" required
+                           oninput="markDirty();updatePreview()">
+                  </div>
+                  <span class="field-err" id="err-email"></span>
+                </div>
+                {% if usuario.telefono is defined %}
+                <div class="fg">
+                  <label for="telefono">Teléfono</label>
+                  <div class="iw">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="telefono" name="telefono"
+                           value="{{ usuario.telefono|default('') }}"
+                           placeholder="Opcional"
+                           oninput="markDirty()">
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            <!-- SECTION 2: Access -->
+            <div class="form-section">
+              <div class="section-hd">
+                <span class="step-chip">02</span>
+                <h3>Datos de Acceso</h3>
+              </div>
+              <div class="form-grid">
+                <div class="fg">
+                  <label for="username">Nombre de usuario <span class="req">*</span></label>
+                  <div class="iw">
+                    <i class="fas fa-at"></i>
+                    <input type="text" id="username" name="username"
+                           value="{{ usuario.username }}" required
+                           oninput="markDirty();updatePreview()">
+                  </div>
+                  <span class="field-err" id="err-username"></span>
+                </div>
+                <div class="fg">
+                  <label for="password_reset">Nueva Contraseña</label>
+                  <div class="iw">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password_reset" name="password_reset"
+                           placeholder="Dejar vacío para no cambiar"
+                           oninput="markDirty();checkStrength(this.value)">
+                    <button type="button" class="pw-toggle" onclick="togglePw()">
+                      <i class="fas fa-eye" id="pwIcon"></i>
+                    </button>
+                  </div>
+                  <div class="strength-bar">
+                    <div class="strength-fill" id="strengthFill"></div>
+                  </div>
+                  <span class="strength-label" id="strengthLabel"></span>
+                </div>
+              </div>
+            </div>
+            <!-- SECTION 3: Permissions -->
+            <div class="form-section">
+              <div class="section-hd">
+                <span class="step-chip">03</span>
+                <h3>Permisos y Estado</h3>
+              </div>
+              <!-- Role cards -->
+              <div class="fg fg-full" style="margin-bottom:1.2rem;">
+                <label>Rol del usuario <span class="req">*</span></label>
+                                <div class="role-cards" id="roleCards">
+                  <label class="role-card role-comprador {{ 'rc-active' if usuario.rol == 'comprador' else '' }}" data-val="comprador">
+                    <input type="radio" name="rol" value="comprador" {{ 'checked' if usuario.rol == 'comprador' else '' }} onchange="markDirty();updatePreview()">
+                    <div class="rc-icon"><i class="fas fa-user"></i></div>
+                    <div class="rc-body"><b>Comprador</b></div>
+                    <i class="fas fa-check-circle rc-chk"></i>
+                  </label>
+                  <label class="role-card role-vendedor {{ 'rc-active' if usuario.rol == 'vendedor' else '' }}" data-val="vendedor">
+                    <input type="radio" name="rol" value="vendedor" {{ 'checked' if usuario.rol == 'vendedor' else '' }} onchange="markDirty();updatePreview()">
+                    <div class="rc-icon"><i class="fas fa-store"></i></div>
+                    <div class="rc-body"><b>Vendedor</b></div>
+                    <i class="fas fa-check-circle rc-chk"></i>
+                  </label>
+
+                  <!-- Los roles de staff solo se pueden asignar/cambiar si el que edita es superadmin -->
+                  {% set soy_superadmin = (session.get('rol') == 'superadmin') %}
+                  {% set es_staff = (usuario.rol in ['editor', 'moderador', 'admin', 'superadmin']) %}
+
+                  <label class="role-card role-editor {{ 'rc-active rc-editor-active' if usuario.rol == 'editor' else '' }} {{ 'rc-disabled' if not soy_superadmin else '' }}" data-val="editor">
+                    <input type="radio" name="rol" value="editor" {{ 'checked' if usuario.rol == 'editor' else '' }} {{ 'disabled' if not soy_superadmin else '' }} onchange="markDirty();updatePreview()">
+                    <div class="rc-icon"><i class="fas fa-edit"></i></div>
+                    <div class="rc-body"><b>Editor</b></div>
+                    <i class="fas fa-check-circle rc-chk"></i>
+                  </label>
+                  <label class="role-card role-moderador {{ 'rc-active rc-moderador-active' if usuario.rol == 'moderador' else '' }} {{ 'rc-disabled' if not soy_superadmin else '' }}" data-val="moderador">
+                    <input type="radio" name="rol" value="moderador" {{ 'checked' if usuario.rol == 'moderador' else '' }} {{ 'disabled' if not soy_superadmin else '' }} onchange="markDirty();updatePreview()">
+                    <div class="rc-icon"><i class="fas fa-gavel"></i></div>
+                    <div class="rc-body"><b>Moderador</b></div>
+                    <i class="fas fa-check-circle rc-chk"></i>
+                  </label>
+                  <label class="role-card role-admin {{ 'rc-active rc-admin-active' if usuario.rol == 'admin' else '' }} {{ 'rc-disabled' if not soy_superadmin else '' }}" data-val="admin">
+                    <input type="radio" name="rol" value="admin" {{ 'checked' if usuario.rol == 'admin' else '' }} {{ 'disabled' if not soy_superadmin else '' }} onchange="markDirty();updatePreview()">
+                    <div class="rc-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="rc-body"><b>Admin</b></div>
+                    <i class="fas fa-check-circle rc-chk"></i>
+                  </label>
+                  <label class="role-card role-superadmin {{ 'rc-active rc-superadmin-active' if usuario.rol == 'superadmin' else '' }} {{ 'rc-disabled' if not soy_superadmin else '' }}" data-val="superadmin">
+                    <input type="radio" name="rol" value="superadmin" {{ 'checked' if usuario.rol == 'superadmin' else '' }} {{ 'disabled' if not soy_superadmin else '' }} onchange="markDirty();updatePreview()">
+                    <div class="rc-icon"><i class="fas fa-crown"></i></div>
+                    <div class="rc-body"><b>Superadmin</b></div>
+                    <i class="fas fa-check-circle rc-chk"></i>
+                  </label>
+
+                  {% if not soy_superadmin %}
+                  <div class="role-alert">
+                    <i class="fas fa-info-circle"></i> Solo el <b>Administrador Principal</b> puede asignar o modificar roles administrativos.
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              <!-- Status cards -->
+              <div class="fg fg-full">
+                <label>Estado de la cuenta <span class="req">*</span></label>
+                <div class="status-cards" id="statusCards">
+                  <label class="sc sc-green {{ 'sc-active' if usuario.estado == 'activo' else '' }}">
+                    <input type="radio" name="estado" value="activo" {{ 'checked' if usuario.estado == 'activo' else '' }} onchange="markDirty();updatePreview()">
+                    <i class="fas fa-check-circle"></i> Activo
+                  </label>
+                  <label class="sc sc-amber {{ 'sc-active' if usuario.estado == 'inactivo' else '' }}">
+                    <input type="radio" name="estado" value="inactivo" {{ 'checked' if usuario.estado == 'inactivo' else '' }} onchange="markDirty();updatePreview()">
+                    <i class="fas fa-pause-circle"></i> Inactivo
+                  </label>
+                  <label class="sc sc-red {{ 'sc-active' if usuario.estado == 'bloqueado' else '' }}">
+                    <input type="radio" name="estado" value="bloqueado" {{ 'checked' if usuario.estado == 'bloqueado' else '' }} onchange="markDirty();updatePreview()">
+                    <i class="fas fa-ban"></i> Bloqueado
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- FOOTER -->
+            <div class="form-foot">
+              <a href="{{ url_for('admin.ver_usuario', id=usuario.id) }}" class="btn-cancel" id="cancelBtn">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+              <button type="button" class="btn-discard" onclick="discardChanges()">
+                <i class="fas fa-undo"></i> Descartar
+              </button>
+              <button type="submit" class="btn-save" id="saveBtn">
+                <i class="fas fa-save"></i> Guardar Cambios
+              </button>
+            </div>
+          </form>
+        </div>
+      </div><!-- /form-layout -->
+    </div><!-- /page-content -->
+  </main>
+</div>
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-backdrop" id="delModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+    <h3>¿Eliminar usuario?</h3>
+    <p>¿Eliminar a <strong>{{ usuario.nombre }}</strong>? Esta acción es <strong>irreversible</strong>.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-confirm" onclick="document.getElementById('deleteForm').submit()">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+<div class="toast-cont" id="toastCont"></div>
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e5e7eb;--text:#0f172a;--text2:#64748b;
+  --primary:#6366f1;--primary2:#a855f7;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#162032;
+  --border:#334155;--text:#f1f5f9;--text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.8rem;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.unsaved-indicator{display:flex;align-items:center;gap:.4rem;padding:.35rem .85rem;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:8px;color:#d97706;font-size:.78rem;font-weight:700;animation:blinkPulse 2s ease-in-out infinite;}
+@keyframes blinkPulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.unsaved-indicator i{font-size:.55rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-back-top{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-back-top:hover{border-color:var(--primary);color:var(--primary);}
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.5rem;}
+.page-heading{display:flex;align-items:center;gap:1rem;}
+.page-heading h1{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;}
+.subtext{color:var(--text2);font-size:.88rem;margin-top:.2rem;}
+.heading-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0;box-shadow:0 6px 16px rgba(245,158,11,.3);}
+.flash{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:600;animation:slideDown .3s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
+.flash-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#059669;}
+.flash-danger,.flash-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+.flash-close{margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;opacity:.6;}
+.form-layout{display:grid;grid-template-columns:260px 1fr;gap:1.5rem;align-items:start;}
+/* Preview card */
+.preview-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem;display:flex;flex-direction:column;align-items:center;gap:.75rem;text-align:center;position:sticky;top:78px;}
+.preview-label{font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:.4rem;align-self:flex-start;}
+.preview-label i{color:var(--primary);}
+.p-avatar{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#fff;box-shadow:0 6px 16px rgba(99,102,241,.3);transition:background .3s;}
+.p-name{font-size:.95rem;font-weight:700;}
+.p-username{font-size:.8rem;color:var(--text2);}
+.p-role{display:flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:20px;font-size:.75rem;font-weight:700;background:rgba(99,102,241,.1);color:var(--primary);border:1px solid rgba(99,102,241,.2);transition:all .3s;}
+.p-status{display:flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.72rem;font-weight:700;transition:all .3s;}
+.st-act{background:rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.st-act .st-dot{background:#10b981;}
+.st-ina{background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.st-ina .st-dot{background:#f59e0b;}
+.st-blk{background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.st-blk .st-dot{background:#ef4444;}
+.st-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.p-divider{width:100%;height:1px;background:var(--border);}
+.p-info-row{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--text2);width:100%;text-align:left;}
+.p-info-row i{color:var(--primary);width:14px;flex-shrink:0;}
+.p-info-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.danger-zone{width:100%;margin-top:.5rem;padding:.8rem;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;}
+.dz-label{font-size:.68rem;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;display:flex;align-items:center;gap:.35rem;}
+.dz-btn{width:100%;padding:.5rem;background:none;border:1px solid rgba(239,68,68,.3);border-radius:8px;color:#dc2626;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.4rem;}
+.dz-btn:hover{background:#ef4444;color:#fff;border-color:#ef4444;}
+/* Form card */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:2rem;}
+.form-section{margin-bottom:1.8rem;padding-bottom:1.8rem;border-bottom:1px solid var(--border);}
+.form-section:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.section-hd{display:flex;align-items:center;gap:.75rem;margin-bottom:1.1rem;}
+.section-hd h3{font-size:.95rem;font-weight:700;}
+.step-chip{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);font-size:.68rem;font-weight:800;padding:.25rem .6rem;border-radius:6px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}
+.fg{display:flex;flex-direction:column;gap:.4rem;}
+.fg-full{grid-column:span 2;}
+.fg label{font-size:.8rem;font-weight:600;color:var(--text2);}
+.req{color:#ef4444;}
+.iw{position:relative;display:flex;align-items:center;}
+.iw > i:first-child{position:absolute;left:.9rem;color:var(--text2);font-size:.85rem;pointer-events:none;}
+.iw input{width:100%;padding:.65rem .9rem .65rem 2.4rem;border:1.5px solid var(--border);border-radius:10px;font-size:.88rem;color:var(--text);background:var(--surface);transition:all .2s;outline:none;}
+.iw input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.12);}
+.iw input:valid:not(:placeholder-shown){border-color:#10b981;}
+.pw-toggle{position:absolute;right:.75rem;background:none;border:none;color:var(--text2);cursor:pointer;font-size:.85rem;transition:color .2s;}
+.pw-toggle:hover{color:var(--primary);}
+.field-err{font-size:.74rem;color:#ef4444;display:none;}
+.fg.has-error .iw input{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.1);}
+.fg.has-error .field-err{display:block;}
+.strength-bar{height:3px;background:var(--border);border-radius:2px;margin-top:.4rem;overflow:hidden;}
+.strength-fill{height:100%;border-radius:2px;width:0;transition:width .4s,background .4s;}
+.strength-label{font-size:.7rem;font-weight:600;}
+/* Role cards */
+.role-cards{display:flex;gap:.7rem;flex-wrap:wrap;}
+.role-card{display:flex;align-items:center;gap:.65rem;padding:.8rem 1rem;border:1.5px solid var(--border);border-radius:11px;cursor:pointer;transition:all .22s;flex:1;min-width:130px;position:relative;background:var(--surface2);}
+.role-card input[type="radio"]{display:none;}
+.rc-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;transition:all .22s;}
+.role-comprador .rc-icon{background:rgba(99,102,241,.1);color:var(--primary);}
+.role-vendedor .rc-icon{background:rgba(16,185,129,.1);color:#059669;}
+.role-editor .rc-icon{background:rgba(245,158,11,.1);color:#f59e0b;}
+.role-moderador .rc-icon{background:rgba(59,130,246,.1);color:#3b82f6;}
+.role-admin .rc-icon{background:rgba(239,68,68,.1);color:#dc2626;}
+.role-superadmin .rc-icon{background:rgba(71,85,105,.1);color:#475569;}
+.rc-body b{font-size:.8rem;font-weight:700;display:block;}
+.rc-body p{font-size:.7rem;color:var(--text2);}
+.rc-chk{position:absolute;top:.5rem;right:.5rem;font-size:.85rem;opacity:0;color:var(--primary);transition:opacity .2s;}
+.role-card:hover{border-color:var(--primary);}
+.rc-active{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 6%,transparent);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.rc-active .rc-chk{opacity:1;}
+.rc-admin-active{border-color:#dc2626;background:rgba(239,68,68,.05);box-shadow:0 0 0 3px rgba(239,68,68,.1);}
+.rc-admin-active .rc-chk{color:#dc2626;}
+.rc-editor-active{border-color:#f59e0b;background:rgba(245,158,11,.05);box-shadow:0 0 0 3px rgba(245,158,11,.1);}
+.rc-editor-active .rc-chk{color:#f59e0b;}
+.rc-moderador-active{border-color:#3b82f6;background:rgba(59,130,246,.05);box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+.rc-moderador-active .rc-chk{color:#3b82f6;}
+.rc-superadmin-active{border-color:#475569;background:rgba(71,85,105,.05);box-shadow:0 0 0 3px rgba(71,85,105,.1);}
+.rc-superadmin-active .rc-chk{color:#475569;}
+/* Roles disabled for non-superadmin */
+.rc-disabled {
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+.role-alert {
+  grid-column: span 2;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+.role-alert i { font-size: 1rem; color: #3b82f6; }
+
+/* Status cards */
+.status-cards{display:flex;gap:.6rem;flex-wrap:wrap;}
+.sc{display:flex;align-items:center;gap:.5rem;padding:.55rem 1.1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .22s;background:var(--surface2);}
+.sc input[type="radio"]{display:none;}
+.sc:hover{border-color:var(--primary);color:var(--primary);}
+.sc-active{font-weight:700;}
+.sc-green{color:#059669;}
+.sc-green.sc-active{border-color:#10b981;background:rgba(16,185,129,.08);box-shadow:0 0 0 3px rgba(16,185,129,.1);}
+.sc-amber{color:#d97706;}
+.sc-amber.sc-active{border-color:#f59e0b;background:rgba(245,158,11,.08);box-shadow:0 0 0 3px rgba(245,158,11,.1);}
+.sc-red{color:#dc2626;}
+.sc-red.sc-active{border-color:#ef4444;background:rgba(239,68,68,.08);box-shadow:0 0 0 3px rgba(239,68,68,.1);}
+/* Form footer */
+.form-foot{display:flex;align-items:center;justify-content:flex-end;gap:.7rem;padding-top:1.4rem;border-top:1px solid var(--border);margin-top:1.8rem;}
+.btn-cancel{display:flex;align-items:center;gap:.4rem;padding:.6rem 1.1rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-cancel:hover{border-color:#ef4444;color:#ef4444;}
+.btn-discard{display:flex;align-items:center;gap:.4rem;padding:.6rem 1.1rem;background:none;border:1px solid var(--border);border-radius:10px;font-size:.83rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;}
+.btn-discard:hover{border-color:var(--primary);color:var(--primary);}
+.btn-save{display:flex;align-items:center;gap:.5rem;padding:.65rem 1.5rem;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,.3);transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,185,129,.4);}
+.btn-save.dirty{animation:savePulse 2s ease-in-out infinite;}
+@keyframes savePulse{0%,100%{box-shadow:0 4px 12px rgba(16,185,129,.3);}50%{box-shadow:0 4px 20px rgba(16,185,129,.6);}}
+/* Modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:20px;padding:2rem;width:350px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-icon{width:56px;height:56px;border-radius:14px;background:rgba(239,68,68,.12);color:#ef4444;font-size:1.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;}
+.modal-box h3{font-size:1.1rem;font-weight:800;margin-bottom:.4rem;}
+.modal-box p{color:var(--text2);font-size:.83rem;margin-bottom:1.3rem;}
+.modal-actions{display:flex;gap:.65rem;}
+.modal-btn{flex:1;padding:.6rem;border-radius:9px;border:none;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.modal-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.modal-cancel:hover{background:var(--border);}
+.modal-confirm{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;}
+.modal-confirm:hover{transform:translateY(-1px);}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@media(max-width:1100px){.form-layout{grid-template-columns:1fr;}.preview-card{position:static;}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .form-grid{grid-template-columns:1fr;}
+  .fg-full{grid-column:span 1;}
+  .form-card{padding:1.3rem;}
+  .role-cards{flex-direction:column;}
+}
+</style>
+<script>
+/* Theme */
+const ROOT=document.getElementById('adminRoot');
+const saved=localStorage.getItem('adminTheme')||'light';
+if(saved==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  var dark=ROOT.getAttribute('data-theme')==='dark';
+  var next=dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Dirty tracking */
+var isDirty=false;
+function markDirty(){
+  if(!isDirty){
+    isDirty=true;
+    document.getElementById('unsavedIndicator').style.display='flex';
+    document.getElementById('saveBtn').classList.add('dirty');
+  }
+}
+function discardChanges(){
+  if(!isDirty){showToast('Sin cambios que descartar','#64748b');return;}
+  document.getElementById('editForm').reset();
+  isDirty=false;
+  document.getElementById('unsavedIndicator').style.display='none';
+  document.getElementById('saveBtn').classList.remove('dirty');
+  document.getElementById('strengthFill').style.width='0';
+  document.getElementById('strengthLabel').textContent='';
+  updatePreview();
+  showToast('Cambios descartados','#f59e0b');
+}
+window.addEventListener('beforeunload',function(e){if(isDirty){e.preventDefault();e.returnValue='';}});
+/* Live preview */
+var rolColors={comprador:'linear-gradient(135deg,#6366f1,#a855f7)',vendedor:'linear-gradient(135deg,#10b981,#059669)',editor:'linear-gradient(135deg,#f59e0b,#d97706)',moderador:'linear-gradient(135deg,#3b82f6,#2563eb)',admin:'linear-gradient(135deg,#ef4444,#dc2626)',superadmin:'linear-gradient(135deg,#475569,#1e293b)'};
+var rolLabels={comprador:'Comprador',vendedor:'Vendedor',editor:'Editor',moderador:'Moderador',admin:'Administrador',superadmin:'Superadmin'};
+var rolIcons={comprador:'fa-user',vendedor:'fa-store',editor:'fa-pen',moderador:'fa-shield-alt',admin:'fa-crown',superadmin:'fa-gem'};
+var rolRoleColors={user:'rgba(99,102,241,.1);color:#6366f1;border:1px solid rgba(99,102,241,.2)',vendedor:'rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.2)',admin:'rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.2)'};
+function updatePreview(){
+  var nombre=document.getElementById('nombre').value.trim()||'{{ usuario.nombre }}';
+  var username=document.getElementById('username').value.trim()||'{{ usuario.username }}';
+  var email=document.getElementById('email').value.trim()||'{{ usuario.email }}';
+  var rol=(document.querySelector('input[name="rol"]:checked')||{value:'comprador'}).value;
+  var estado=(document.querySelector('input[name="estado"]:checked')||{value:'activo'}).value;
+  document.getElementById('pName').textContent=nombre;
+  document.getElementById('pUsername').textContent='@'+username;
+  document.getElementById('pEmail').textContent=email;
+  document.getElementById('pAvatar').textContent=nombre[0].toUpperCase();
+  document.getElementById('pAvatar').style.background=rolColors[rol]||rolColors.comprador;
+  var roleEl=document.getElementById('pRole');
+  roleEl.innerHTML='<i class="fas '+rolIcons[rol]+'"></i> <span>'+rolLabels[rol]+'</span>';
+  var statusEl=document.getElementById('pStatus');
+  var stClass={activo:'st-act',inactivo:'st-ina',bloqueado:'st-blk'};
+  var stLabel={activo:'Activo',inactivo:'Inactivo',bloqueado:'Bloqueado'};
+  statusEl.className='p-status '+stClass[estado];
+  statusEl.innerHTML='<span class="st-dot"></span> '+stLabel[estado];
+}
+/* Role card toggle */
+document.querySelectorAll('.role-card').forEach(function(card){
+  card.addEventListener('click',function(){
+    document.querySelectorAll('.role-card').forEach(function(c){c.classList.remove('rc-active','rc-admin-active','rc-editor-active','rc-moderador-active','rc-superadmin-active');});
+    card.classList.add('rc-active');
+    if(card.getAttribute('data-val')==='admin') card.classList.add('rc-admin-active'); else if(card.getAttribute('data-val')==='editor') card.classList.add('rc-editor-active'); else if(card.getAttribute('data-val')==='moderador') card.classList.add('rc-moderador-active'); else if(card.getAttribute('data-val')==='superadmin') card.classList.add('rc-superadmin-active');
+    card.querySelector('input[type="radio"]').checked=true;
+    markDirty();updatePreview();
+  });
+});
+/* Status card toggle */
+document.querySelectorAll('.sc').forEach(function(card){
+  card.addEventListener('click',function(){
+    document.querySelectorAll('.sc').forEach(function(c){c.classList.remove('sc-active');});
+    card.classList.add('sc-active');
+    card.querySelector('input[type="radio"]').checked=true;
+    markDirty();updatePreview();
+  });
+});
+/* Password toggle */
+function togglePw(){
+  var inp=document.getElementById('password_reset');
+  var ic=document.getElementById('pwIcon');
+  if(inp.type==='password'){inp.type='text';ic.className='fas fa-eye-slash';}
+  else{inp.type='password';ic.className='fas fa-eye';}
+}
+/* Password strength */
+function checkStrength(val){
+  var fill=document.getElementById('strengthFill');
+  var label=document.getElementById('strengthLabel');
+  if(!val){fill.style.width='0';label.textContent='';return;}
+  var score=0;
+  if(val.length>=6)score++;if(val.length>=10)score++;
+  if(/[A-Z]/.test(val))score++;if(/[0-9]/.test(val))score++;if(/[^A-Za-z0-9]/.test(val))score++;
+  var lvls=[{w:'20%',bg:'#ef4444',t:'Muy débil'},{w:'40%',bg:'#f59e0b',t:'Débil'},{w:'60%',bg:'#3b82f6',t:'Moderada'},{w:'80%',bg:'#10b981',t:'Fuerte'},{w:'100%',bg:'#059669',t:'Muy fuerte'}];
+  var lv=lvls[Math.min(score,lvls.length)-1];
+  fill.style.width=lv.w;fill.style.background=lv.bg;
+  label.textContent=lv.t;label.style.color=lv.bg;
+}
+/* Form validation */
+document.getElementById('editForm').addEventListener('submit',function(e){
+  var valid=true;
+  [{id:'nombre',msg:'El nombre es requerido.'},{id:'email',msg:'Email inválido.',regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/},{id:'username',msg:'El username es requerido.'}]
+  .forEach(function(f){
+    var inp=document.getElementById(f.id);
+    var fg=inp.closest('.fg');
+    var err=fg.querySelector('.field-err');
+    var val=inp.value.trim();
+    var ok=val.length>0;
+    if(f.regex)ok=ok&&f.regex.test(val);
+    if(!ok){fg.classList.add('has-error');err.textContent=f.msg;valid=false;}
+    else{fg.classList.remove('has-error');}
+  });
+  if(valid){isDirty=false;}else{e.preventDefault();}
+});
+/* Delete modal */
+function confirmDelete(){document.getElementById('delModal').classList.add('open');}
+function closeModal(){document.getElementById('delModal').classList.remove('open');}
+document.getElementById('delModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+/* Toast */
+function showToast(msg,color){
+  color=color||'#6366f1';
+  var t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(function(){t.remove();},3500);
+}
+updatePreview();
+</script>
+{% endblock %}  
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

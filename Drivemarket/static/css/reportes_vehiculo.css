@@ -1,0 +1,106 @@
+/* -------- HEADER -------- */
+.rep-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 5px;
+    color: #222;
+}
+.rep-header p {
+    color: #777;
+    margin-bottom: 25px;
+}
+
+/* -------- VEHÍCULO CARD -------- */
+.vehiculo-card {
+    display: flex;
+    gap: 20px;
+    padding: 18px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+}
+
+.veh-img-big {
+    width: 180px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.veh-info h2 {
+    font-size: 22px;
+    font-weight: 900;
+    margin-bottom: 6px;
+}
+
+/* -------- LISTA REPORTES -------- */
+.reporte-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    margin-bottom: 18px;
+}
+
+.reporte-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.reporte-header h3 {
+    font-size: 20px;
+    margin: 0;
+}
+
+.estado {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+}
+.estado.pendiente { background: #f39c12; }
+.estado.revisado { background: #2ecc71; }
+
+.detalle {
+    margin: 12px 0;
+    color: #444;
+}
+
+.meta {
+    font-size: 14px;
+    color: #666;
+    display: flex;
+    gap: 20px;
+    margin-bottom: 12px;
+}
+
+/* -------- BOTONES -------- */
+.acciones {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    color: #fff;
+}
+
+.btn.green { background: #2ecc71; }
+.btn.red { background: #e74c3c; }
+
+.btn:hover {
+    opacity: .85;
+}
+
+.no-reportes {
+    text-align: center;
+    margin-top: 20px;
+    color: #555;
+}

@@ -1,0 +1,450 @@
+/* Variables de color basadas en el logo de Drive Market */
+:root {
+    --primary-color: #1a1a1a;        /* Fondo oscuro para elementos clave (e.g., footer) */
+    --secondary-color: #ffffff;      /* Fondo principal y textos claros */
+    --accent-color: #ff7043;         /* Naranja de acento (del logo) */
+    --text-dark: #080707;            /* Color principal del texto */
+    --text-subtle: #777777;          /* Texto sutil o gris */
+    --header-shadow: 0 2px 10px rgba(0, 0, 0, 0.459); /* Sombra sutil para el header */
+    --border-light: #e0e0e0;
+}
+
+/* Base y tipografía */
+body {
+    font-family: 'bold', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f7f7f7;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+/* ----------------------- Header ----------------------- */
+header {
+    background-color: var(--secondary-color);
+    box-shadow: var(--header-shadow);
+    padding: 0.8rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-section img {
+    height: 40px; 
+}
+
+.logo-text {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    letter-spacing: -0.02em;
+}
+
+.logo-text span {
+    color: var(--accent-color); /* Acento naranja en 'MARKET' */
+}
+
+/* ----------------------- Navegación Principal ----------------------- */
+.nav-links {
+    display: flex;
+    gap: 2.5rem;
+    flex-grow: 1;
+    justify-content: center; /* Centrar enlaces */
+    font-family: "Poppins", sans-serif;
+    font-weight: 200;
+    font-style: normal;
+}
+
+.nav-links a {
+    color: var(--text-dark);
+    text-decoration: none;
+    padding: 0.5rem 0;
+    position: relative;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+
+/* Línea de acento naranja debajo del link activo/hover */
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 0;
+    height: 3px;
+    background-color: var(--accent-color);
+    transition: width 0.3s ease;
+    border-radius: 9999px;
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%;
+}
+
+/* ----------------------- Acciones y Búsqueda ----------------------- */
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem; /* Espacio más pequeño entre elementos */
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.search-container:focus-within {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(255, 112, 67, 0.3);
+}
+
+.search-container input {
+    padding: 0.5rem 0.8rem;
+    border: none;
+    background-color: transparent;
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    outline: none;
+    width: 200px;
+}
+
+.search-container button {
+    background: none;
+    border: none;
+    padding: 0 0.8rem;
+    color: var(--text-subtle);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.search-container button:hover {
+    color: var(--accent-color);
+}
+
+/* Botones de Iconos (Mensajes, Favoritos) */
+.icon-btn {
+    position: relative;
+    color: var(--text-subtle);
+    font-size: 1.2rem;
+    padding: 0.6rem;
+    border-radius: 50%;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.icon-btn:hover {
+    background-color: #f0f0f0;
+    color: var(--primary-color);
+}
+
+/* Contador de Notificaciones */
+.notification-badge {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    color: white;
+    background-color: red;
+    border-radius: 50%;
+    border: 1px solid var(--secondary-color);
+}
+
+.icon-btn {
+    position: relative;
+    color: inherit;
+    text-decoration: none;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #dc3545;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 50%;
+    font-weight: bold;
+}
+
+/* ----------------------- Botón de Usuario (Minimalista) ----------------------- */
+.user-menu {
+    position: relative;
+    margin-left: 0.5rem;
+}
+
+.user-btn {
+    display: flex;
+    align-items: center;
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 0.3rem 0.5rem 0.3rem 0.3rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    border: 1px solid var(--border-light);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.user-btn:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 0.6rem;
+}
+
+.user-name {
+    font-weight: 600;
+    margin-right: 0.4rem;
+}
+
+.user-btn .fas.fa-chevron-down {
+    font-size: 0.8rem;
+    color: var(--text-subtle);
+}
+
+/* Dropdown del Usuario */
+.dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background-color: var(--secondary-color);
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    z-index: 100;
+}
+
+.dropdown.show {
+    display: block;
+}
+
+.dropdown a {
+    color: var(--text-dark);
+    padding: 10px 15px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s;
+    font-size: 0.95rem;
+}
+
+.dropdown a i {
+    margin-right: 10px;
+    color: var(--text-subtle);
+}
+
+.dropdown a:hover {
+    background-color: #f0f0f0;
+    color: var(--accent-color);
+}
+
+.dropdown a:hover i {
+    color: var(--accent-color);
+}
+
+.dropdown hr {
+    border: none;
+    border-top: 1px solid var(--border-light);
+    margin: 0.5rem 0;
+}
+
+/* ----------------------- Layout General ----------------------- */
+main {
+    flex-grow: 1;
+    padding: 2rem 5%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+footer {
+    background-color: var(--primary-color);
+    color: var(--text-subtle);
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+    font-size: 0.9rem;
+}
+
+/* ── PREMIUM TOAST NOTIFICATIONS (GLASSMORPHISM) ── */
+.dm-toast {
+    min-width: 320px;
+    max-width: 450px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px) saturate(180%);
+    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    animation: toast-slide-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    transition: all 0.3s ease;
+}
+
+@keyframes toast-slide-in {
+    from { opacity: 0; transform: translateX(50px) scale(0.9); }
+    to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.dm-toast.success { border-left: 5px solid #22c55e; }
+.dm-toast.error { border-left: 5px solid #ef4444; }
+.dm-toast.warning { border-left: 5px solid #f59e0b; }
+.dm-toast.info { border-left: 5px solid #3b82f6; }
+
+.dm-toast-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.success .dm-toast-icon { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+.error .dm-toast-icon { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+.warning .dm-toast-icon { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+.info .dm-toast-icon { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+
+.dm-toast-content { flex: 1; }
+.dm-toast-msg {
+    color: #1e293b;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.dm-toast-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.dm-toast-close:hover { color: #475569; }
+
+@keyframes fadeout {
+    from { opacity: 1; }
+    to { opacity: 0; visibility: hidden; }
+}
+
+/* ----------------------- Responsividad ----------------------- */
+@media (max-width: 950px) {
+    .nav-links {
+        gap: 1.5rem;
+    }
+    .search-container input {
+        width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-wrap: wrap;
+        padding: 0.5rem 5%;
+    }
+    .logo-section {
+        flex-grow: 1;
+        justify-content: flex-start;
+        min-width: 50%;
+    }
+    .nav-links {
+        order: 3; /* Mueve la navegación a la parte inferior del header */
+        width: 100%;
+        justify-content: space-around;
+        gap: 0;
+        margin-top: 0.5rem;
+        border-top: 1px solid var(--border-light);
+        padding-top: 0.5rem;
+    }
+    .top-actions {
+        order: 2;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+    .search-container {
+        display: none; /* Ocultar barra de búsqueda para móvil (se usaría un botón de búsqueda flotante o un modal) */
+    }
+    .user-name {
+        display: none;
+    }
+    .user-btn {
+        padding: 0.4rem;
+    }
+}
+
+
+/* Estilo para destacar el enlace de Aprobaciones */
+.admin-link-highlight {
+    background-color: #f0fdf4; /* Fondo verde muy suave */
+    color: #15803d !important; /* Texto verde oscuro */
+    font-weight: 600;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-link-highlight:hover {
+    background-color: #dcfce7 !important;
+}
+
+/* Badge del Admin (Contador rojo) */
+.notification-badge-admin {
+    background-color: #ef4444;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    margin-left: auto; /* Empuja el badge a la derecha */
+}
+
+.dropdown-header-admin {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    padding: 5px 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}

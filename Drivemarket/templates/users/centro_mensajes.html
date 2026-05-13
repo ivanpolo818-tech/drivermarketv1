@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}Centro de Mensajes | Drive Market{% endblock %}
+
+{% block content %}
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/centro_mensajes_elite.css') }}">
+
+<div class="elite-dashboard-wrapper">
+
+    <!-- ── SIDEBAR (Consistent with Profile) ── -->
+    
+    <!-- Botón de Hamburguesa para Móvil -->
+    <button id="mobileSidebarToggle" style="display: none; width: 100%; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; padding: 14px 20px; font-weight: 700; color: var(--c-text); align-items: center; justify-content: space-between; cursor: pointer; box-shadow: var(--shadow-soft); margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class='bx bx-menu' style="font-size: 1.4rem; color: var(--c-brand);"></i>
+            Menú de Navegación
+        </div>
+        <i class='bx bx-chevron-down' id="toggleChevron" style="transition: 0.3s; font-size: 1.2rem;"></i>
+    </button>
+    <style>@media (max-width: 768px) { #mobileSidebarToggle { display: flex !important; } }</style>
+
+    <aside class="elite-sidebar">
+        <div class="sidebar-profile">
+            <div class="profile-avatar">
+                {% if usuario.foto %}
+                    <img src="{{ url_for('static', filename='uploads/usuarios/' + usuario.foto) }}" alt="Avatar">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/default_user.png') }}" alt="Avatar Default">
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <span class="profile-role">Centro de Mensajes</span>
+                <span class="profile-name">{{ usuario.nombre }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Navegación</div>
+            <a href="{{ url_for('users.perfil') }}" class="menu-item">
+                <i class='bx bx-id-card'></i> Mi Perfil
+            </a>
+            <a href="{{ url_for('users.mis_vehiculos') }}" class="menu-item">
+                <i class='bx bx-car'></i> Mis Vehículos
+            </a>
+            <a href="{{ url_for('users.favoritos') }}" class="menu-item">
+                <i class='bx bx-heart'></i> Guardados
+            </a>
+            <a href="{{ url_for('mensajes.centro_mensajes') }}" class="menu-item active">
+                <i class='bx bx-message-square-dots'></i> Mensajes
+            </a>
+            
+            <div class="menu-divider"></div>
+            <a href="{{ url_for('users.ajustes') }}" class="menu-item">
+                <i class='bx bx-cog'></i> Ajustes
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ── MAIN CONTENT ── -->
+    <main class="elite-main">
+        
+        <header class="inbox-header">
+            <h1 class="inbox-title">
+                <i class='bx bx-envelope'></i> Bandeja de Entrada
+            </h1>
+        </header>
+
+        <!-- ── METRIC CARDS ── -->
+        <div class="metric-row">
+            <div class="metric-card">
+                <div class="metric-icon m-unread"><i class='bx bx-message-alt-error'></i></div>
+                <div class="metric-info">
+                    <span class="metric-value">{{ unread_total }}</span>
+                    <span class="metric-label">Sin Leer</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon m-active"><i class='bx bx-conversation'></i></div>
+                <div class="metric-info">
+                    <span class="metric-value">{{ active_conversations }}</span>
+                    <span class="metric-label">Conversaciones</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon m-resp"><i class='bx bx-time-five'></i></div>
+                <div class="metric-info">
+                    <span class="metric-value">{{ resp_time }}</span>
+                    <span class="metric-label">Tiempo Resp.</span>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon m-rating"><i class='bx bx-star'></i></div>
+                <div class="metric-info">
+                    <span class="metric-value">{{ avg_rating }}</span>
+                    <span class="metric-label">Calificación</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── CHAT ENGINE ── -->
+        <div class="chat-app-container">
+            
+            <!-- Sidebar: Lista de Chats -->
+            <aside class="chat-sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-header-top">
+                        <h3>Conversaciones</h3>
+                    </div>
+                    <div class="search-box">
+                        <i class='bx bx-search'></i>
+                        <input type="text" placeholder="Filtrar chats..." id="chatSearch">
+                    </div>
+                </div>
+
+                <div class="chat-list" id="convList">
+                    {% if conversaciones %}
+                        {% for conv in conversaciones %}
+                        <a href="{{ url_for('mensajes.centro_mensajes', id_conversacion=conv.id) }}" 
+                           class="chat-item-link {% if id_conversacion_actual == conv.id %}active{% endif %}">
+                            <div class="chat-avatar">
+                                {{ conv.nombre_interlocutor[0]|upper }}
+                            </div>
+                            <div class="chat-info">
+                                <div class="chat-name-row">
+                                    <span class="chat-name">{{ conv.nombre_interlocutor }}</span>
+                                    <span class="chat-time">{{ conv.ultima_actividad.strftime('%H:%M') if conv.ultima_actividad else '' }}</span>
+                                </div>
+                                <div class="chat-meta">
+                                    <i class='bx bx-car'></i> {{ conv.marca }} {{ conv.modelo }}
+                                    {% if conv.no_leidos > 0 %}
+                                        <span class="unread-dot">{{ conv.no_leidos }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-view">
+                            <i class='bx bx-ghost'></i>
+                            <p>No tienes mensajes aún</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </aside>
+
+            <!-- Ventana de Chat -->
+            <section class="chat-window">
+                {% if id_conversacion_actual %}
+                    {% set active_chat = conversaciones|selectattr("id", "equalto", id_conversacion_actual)|first %}
+                    <header class="chat-header">
+                        <div class="chat-user-box">
+                            <div class="chat-user-info">
+                                <h4>{{ active_chat.nombre_interlocutor }}</h4>
+                                <a href="{{ url_for('detalle', id=active_chat.id_vehiculo) }}" class="chat-car-tag">
+                                    <i class='bx bx-link-external'></i> {{ active_chat.marca }} {{ active_chat.modelo }}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="action-btn" title="Calificar" onclick="toggleRatingModal()">
+                                <i class='bx bx-star'></i>
+                            </button>
+                            <button type="button" class="action-btn danger" title="Eliminar" onclick="toggleDeleteModal()">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div class="chat-body" id="chatBody">
+                        {% if mensajes %}
+                            {% for msg in mensajes %}
+                                <div class="msg-wrapper {% if msg.id_remitente == user_id %}mine{% else %}theirs{% endif %}">
+                                    <div class="bubble">
+                                        {{ msg.contenido }}
+                                        <div class="msg-info">
+                                            {{ msg.fecha_envio.strftime('%H:%M') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-view">
+                                <i class='bx bx-chat'></i>
+                                <h3>Inicia la conversación</h3>
+                                <p>Saluda a {{ active_chat.nombre_interlocutor }} para empezar</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <footer class="chat-footer">
+                        <form action="{{ url_for('mensajes.enviar_mensaje') }}" method="POST" class="input-capsule">
+                            <input type="hidden" name="id_conversacion" value="{{ id_conversacion_actual }}">
+                            <textarea name="contenido" placeholder="Escribe un mensaje..." required id="msgInput"></textarea>
+                            <button type="submit" class="btn-send">
+                                <i class='bx bxs-send'></i>
+                            </button>
+                        </form>
+                    </footer>
+                {% else %}
+                    <div class="empty-view">
+                        <i class='bx bx-select-multiple'></i>
+                        <h3>Selecciona un chat</h3>
+                        <p>Elige una conversación de la izquierda para ver los mensajes</p>
+                    </div>
+                {% endif %}
+            </section>
+
+        </div>
+
+    </main>
+</div>
+
+<!-- ── MODAL CALIFICACIÓN ── -->
+<div class="elite-modal-ov" id="ratingModal">
+    <div class="elite-modal">
+        <button class="modal-close" onclick="toggleRatingModal()"><i class='bx bx-x'></i></button>
+        <h2>Calificar Intercambio</h2>
+        <p>¿Cómo fue tu experiencia con este usuario?</p>
+        
+        <form action="{{ url_for('mensajes.guardar_resena') }}" method="POST">
+            <input type="hidden" name="id_conversacion" value="{{ id_conversacion_actual }}">
+            <div class="star-rating-wrap">
+                <input type="radio" id="star5" name="calificacion" value="5" required /><label for="star5"><i class='bx bxs-star'></i></label>
+                <input type="radio" id="star4" name="calificacion" value="4" /><label for="star4"><i class='bx bxs-star'></i></label>
+                <input type="radio" id="star3" name="calificacion" value="3" /><label for="star3"><i class='bx bxs-star'></i></label>
+                <input type="radio" id="star2" name="calificacion" value="2" /><label for="star2"><i class='bx bxs-star'></i></label>
+                <input type="radio" id="star1" name="calificacion" value="1" /><label for="star1"><i class='bx bxs-star'></i></label>
+            </div>
+            <div class="input-group" style="margin-top: 15px; text-align: left;">
+                <label style="font-weight: 700; font-size: 0.8rem; margin-bottom: 5px; display: block;">Comentario (Opcional)</label>
+                <textarea name="comentario" style="width: 100%; height: 80px; padding: 10px; border: 1px solid var(--c-border); border-radius: 12px; resize: none;"></textarea>
+            </div>
+            <button type="submit" class="btn-send" style="width: 100%; margin-top: 20px; border-radius: 12px; height: 50px;">
+                Enviar Reseña
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ── MODAL ELIMINAR CONVERSACIÓN ── -->
+<div class="elite-modal-ov" id="deleteModal">
+    <div class="elite-modal" style="max-width: 380px;">
+        <div style="width: 64px; height: 64px; background: #fef2f2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 20px;">
+            <i class='bx bx-trash'></i>
+        </div>
+        <h2 style="margin-bottom: 10px;">¿Eliminar conversación?</h2>
+        <p style="color: var(--c-text-muted); font-size: 0.9rem; margin-bottom: 25px;">Esta acción no se puede deshacer. Los mensajes de esta charla se borrarán permanentemente.</p>
+        
+        <div style="display: flex; gap: 12px;">
+            <button onclick="toggleDeleteModal()" style="flex: 1; padding: 12px; border-radius: 12px; border: 1px solid var(--c-border); background: #fff; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                Cancelar
+            </button>
+            <form id="deleteForm" action="{{ url_for('mensajes.eliminar_conversacion', id_conversacion=id_conversacion_actual or 0) }}" method="POST" style="flex: 1;">
+                <button type="submit" style="width: 100%; padding: 12px; border-radius: 12px; border: none; background: #ef4444; color: #fff; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                    Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Scroll al fondo automático
+    const chatBody = document.getElementById('chatBody');
+    if (chatBody) {
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // 2. Filtrar conversaciones
+    const chatSearch = document.getElementById('chatSearch');
+    if (chatSearch) {
+        chatSearch.addEventListener('keyup', function() {
+            const term = this.value.toLowerCase();
+            const items = document.querySelectorAll('.chat-item-link');
+            items.forEach(item => {
+                const name = item.querySelector('.chat-name').textContent.toLowerCase();
+                if (name.includes(term)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // 3. Modales
+    function toggleRatingModal() {
+        const modal = document.getElementById('ratingModal');
+        modal.classList.toggle('show');
+    }
+
+    function toggleDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.toggle('show');
+    }
+
+    // 4. Enter para enviar
+    const msgInput = document.getElementById('msgInput');
+    if (msgInput) {
+        msgInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.form.submit();
+            }
+        });
+    }
+
+
+</script>
+
+<style>
+/* Pequeños ajustes finales de scroll y modal no cubiertos en base css */
+.chat-body::-webkit-scrollbar { width: 6px; }
+.chat-body::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+.elite-modal-ov.show { display: flex; opacity: 1; }
+.elite-modal-ov { transition: opacity 0.3s ease; }
+
+/* FIX MOBILE SIDEBAR HAMBURGER */
+@media (max-width: 768px) {
+    .elite-sidebar { display: none !important; width: 100%; grid-template-columns: 1fr; margin-top: 10px; animation: slideDownElite 0.3s ease-out forwards; }
+    .elite-sidebar.show-mobile { display: block !important; }
+    @keyframes slideDownElite { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: translateY(0); } }
+    
+    .main-header-elite { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px;}
+    .elite-title { font-size: 1.6rem !important; }
+    .elite-dashboard-wrapper { gap: 16px; padding: 0 10px; margin-top: 15px;}
+    .elite-form-card { padding: 20px 16px !important; }
+    .card-header h2 { font-size: 1.2rem !important; }
+}
+</style>
+
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    if(mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.elite-sidebar');
+            if(sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const chevron = document.getElementById('toggleChevron');
+                if(sidebar.classList.contains('show-mobile')) {
+                    chevron.style.transform = 'rotate(180deg)';
+                    mobileToggle.style.borderColor = 'var(--c-brand)';
+                } else {
+                    chevron.style.transform = 'rotate(0deg)';
+                    mobileToggle.style.borderColor = 'var(--c-border)';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

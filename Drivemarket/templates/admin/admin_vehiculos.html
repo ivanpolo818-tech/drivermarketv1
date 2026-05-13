@@ -1,0 +1,894 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Gestión de Vehículos{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- DELETE MODAL -->
+<div class="modal-backdrop" id="delModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+    <h3>¿Eliminar vehículo?</h3>
+    <p id="modalMsg">Esta acción es <strong>irreversible</strong>.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-confirm" id="modalConfirmBtn">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+<!-- BLOCK MODAL -->
+<div class="modal-backdrop" id="blockModal">
+  <div class="modal-box">
+    <div class="modal-icon modal-icon-warn"><i class="fas fa-ban"></i></div>
+    <h3>¿Bloquear vehículo?</h3>
+    <p id="blockMsg">El vehículo desaparecerá de la búsqueda pública.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeBlockModal()">Cancelar</button>
+      <button class="modal-btn modal-warn-confirm" id="blockConfirmBtn">Sí, bloquear</button>
+    </div>
+  </div>
+</div>
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lb-close"><i class="fas fa-times"></i></div>
+  <img id="lbImg" src="" alt="Preview">
+</div>
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <span>Vehículos</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="btn-export" onclick="openExportModal()">
+          <i class="fas fa-file-export"></i> Exportar Datos
+        </button>
+        <a href="{{ url_for('admin.crear_vehiculo') }}" class="btn-new">
+          <i class="fas fa-plus"></i> Nuevo Vehículo
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas fa-car-side"></i></div>
+        <div>
+          <h1>Gestión de Vehículos</h1>
+          <p class="subtext">Control avanzado de todas las publicaciones de la plataforma.</p>
+        </div>
+      </div>
+      <!-- STAT CARDS -->
+      <div class="stat-grid">
+        <div class="stat-card" style="--acc:#6366f1">
+          <span class="stat-icon"><i class="fas fa-car"></i></span>
+          <div>
+            <div class="stat-val" id="statTotal">{{ vehiculos|length }}</div>
+            <div class="stat-lbl">Total vehículos</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#10b981">
+          <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+          <div>
+            <div class="stat-val" id="statActivos">{{ vehiculos|selectattr('estado','equalto','activo')|list|length }}</div>
+            <div class="stat-lbl">Activos</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#ef4444">
+          <span class="stat-icon"><i class="fas fa-ban"></i></span>
+          <div>
+            <div class="stat-val" id="statBloqueados">{{ vehiculos|selectattr('estado','equalto','bloqueado')|list|length }}</div>
+            <div class="stat-lbl">Bloqueados</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#f59e0b">
+          <span class="stat-icon"><i class="fas fa-pause-circle"></i></span>
+          <div>
+            <div class="stat-val" id="statInactivos">{{ vehiculos|rejectattr('estado','equalto','activo')|rejectattr('estado','equalto','bloqueado')|list|length }}</div>
+            <div class="stat-lbl">Inactivos / Vendidos</div>
+          </div>
+        </div>
+      </div>
+      <!-- FILTER CARD -->
+      <div class="filter-card">
+        <div class="filter-hd">
+          <i class="fas fa-sliders-h"></i>
+          <h3>Filtros de Búsqueda</h3>
+          <button class="filter-toggle" id="filterToggle" onclick="toggleFilters()">
+            <i class="fas fa-chevron-up" id="filterChevron"></i>
+          </button>
+        </div>
+        <div id="filterBody">
+          <form class="filter-grid" method="GET" id="filterForm">
+            <div class="fg">
+              <label><i class="fas fa-tag"></i> Marca</label>
+              <div class="iw">
+                <i class="fas fa-search iw-ic"></i>
+                <input type="text" name="marca" placeholder="Toyota, Ford…"
+                       value="{{ request.args.get('marca', '') }}" oninput="liveFilter()">
+              </div>
+            </div>
+            <div class="fg">
+              <label><i class="fas fa-user-tag"></i> Propietario</label>
+              <div class="iw">
+                <i class="fas fa-user iw-ic"></i>
+                <input type="text" name="propietario" placeholder="Nombre…"
+                       value="{{ request.args.get('propietario', '') }}" oninput="liveFilter()">
+              </div>
+            </div>
+            <div class="fg">
+              <label><i class="fas fa-dollar-sign"></i> Precio Mín.</label>
+              <div class="iw">
+                <i class="fas fa-dollar-sign iw-ic"></i>
+                <input type="number" name="precio_min" placeholder="0" min="0"
+                       value="{{ request.args.get('precio_min', '') }}" oninput="liveFilter()">
+              </div>
+            </div>
+            <div class="fg">
+              <label><i class="fas fa-dollar-sign"></i> Precio Máx.</label>
+              <div class="iw">
+                <i class="fas fa-dollar-sign iw-ic"></i>
+                <input type="number" name="precio_max" placeholder="Sin límite" min="0"
+                       value="{{ request.args.get('precio_max', '') }}" oninput="liveFilter()">
+              </div>
+            </div>
+            <div class="fg">
+              <label><i class="fas fa-circle"></i> Estado</label>
+              <div class="iw iw-sel">
+                <i class="fas fa-filter iw-ic"></i>
+                <select name="estado" id="estadoFiltro" onchange="liveFilter()">
+                  <option value="">Todos</option>
+                  <option value="activo"    {{ 'selected' if request.args.get('estado')=='activo'    else '' }}>Activo</option>
+                  <option value="bloqueado" {{ 'selected' if request.args.get('estado')=='bloqueado' else '' }}>Bloqueado</option>
+                  <option value="inactivo"  {{ 'selected' if request.args.get('estado')=='inactivo'  else '' }}>Inactivo</option>
+                  <option value="vendido"   {{ 'selected' if request.args.get('estado')=='vendido'   else '' }}>Vendido</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+            <div class="fg filter-btns">
+              <button type="submit" class="btn-apply">
+                <i class="fas fa-filter"></i> Aplicar
+              </button>
+              <a href="{{ url_for('admin.admin_vehiculos') }}" class="btn-clear">
+                <i class="fas fa-redo-alt"></i> Limpiar
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="search-box-tb">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Búsqueda rápida: marca, modelo, propietario…" oninput="filterTable()">
+          <button class="search-clear" id="searchClear" onclick="clearSearch()" style="display:none">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="bulk-bar" id="bulkBar" style="display:none">
+          <span id="bulkCount">0 seleccionados</span>
+          <button class="bulk-btn bulk-green" onclick="bulkActivar()"><i class="fas fa-check-circle"></i> Activar</button>
+          <button class="bulk-btn bulk-orange" onclick="bulkBloquear()"><i class="fas fa-ban"></i> Bloquear</button>
+          <button class="bulk-btn bulk-red" onclick="bulkEliminar()"><i class="fas fa-trash-alt"></i> Eliminar</button>
+        </div>
+        <span class="result-count" id="resultCount">{{ vehiculos|length }} vehículos</span>
+      </div>
+      <!-- TABLE -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table class="dtable" id="mainTable">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                <th onclick="sortTable(1)">ID <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(2)">Vehículo <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(3)">Propietario <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(4)">Año <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(5)">Precio <i class="fas fa-sort sort-ic"></i></th>
+                <th>Estado</th>
+                <th>Imagen</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              {% for v in vehiculos %}
+              <tr class="trow"
+                  data-id="{{ v.id }}"
+                  data-estado="{{ v.estado }}"
+                  data-search="{{ (v.marca or '') ~ ' ' ~ (v.modelo or '') ~ ' ' ~ (v.propietario or '') ~ ' ' ~ v.anio|string }}">
+                <td><input type="checkbox" class="row-check" value="{{ v.id }}"></td>
+                <td><span class="badge-id">#{{ v.id }}</span></td>
+                <td>
+                  <div class="veh-cell">
+                    <div class="veh-icon-box"><i class="fas fa-car-side"></i></div>
+                    <div>
+                      <div class="veh-name">{{ v.marca or 'N/D' }} {{ v.modelo }}</div>
+                      <div class="veh-ver">{{ v.version if v.version else 'Sin versión' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if v.propietario %}
+                  <a href="{{ url_for('admin.admin_vehiculos_usuario', id=v.id_usuario) if v.id_usuario else '#' }}" class="owner-chip">
+                    <i class="fas fa-user-circle"></i> {{ v.propietario }}
+                  </a>
+                  {% else %}
+                  <span class="owner-chip owner-na"><i class="fas fa-user-slash"></i> Sin asignar</span>
+                  {% endif %}
+                </td>
+                <td><span class="year-badge">{{ v.anio }}</span></td>
+                <td><span class="price-val">${{ "{:,.0f}".format(v.precio|float) }}</span></td>
+                <td>
+                  {% if v.estado == 'activo' %}
+                    <span class="badge-status st-activo"><span class="st-dot"></span>Activo</span>
+                  {% elif v.estado == 'bloqueado' %}
+                    <span class="badge-status st-bloqueado"><span class="st-dot"></span>Bloqueado</span>
+                  {% elif v.estado == 'vendido' %}
+                    <span class="badge-status st-vendido"><span class="st-dot"></span>Vendido</span>
+                  {% else %}
+                    <span class="badge-status st-inactivo"><span class="st-dot"></span>{{ v.estado|capitalize }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if v.imagen %}
+                  <img class="veh-thumb"
+                       src="{% if v.imagen %}{{ url_for('static', filename=v.imagen) }}{% else %}{{ url_for('static', filename='img/default_car.jpg') }}{% endif %}"
+                       alt="{{ v.marca }}"
+                       onclick="openLightbox(this.src)"
+                       title="Clic para ampliar">
+                  {% else %}
+                  <div class="no-img"><i class="fas fa-image"></i></div>
+                  {% endif %}
+                </td>
+                <td class="action-cell">
+                  <!-- Ver -->
+                  <a href="{{ url_for('detalle', id=v.id) }}" target="_blank"
+                     class="ab ab-cyan" title="Ver publicación">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <!-- Editar -->
+                  <a href="{{ url_for('admin.editar_vehiculo', id=v.id) }}"
+                     class="ab ab-amber" title="Editar">
+                    <i class="fas fa-pencil-alt"></i>
+                  </a>
+                  <!-- Reportes -->
+                  <a href="{{ url_for('admin.reportes_vehiculo', id=v.id) }}"
+                     class="ab ab-purple" title="Ver reportes">
+                    <i class="fas fa-flag"></i>
+                  </a>
+                  <!-- Bloquear / Activar -->
+                  {% if v.estado == 'activo' %}
+                  <form method="POST" action="{{ url_for('admin.bloquear_vehiculo', id=v.id) }}" class="if" id="blockForm-{{ v.id }}">
+                    <button type="button" class="ab ab-orange" title="Bloquear"
+                      data-vid="{{ v.id }}"
+                      data-vname="{{ v.marca or '' }} {{ v.modelo }}"
+                      data-formid="blockForm-{{ v.id }}"
+                      onclick="openBlockModal(this)">
+                      <i class="fas fa-ban"></i>
+                    </button>
+                  </form>
+                  {% else %}
+                  <form method="POST" action="{{ url_for('admin.activar_vehiculo', id=v.id) }}" class="if">
+                    <button type="submit" class="ab ab-green" title="Activar">
+                      <i class="fas fa-check-circle"></i>
+                    </button>
+                  </form>
+                  {% endif %}
+                  <!-- Eliminar -->
+                  <form method="POST" action="{{ url_for('admin.borrar_vehiculo', id=v.id) }}" class="if" id="delForm-{{ v.id }}">
+                  </form>
+                  <button class="ab ab-red" title="Eliminar"
+                    data-vid="{{ v.id }}"
+                    data-vname="{{ v.marca or '' }} {{ v.modelo }}"
+                    data-formid="delForm-{{ v.id }}"
+                    onclick="openDelModal(this)">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="9" class="empty-row">
+                <i class="fas fa-car-side"></i>
+                <p>No hay vehículos que mostrar.</p>
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        </div>
+        <!-- PAGINATION -->
+        <div class="pagination-bar" id="paginationBar">
+          <div class="pg-info">
+            <i class="fas fa-info-circle"></i>
+            Mostrando <strong id="pgFrom">1</strong>–<strong id="pgTo">10</strong>
+            de <strong id="pgTotal">0</strong> vehículos
+          </div>
+          <div class="pg-controls">
+            <button class="pg-btn" id="pgFirst"  onclick="goPage(1)"           title="Primera"><i class="fas fa-angle-double-left"></i></button>
+            <button class="pg-btn" id="pgPrev"   onclick="goPage(curPage-1)"   title="Anterior"><i class="fas fa-angle-left"></i></button>
+            <div class="pg-pages" id="pgPages"></div>
+            <button class="pg-btn" id="pgNext"   onclick="goPage(curPage+1)"   title="Siguiente"><i class="fas fa-angle-right"></i></button>
+            <button class="pg-btn" id="pgLast"   onclick="goPage(totalPages)"  title="Última"><i class="fas fa-angle-double-right"></i></button>
+          </div>
+          <div class="pg-size">
+            <span>Filas:</span>
+            <select onchange="changePageSize(this.value)">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-content -->
+  </main>
+</div>
+<!-- EXPORT MODAL -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal-box">
+    <div class="modal-icon" style="background:rgba(16,185,129,.12); color:#10b981;"><i class="fas fa-file-export"></i></div>
+    <h3>Exportar Vehículos</h3>
+    <p>Selecciona el rango de fechas y formato deseado.</p>
+    <form action="{{ url_for('admin.exportar_datos', entidad='vehiculos') }}" method="GET">
+      <div style="text-align:left; margin-bottom:1rem;">
+        <label style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.3rem;">Desde Fecha:</label>
+        <input type="date" name="fecha_inicio" style="width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+      </div>
+      <div style="text-align:left; margin-bottom:1.2rem;">
+        <label style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.3rem;">Hasta Fecha:</label>
+        <input type="date" name="fecha_fin" style="width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+      </div>
+      <div style="text-align:left; margin-bottom:1.5rem;">
+        <label style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.3rem;">Formato:</label>
+        <select name="formato" style="width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+          <option value="csv">Archivo CSV (Excel)</option>
+          <option value="pdf">Vista de Impresión (PDF)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn modal-cancel" onclick="closeExportModal()">Cancelar</button>
+        <button type="submit" class="modal-btn" style="background:#10b981;color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.3);">Exportar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-cont" id="toastCont"></div>
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e5e7eb;--text:#0f172a;--text2:#64748b;
+  --primary:#6366f1;--primary2:#a855f7;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#162032;
+  --border:#334155;--text:#f1f5f9;--text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-export{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.22);color:#10b981;border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-export:hover{background:#10b981;color:#fff;}
+.btn-new{display:flex;align-items:center;gap:.4rem;padding:.5rem 1.2rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:10px;font-size:.83rem;font-weight:700;text-decoration:none;box-shadow:0 3px 10px rgba(99,102,241,.3);transition:all .25s;}
+.btn-new:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(99,102,241,.4);}
+/* Page */
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.4rem;}
+.page-heading{display:flex;align-items:center;gap:1rem;}
+.page-heading h1{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;}
+.subtext{color:var(--text2);font-size:.85rem;margin-top:.2rem;}
+.heading-icon{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#06b6d4,#0891b2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;flex-shrink:0;box-shadow:0 5px 14px rgba(6,182,212,.3);}
+.flash{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:600;}
+.flash-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#059669;}
+.flash-danger,.flash-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+.flash-close{margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;opacity:.6;}
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.3rem;display:flex;align-items:center;gap:.9rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .3s;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,#6366f1);}
+.stat-card:hover{transform:translateY(-3px);}
+.stat-icon{width:42px;height:42px;border-radius:11px;background:color-mix(in srgb,var(--acc,#6366f1) 12%,transparent);color:var(--acc,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.stat-val{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;}
+.stat-lbl{font-size:.72rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+/* Filter card */
+.filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.filter-hd{display:flex;align-items:center;gap:.65rem;padding:1rem 1.3rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+.filter-hd i:first-child{color:var(--primary);font-size:.95rem;}
+.filter-hd h3{font-size:.9rem;font-weight:700;flex:1;}
+.filter-toggle{background:none;border:1px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer;color:var(--text2);font-size:.75rem;transition:all .2s;}
+.filter-toggle:hover{border-color:var(--primary);color:var(--primary);}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;padding:1.3rem;align-items:end;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.77rem;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:.35rem;}
+.fg label i{font-size:.72rem;color:var(--primary);}
+.iw{position:relative;display:flex;align-items:center;}
+.iw-ic{position:absolute;left:.8rem;color:var(--text2);font-size:.78rem;pointer-events:none;}
+.iw input,.iw select{width:100%;padding:.6rem .8rem .6rem 2.2rem;border:1.5px solid var(--border);border-radius:10px;font-size:.84rem;color:var(--text);background:var(--surface);outline:none;transition:all .2s;}
+.iw input:focus,.iw select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.08);}
+.iw-sel{position:relative;}
+.iw-sel select{appearance:none;padding-right:2rem;cursor:pointer;}
+.sel-arrow{position:absolute;right:.65rem;top:50%;transform:translateY(-50%);font-size:.65rem;color:var(--text2);pointer-events:none;}
+.filter-btns{flex-direction:row;gap:.6rem;}
+.btn-apply{flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.58rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border:none;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(99,102,241,.25);transition:all .25s;}
+.btn-apply:hover{transform:translateY(-1px);}
+.btn-clear{flex:1;display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.58rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:.82rem;font-weight:600;color:var(--text2);text-decoration:none;transition:all .2s;}
+.btn-clear:hover{border-color:var(--primary);color:var(--primary);}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:.8rem;}
+.search-box-tb{display:flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.5rem .9rem;flex:1;transition:border-color .2s,box-shadow .2s;}
+.search-box-tb:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.08);}
+.search-box-tb i{color:var(--text2);font-size:.85rem;}
+.search-box-tb input{background:none;border:none;outline:none;color:var(--text);font-size:.85rem;width:100%;}
+.search-clear{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.8rem;padding:.1rem;}
+.result-count{font-size:.8rem;font-weight:600;color:var(--text2);white-space:nowrap;}
+/* Table */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.table-wrap{overflow-x:auto;}
+.dtable{width:100%;border-collapse:collapse;}
+.dtable thead{background:var(--surface2);}
+.dtable th{padding:.85rem 1rem;text-align:left;font-size:.7rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+.dtable th:first-child{cursor:default;}
+.dtable th:hover:not(:first-child){color:var(--primary);}
+.sort-ic{font-size:.62rem;margin-left:.15rem;}
+.dtable td{padding:.85rem 1rem;border-bottom:1px solid var(--border);font-size:.84rem;vertical-align:middle;}
+.trow{transition:background .2s;animation:fadeRow .35s ease both;}
+@keyframes fadeRow{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.trow:hover{background:color-mix(in srgb,var(--primary) 3%,transparent);}
+.trow.hidden{display:none;}
+/* Checkboxes */
+input[type="checkbox"]{accent-color:var(--primary);width:15px;height:15px;cursor:pointer;}
+.trow.selected{background:color-mix(in srgb,var(--primary) 5%,transparent);}
+/* Badges */
+.badge-id{padding:.25rem .55rem;background:rgba(99,102,241,.1);color:var(--primary);border-radius:6px;font-weight:700;font-size:.78rem;}
+.year-badge{padding:.25rem .6rem;background:rgba(59,130,246,.1);color:#3b82f6;border-radius:6px;font-weight:700;font-size:.78rem;}
+.price-val{font-weight:800;color:#059669;font-size:.9rem;}
+.badge-status{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.74rem;font-weight:700;}
+.st-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.st-activo{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.st-activo .st-dot{background:#10b981;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4);}50%{box-shadow:0 0 0 4px rgba(16,185,129,0);}}
+.st-bloqueado{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.st-bloqueado .st-dot{background:#ef4444;}
+.st-inactivo{background:rgba(107,114,128,.12);color:#6b7280;border:1px solid rgba(107,114,128,.2);}
+.st-inactivo .st-dot{background:#9ca3af;}
+.st-vendido{background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.st-vendido .st-dot{background:#f59e0b;}
+/* Vehicle cell */
+.veh-cell{display:flex;align-items:center;gap:.7rem;}
+.veh-icon-box{width:34px;height:34px;border-radius:9px;background:rgba(6,182,212,.1);color:#0891b2;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.veh-name{font-weight:700;font-size:.85rem;}
+.veh-ver{font-size:.72rem;color:var(--text2);}
+/* Owner chip */
+.owner-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:600;background:rgba(139,92,246,.1);color:#7c3aed;border:1px solid rgba(139,92,246,.18);text-decoration:none;transition:all .2s;}
+.owner-chip:hover{background:#7c3aed;color:#fff;}
+.owner-na{background:rgba(107,114,128,.1);color:#6b7280;border-color:rgba(107,114,128,.18);}
+/* Thumbnail */
+.veh-thumb{width:68px;height:44px;object-fit:cover;border-radius:7px;border:1px solid var(--border);cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.veh-thumb:hover{transform:scale(1.1);box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.no-img{width:68px;height:44px;border-radius:7px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:.85rem;}
+/* Action buttons */
+.action-cell{display:flex;align-items:center;gap:.3rem;flex-wrap:nowrap;}
+.if{display:inline-flex;}
+.ab{width:30px;height:30px;border-radius:7px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;text-decoration:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
+.ab:hover{transform:translateY(-3px);}
+.ab-cyan{background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 2px 6px rgba(6,182,212,.3);}
+.ab-amber{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 2px 6px rgba(245,158,11,.3);}
+.ab-purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 2px 6px rgba(139,92,246,.3);}
+.ab-orange{background:linear-gradient(135deg,#f97316,#ea580c);box-shadow:0 2px 6px rgba(249,115,22,.3);}
+.ab-green{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 2px 6px rgba(16,185,129,.3);}
+.ab-red{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 2px 6px rgba(239,68,68,.3);}
+/* Empty row */
+.empty-row{text-align:center;padding:3rem;color:var(--text2);}
+.empty-row i{font-size:2.5rem;display:block;margin-bottom:.6rem;opacity:.3;}
+.empty-row p{font-size:.9rem;}
+/* Bulk bar */
+.bulk-bar{display:flex;align-items:center;gap:.7rem;padding:.5rem 1rem;background:color-mix(in srgb,var(--primary) 8%,transparent);border:1px solid color-mix(in srgb,var(--primary) 20%,transparent);border-radius:10px;font-size:.83rem;font-weight:600;color:var(--primary);}
+.bulk-btn{padding:.4rem .85rem;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:all .2s;}
+.bulk-green{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.bulk-green:hover{background:#10b981;color:#fff;}
+.bulk-orange{background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.bulk-orange:hover{background:#f59e0b;color:#fff;}
+.bulk-red{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.bulk-red:hover{background:#ef4444;color:#fff;}
+/* Pagination */
+.pagination-bar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.1rem;border-top:1px solid var(--border);background:var(--surface2);gap:.8rem;flex-wrap:wrap;}
+.pg-info{font-size:.8rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;}
+.pg-info i{color:var(--primary);}
+.pg-controls{display:flex;align-items:center;gap:.3rem;}
+.pg-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.pg-btn:hover:not(:disabled){border-color:var(--primary);color:var(--primary);background:color-mix(in srgb,var(--primary) 6%,transparent);}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed;}
+.pg-pages{display:flex;gap:.3rem;}
+.pg-num{min-width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-size:.78rem;font-weight:600;padding:0 .3rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.pg-num:hover{border-color:var(--primary);color:var(--primary);}
+.pg-num.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(99,102,241,.3);}
+.pg-ellipsis{display:flex;align-items:center;padding:0 .2rem;color:var(--text2);font-size:.78rem;}
+.pg-size{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text2);}
+.pg-size select{padding:.25rem .5rem;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-size:.78rem;outline:none;cursor:pointer;}
+/* Modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:20px;padding:2rem;width:355px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-icon{width:56px;height:56px;border-radius:14px;background:rgba(239,68,68,.12);color:#ef4444;font-size:1.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;}
+.modal-icon-warn{background:rgba(249,115,22,.12);color:#f97316;}
+.modal-box h3{font-size:1.1rem;font-weight:800;margin-bottom:.4rem;}
+.modal-box p{color:var(--text2);font-size:.83rem;margin-bottom:1.3rem;}
+.modal-actions{display:flex;gap:.65rem;}
+.modal-btn{flex:1;padding:.6rem;border-radius:9px;border:none;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.modal-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.modal-cancel:hover{background:var(--border);}
+.modal-confirm{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;}
+.modal-confirm:hover{transform:translateY(-1px);}
+.modal-warn-confirm{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;}
+.modal-warn-confirm:hover{transform:translateY(-1px);}
+/* Lightbox */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9500;align-items:center;justify-content:center;cursor:zoom-out;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:88vw;max-height:85vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:popIn .25s ease;}
+.lb-close{position:absolute;top:1.2rem;right:1.5rem;color:#fff;font-size:1.4rem;cursor:pointer;opacity:.7;}
+.lb-close:hover{opacity:1;}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@media(max-width:1100px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .btn-export,.btn-new span{display:none;}
+}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr;}}</style>
+<script>
+/* Theme */
+var ROOT=document.getElementById('adminRoot');
+var saved=localStorage.getItem('adminTheme')||'light';
+if(saved==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  var dark=ROOT.getAttribute('data-theme')==='dark';var next=dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Filter collapse */
+var filtersOpen=true;
+function toggleFilters(){
+  filtersOpen=!filtersOpen;
+  var body=document.getElementById('filterBody');
+  body.style.display=filtersOpen?'':'none';
+  document.getElementById('filterChevron').className=filtersOpen?'fas fa-chevron-up':'fas fa-chevron-down';
+}
+/* ── PAGINATION ENGINE ── */
+var PAGE_SIZE=10;
+var curPage=1;
+var totalPages=1;
+var filteredRows=[];
+function getVisibleRows(){
+  var q=document.getElementById('searchInput').value.toLowerCase().trim();
+  return [...document.querySelectorAll('#tableBody .trow')].filter(function(r){
+    return r.getAttribute('data-search').toLowerCase().includes(q);
+  });
+}
+function applyPagination(){
+  filteredRows=getVisibleRows();
+  totalPages=Math.max(1,Math.ceil(filteredRows.length/PAGE_SIZE));
+  if(curPage>totalPages)curPage=1;
+  var start=(curPage-1)*PAGE_SIZE;
+  var end=start+PAGE_SIZE;
+  // hide all, show current page slice
+  [...document.querySelectorAll('#tableBody .trow')].forEach(function(r){r.style.display='none';});
+  filteredRows.forEach(function(r,i){r.style.display=(i>=start&&i<end)?'':'none';});
+  // update info
+  var total=filteredRows.length;
+  var from=total===0?0:start+1;
+  var to=Math.min(end,total);
+  document.getElementById('pgFrom').textContent=from;
+  document.getElementById('pgTo').textContent=to;
+  document.getElementById('pgTotal').textContent=total;
+  document.getElementById('resultCount').textContent=total+' vehículo'+(total!==1?'s':'');
+  document.getElementById('searchClear').style.display=document.getElementById('searchInput').value?'':'none';
+  renderPageButtons();
+  // disable prev/next
+  document.getElementById('pgFirst').disabled=curPage<=1;
+  document.getElementById('pgPrev').disabled=curPage<=1;
+  document.getElementById('pgNext').disabled=curPage>=totalPages;
+  document.getElementById('pgLast').disabled=curPage>=totalPages;
+  // hide bar if 1 page
+  document.getElementById('paginationBar').style.display=total<=PAGE_SIZE&&curPage===1?'':'flex';
+  if(total>0)document.getElementById('paginationBar').style.display='flex';
+}
+function renderPageButtons(){
+  var container=document.getElementById('pgPages');
+  container.innerHTML='';
+  var pages=[];
+  if(totalPages<=7){
+    for(var i=1;i<=totalPages;i++)pages.push(i);
+  } else {
+    pages=[1];
+    if(curPage>3)pages.push('...');
+    var s=Math.max(2,curPage-1),e=Math.min(totalPages-1,curPage+1);
+    for(var j=s;j<=e;j++)pages.push(j);
+    if(curPage<totalPages-2)pages.push('...');
+    pages.push(totalPages);
+  }
+  pages.forEach(function(p){
+    if(p==='...'){
+      var sp=document.createElement('span');sp.className='pg-ellipsis';sp.textContent='…';container.appendChild(sp);
+    } else {
+      var btn=document.createElement('button');
+      btn.className='pg-num'+(p===curPage?' active':'');
+      btn.textContent=p;
+      btn.onclick=(function(pg){return function(){goPage(pg);};})(p);
+      container.appendChild(btn);
+    }
+  });
+}
+function goPage(p){
+  if(p<1||p>totalPages)return;
+  curPage=p;
+  applyPagination();
+  document.querySelector('.table-wrap').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function changePageSize(s){
+  PAGE_SIZE=parseInt(s);curPage=1;applyPagination();
+}
+/* Live search filter */
+function filterTable(){
+  curPage=1;
+  applyPagination();
+}
+function clearSearch(){document.getElementById('searchInput').value='';filterTable();}
+function liveFilter(){filterTable();}
+/* Sort */
+var sortDir={};
+function sortTable(col){
+  var tbody=document.getElementById('tableBody');
+  var rows=[...tbody.querySelectorAll('.trow')];
+  var asc=!sortDir[col];sortDir={};sortDir[col]=asc;
+  rows.sort(function(a,b){
+    var av=a.cells[col]?a.cells[col].textContent.trim():'';
+    var bv=b.cells[col]?b.cells[col].textContent.trim():'';
+    var an=parseFloat(av.replace(/[^0-9.]/g,'')),bn=parseFloat(bv.replace(/[^0-9.]/g,''));
+    if(!isNaN(an)&&!isNaN(bn))return asc?an-bn:bn-an;
+    return asc?av.localeCompare(bv):bv.localeCompare(av);
+  });
+  rows.forEach(function(r){tbody.appendChild(r);});
+  curPage=1;applyPagination();
+}
+/* Init pagination */
+applyPagination();
+/* Checkboxes */
+function toggleSelectAll(){
+  var all=document.getElementById('selectAll').checked;
+  document.querySelectorAll('.row-check').forEach(function(c){
+    c.checked=all;
+    c.closest('.trow').classList.toggle('selected',all);
+  });
+  updateBulkBar();
+}
+document.querySelectorAll('.row-check').forEach(function(c){
+  c.addEventListener('change',function(){
+    this.closest('.trow').classList.toggle('selected',this.checked);
+    updateBulkBar();
+  });
+});
+function updateBulkBar(){
+  var n=document.querySelectorAll('.row-check:checked').length;
+  var bar=document.getElementById('bulkBar');
+  bar.style.display=n>0?'flex':'none';
+  document.getElementById('bulkCount').textContent=n;
+}
+function getSelectedIds(){return [...document.querySelectorAll('.row-check:checked')].map(function(c){return c.value;});}
+
+async function execBulk(accion, color) {
+  const ids = getSelectedIds();
+  if(!ids.length) return;
+  
+  showToast(`Procesando ${accion} masivo...`, '#6366f1');
+  
+  try {
+    const res = await fetch('{{ url_for("admin.vehiculos_bulk") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: ids, accion: accion })
+    });
+    const data = await res.json();
+    if(data.success) {
+      showToast(data.message, '#10b981');
+      // Actualizar DOM sin recargar
+      document.querySelectorAll('.row-check:checked').forEach(cb => {
+        const tr = cb.closest('tr');
+        if (accion === 'eliminar') {
+          tr.remove();
+        } else {
+          const badge = tr.querySelector('.badge-status');
+          if (badge) {
+            const estado = (accion === 'bloquear') ? 'bloqueado' : 'activo';
+            badge.className = `badge-status st-${estado}`;
+            const dotStyle = estado === 'activo' ? 'animation:pulse 2s infinite;' : '';
+            badge.innerHTML = `<span class="st-dot" style="${dotStyle}"></span>${estado.charAt(0).toUpperCase() + estado.slice(1)}`;
+            tr.setAttribute('data-estado', estado);
+          }
+          cb.checked = false;
+          tr.classList.remove('selected');
+        }
+      });
+      document.getElementById('selectAll').checked = false;
+      updateBulkBar();
+      if(typeof filterTable === 'function') filterTable();
+      if(typeof updateStatCardsVehiculos === 'function') updateStatCardsVehiculos();
+    } else {
+      showToast(data.message, '#ef4444');
+    }
+  } catch(e) {
+    showToast('Error de conexión', '#ef4444');
+  }
+}
+
+function bulkActivar(){ execBulk('activar', '#10b981'); }
+function bulkBloquear(){ execBulk('bloquear', '#f97316'); }
+function bulkEliminar(){ 
+  if(!confirm('¿Eliminar definitivamente los vehículos seleccionados?')) return;
+  execBulk('eliminar', '#ef4444'); 
+}
+/* Delete modal */
+var pendingFormId=null;
+function openDelModal(btn){
+  pendingFormId=btn.getAttribute('data-formid');
+  var name=btn.getAttribute('data-vname').trim();
+  var vid=btn.getAttribute('data-vid');
+  document.getElementById('modalMsg').innerHTML='¿Eliminar <strong>'+name+'</strong> (#'+vid+')? Esta acción es <strong>irreversible</strong>.';
+  document.getElementById('delModal').classList.add('open');
+}
+function closeModal(){document.getElementById('delModal').classList.remove('open');pendingFormId=null;}
+document.getElementById('modalConfirmBtn').addEventListener('click',function(){
+  if(pendingFormId){
+     const form = document.getElementById(pendingFormId);
+     closeModal();
+     processSingleAction(form);
+  }
+});
+document.getElementById('delModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+/* Block modal */
+var pendingBlockFormId=null;
+function openBlockModal(btn){
+  pendingBlockFormId=btn.getAttribute('data-formid');
+  var name=btn.getAttribute('data-vname').trim();
+  document.getElementById('blockMsg').innerHTML='¿Bloquear <strong>'+name+'</strong>? Desaparecerá de la búsqueda pública.';
+  document.getElementById('blockModal').classList.add('open');
+}
+function closeBlockModal(){document.getElementById('blockModal').classList.remove('open');pendingBlockFormId=null;}
+document.getElementById('blockConfirmBtn').addEventListener('click',function(){
+  if(pendingBlockFormId){
+     const form = document.getElementById(pendingBlockFormId);
+     closeBlockModal();
+     processSingleAction(form);
+  }
+});
+document.getElementById('blockModal').addEventListener('click',function(e){if(e.target===this)closeBlockModal();});
+
+/* Intercept individual forms for async update */
+document.addEventListener('submit', function(e) {
+   if(e.target.matches('form.if') && !e.target.action.includes('bulk')) {
+      e.preventDefault();
+      processSingleAction(e.target);
+   }
+});
+
+async function processSingleAction(form) {
+   showToast('Procesando...', '#6366f1');
+   const tr = form.closest('tr');
+   const actionUrl = form.action;
+   try {
+      const res = await fetch(actionUrl, {method: 'POST'});
+      if(res.ok) {
+         showToast('Operación exitosa', '#10b981');
+         if(actionUrl.includes('borrar') || actionUrl.includes('eliminar')) {
+            tr.remove();
+         } else {
+            const fresh = await fetch(location.href).then(r=>r.text());
+            const doc = new DOMParser().parseFromString(fresh, 'text/html');
+            const newTr = doc.querySelector(`.trow[data-id="${tr.dataset.id}"]`);
+            if(newTr) {
+               tr.innerHTML = newTr.innerHTML;
+               tr.className = newTr.className;
+               tr.setAttribute('data-estado', newTr.getAttribute('data-estado'));
+            }
+         }
+         if(typeof applyPagination === 'function') applyPagination();
+         if(typeof updateStatCardsVehiculos === 'function') updateStatCardsVehiculos();
+      } else {
+         showToast('Error en la operación', '#ef4444');
+      }
+   } catch (e) {
+      showToast('Error de conexión', '#ef4444');
+   }
+}
+
+/* Update Stat Cards dynamically */
+function updateStatCardsVehiculos() {
+  const rows = document.querySelectorAll('#tableBody .trow');
+  const total = rows.length;
+  let activos = 0, bloqueados = 0, inactivos = 0;
+  rows.forEach(r => {
+    const estado = r.getAttribute('data-estado');
+    if (estado === 'activo') activos++;
+    else if (estado === 'bloqueado') bloqueados++;
+    else inactivos++;
+  });
+  const elTotal = document.getElementById('statTotal'); if(elTotal) elTotal.textContent = total;
+  const elActivos = document.getElementById('statActivos'); if(elActivos) elActivos.textContent = activos;
+  const elBloqueados = document.getElementById('statBloqueados'); if(elBloqueados) elBloqueados.textContent = bloqueados;
+  const elInactivos = document.getElementById('statInactivos'); if(elInactivos) elInactivos.textContent = inactivos;
+}
+
+/* Lightbox */
+function openLightbox(src){document.getElementById('lbImg').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+/* Export Modal */
+function openExportModal(){document.getElementById('exportModal').classList.add('open');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('open');}
+document.getElementById('exportModal').addEventListener('click',function(e){if(e.target===this)closeExportModal();});
+/* Toast */
+function showToast(msg,color){
+  color=color||'#6366f1';
+  var t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(function(){t.remove();},3500);
+}
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

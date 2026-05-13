@@ -1,0 +1,245 @@
+/* VARIABLES PREMIUM (Sincronizadas con base.css) */
+:root {
+    --primary-dark: #0d0d0d;
+    --accent-color: #ff7043;
+    --accent-hover: #e65100;
+    --text-dark: #1a1a1a;
+    --text-muted: #666;
+    --bg-gray: #f8f9fa;
+    --white: #ffffff;
+    --shadow-lux: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --border-radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* CONTENEDOR PRINCIPAL */
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 40px;
+    max-width: 1300px;
+    margin: 40px auto;
+    padding: 0 20px;
+    align-items: start;
+}
+
+/* SIDEBAR LUXURY */
+.sidebar {
+    background: var(--white);
+    padding: 30px 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lux);
+    border: 1px solid #f0f0f0;
+}
+
+.sidebar-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    margin-bottom: 25px;
+    padding-left: 15px;
+}
+
+.sidebar-menu {
+    list-style: none;
+}
+
+.sidebar-menu li {
+    margin-bottom: 8px;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 14px 18px;
+    text-decoration: none;
+    color: var(--text-dark);
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    transition: var(--transition);
+}
+
+.sidebar-menu li a i {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+
+.sidebar-menu li.active a,
+.sidebar-menu li a:hover {
+    background-color: #fff5f2;
+    color: var(--accent-color);
+}
+
+.sidebar-menu li.active a i,
+.sidebar-menu li a:hover i {
+    color: var(--accent-color);
+}
+
+.badge-notif {
+    background: var(--accent-color);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-left: auto;
+}
+
+/* PANEL DE CONTENIDO */
+.panel-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 30px;
+    color: var(--primary-dark);
+}
+
+/* CARDS PREMIUM */
+.perfil-card, .password-card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lux);
+    padding: 40px;
+    margin-bottom: 30px;
+    border: 1px solid #f0f0f0;
+}
+
+/* FORMULARIO DE PERFIL */
+.perfil-form {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 50px;
+}
+
+/* FOTO DE PERFIL */
+.foto-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.foto-box img {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.btn-foto {
+    background: var(--primary-dark);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+}
+
+.btn-foto:hover {
+    background: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+/* CAMPOS DE FORMULARIO */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.form-grid .full { grid-column: 1 / -1; }
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1.5px solid #eee;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    transition: var(--transition);
+    background: #fafafa;
+}
+
+.form-group input:focus {
+    background: white;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(255, 112, 67, 0.1);
+    outline: none;
+}
+
+/* BOTONES */
+.btn-guardar, .btn-password {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 16px 35px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(255, 112, 67, 0.3);
+}
+
+.btn-guardar:hover, .btn-password:hover {
+    background: var(--accent-hover);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 112, 67, 0.4);
+}
+
+/* PASSWORD CARD ESPECÍFICO */
+.password-card h2 {
+    font-size: 1.25rem;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.password-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: end;
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #999;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+    .dashboard-container { grid-template-columns: 1fr; }
+    .sidebar { display: none; } /* Podrías convertirlo en un menú horizontal */
+    .perfil-form { grid-template-columns: 1fr; }
+    .password-form { grid-template-columns: 1fr; }
+}

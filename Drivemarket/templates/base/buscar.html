@@ -1,0 +1,1035 @@
+﻿{% extends "base.html" %}
+{% block title %}Buscar Vehículos - Drive Market{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vehiculos/buscar.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="buscar-layout">
+
+    <!-- ══════════════════════════════════════
+         SIDEBAR DE FILTROS
+    ══════════════════════════════════════ -->
+    <div class="filters-overlay" id="filtersOverlay" onclick="toggleFilters()"></div>
+    <aside class="filters-panel" id="filterPanel">
+        <div class="filters-panel__head">
+            <span class="filters-panel__title">Filtros</span>
+            {% if total_vehiculos is defined %}
+            <span class="filters-panel__count">{{ total_vehiculos }} resultados</span>
+            {% endif %}
+            <button type="button" class="close-filters-btn" onclick="toggleFilters()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form method="GET" action="{{ url_for('buscar') }}" id="filterForm">
+            <input type="hidden" name="page" value="1">
+            <input type="hidden" name="orden" id="hiddenOrden" value="{{ orden_actual }}">
+
+            <!-- Tipo de vehículo -->
+            <div class="filter-group">
+                <label class="filter-label">Tipo de vehículo</label>
+                <div class="filter-type-tabs">
+                    <label class="type-tab">
+                        <input type="radio" name="tipo" value="" {% if not request.args.get('tipo') %}checked{% endif %}>
+                        <span>Todos</span>
+                    </label>
+                    <label class="type-tab">
+                        <input type="radio" name="tipo" value="automovil" {% if request.args.get('tipo') == 'automovil' %}checked{% endif %}>
+                        <span>Automóvil</span>
+                    </label>
+                    <label class="type-tab">
+                        <input type="radio" name="tipo" value="motocicleta" {% if request.args.get('tipo') == 'motocicleta' %}checked{% endif %}>
+                        <span>Moto</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Marca -->
+            <div class="filter-group">
+                <label class="filter-label" for="marcaSelect">Marca</label>
+                <div class="filter-select-wrap">
+                    <select name="marca" id="marcaSelect" class="filter-select">
+                        <option value="">Todas las marcas</option>
+                        {% for m in marcas_list %}
+                        <option value="{{ m.nombre }}"
+                                data-tipo="{{ m.tipo_vehiculo|lower }}"
+                                {% if request.args.get('marca') == m.nombre %}selected{% endif %}>
+                            {{ m.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <i class="fas fa-chevron-down filter-select__arrow"></i>
+                </div>
+            </div>
+
+            <!-- Modelo (dependiente de marca) -->
+            <div class="filter-group">
+                <label class="filter-label" for="modeloSelect">Modelo</label>
+                <div class="filter-select-wrap">
+                    <select name="modelo" id="modeloSelect" class="filter-select">
+                        <option value="">Todos los modelos</option>
+                        {% for mo in modelos_list %}
+                        <option value="{{ mo.modelo }}"
+                                data-marca="{{ mo.marca }}"
+                                data-tipo="{{ mo.tipo_vehiculo|lower }}"
+                                {% if request.args.get('modelo') == mo.modelo %}selected{% endif %}>
+                            {{ mo.marca }} – {{ mo.modelo }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <i class="fas fa-chevron-down filter-select__arrow"></i>
+                </div>
+            </div>
+
+            <!-- Rango de precio -->
+            <div class="filter-group">
+                <label class="filter-label">Precio máximo</label>
+                <div class="filter-price-inputs">
+                    <div class="filter-input-wrap">
+                        <span class="filter-input-prefix">$</span>
+                        <input type="number" name="precio" class="filter-input filter-input--price"
+                               placeholder="Sin límite"
+                               value="{{ request.args.get('precio', '') }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Año mínimo -->
+            <div class="filter-group">
+                <label class="filter-label" for="anioInput">Año mínimo</label>
+                <input type="number" name="anio" id="anioInput" class="filter-input"
+                       placeholder="Ej: 2018" min="1990" max="2025"
+                       value="{{ request.args.get('anio', '') }}">
+            </div>
+
+            <!-- Kilometraje máximo -->
+            <div class="filter-group">
+                <div class="filter-label-row">
+                    <label class="filter-label">Kilometraje máximo</label>
+                    <span class="filter-km-badge" id="kmLabel">
+                        {{ "{:,.0f}".format(request.args.get('km', '0')|int) if request.args.get('km') else 'Sin límite' }}
+                    </span>
+                </div>
+                <input type="range" name="km" class="filter-range"
+                       min="0" max="250000" step="5000"
+                       value="{{ request.args.get('km', '0') if request.args.get('km') else '0' }}"
+                       id="kmRange">
+                <div class="filter-range-labels">
+                    <span>0 km</span>
+                    <span>250 000 km</span>
+                </div>
+            </div>
+
+            <!-- Ciudad -->
+            <div class="filter-group">
+                <label class="filter-label" for="ciudadSelect">Ciudad</label>
+                <div class="filter-select-wrap">
+                    <select name="ciudad" id="ciudadSelect" class="filter-select">
+                        <option value="">Nacional (todas)</option>
+                        <option {% if request.args.get('ciudad') == 'Bogotá' %}selected{% endif %} value="Bogotá">Bogotá</option>
+                        <option {% if request.args.get('ciudad') == 'Medellín' %}selected{% endif %} value="Medellín">Medellín</option>
+                        <option {% if request.args.get('ciudad') == 'Cali' %}selected{% endif %} value="Cali">Cali</option>
+                        <option {% if request.args.get('ciudad') == 'Barranquilla' %}selected{% endif %} value="Barranquilla">Barranquilla</option>
+                        <option {% if request.args.get('ciudad') == 'Bucaramanga' %}selected{% endif %} value="Bucaramanga">Bucaramanga</option>
+                        <option {% if request.args.get('ciudad') == 'Cartagena' %}selected{% endif %} value="Cartagena">Cartagena</option>
+                        <option {% if request.args.get('ciudad') == 'Pereira' %}selected{% endif %} value="Pereira">Pereira</option>
+                        <option {% if request.args.get('ciudad') == 'Manizales' %}selected{% endif %} value="Manizales">Manizales</option>
+                    </select>
+                    <i class="fas fa-chevron-down filter-select__arrow"></i>
+                </div>
+            </div>
+
+            <!-- Condición -->
+            <div class="filter-group">
+                <label class="filter-label">Condición</label>
+                <div class="filter-condition-tabs">
+                    <label class="condition-tab">
+                        <input type="radio" name="estado" value="" {% if not request.args.get('estado') %}checked{% endif %}>
+                        <span>Todos</span>
+                    </label>
+                    <label class="condition-tab">
+                        <input type="radio" name="estado" value="nuevo" {% if request.args.get('estado') == 'nuevo' %}checked{% endif %}>
+                        <span>Nuevo</span>
+                    </label>
+                    <label class="condition-tab">
+                        <input type="radio" name="estado" value="usado" {% if request.args.get('estado') == 'usado' %}checked{% endif %}>
+                        <span>Usado</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="filter-actions">
+                <button type="submit" class="btn-filter-apply" id="btnAplicar">
+                    Aplicar filtros
+                </button>
+                <a href="{{ url_for('buscar') }}" class="btn-filter-clear">Limpiar</a>
+            </div>
+        </form>
+
+        <!-- Bloque IA -->
+        <div class="sidebar-ai-block">
+            <div class="sidebar-ai-block__icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="sidebar-ai-block__text">
+                <strong>¿No encuentras lo que buscas?</strong>
+                <span>El asistente IA puede ayudarte a encontrar el vehículo ideal según tu presupuesto.</span>
+            </div>
+            <button class="sidebar-ai-block__btn"
+                onclick="window.openDriveMarketAI ? window.openDriveMarketAI() : window.location.href='/soporte/chat'">
+                Consultar al asistente
+            </button>
+        </div>
+    </aside>
+
+    <!-- ══════════════════════════════════════
+         PANEL PRINCIPAL DE RESULTADOS
+    ══════════════════════════════════════ -->
+    <div class="results-panel">
+
+        <!-- Cabecera de resultados -->
+        <div class="results-header">
+            <div class="results-header__meta" style="width:100%; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                <div style="display:flex; align-items:baseline; gap:12px;">
+                    <h1 class="results-header__title">Vehículos disponibles</h1>
+                    <span class="results-header__count">
+                        {% if total_vehiculos is defined %}{{ total_vehiculos }} resultados{% endif %}
+                    </span>
+                </div>
+                <button class="mobile-filters-btn" onclick="toggleFilters()">
+                    <i class="fas fa-sliders-h"></i> Filtros
+                </button>
+            </div>
+
+            <!-- Sort bar -->
+            <div class="sort-bar">
+                <span class="sort-bar__label">Ordenar:</span>
+                <div class="sort-bar__options" id="sortOptions">
+                    <button class="sort-chip {% if orden_actual == 'destacados' or not orden_actual %}sort-chip--active{% endif %}" data-orden="destacados">Destacados</button>
+                    <button class="sort-chip {% if orden_actual == 'recientes' %}sort-chip--active{% endif %}" data-orden="recientes">Más recientes</button>
+                    <button class="sort-chip {% if orden_actual == 'precio_asc' %}sort-chip--active{% endif %}" data-orden="precio_asc">Menor precio</button>
+                    <button class="sort-chip {% if orden_actual == 'precio_desc' %}sort-chip--active{% endif %}" data-orden="precio_desc">Mayor precio</button>
+                    <button class="sort-chip {% if orden_actual == 'km_asc' %}sort-chip--active{% endif %}" data-orden="km_asc">Menor km</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grilla de vehículos -->
+        <main class="vehicles-grid" id="vehiclesGrid">
+            {% include 'base/buscar_resultados.html' %}
+        </main>
+
+        <!-- Spinner de carga AJAX -->
+        <div id="gridSpinner" class="grid-spinner" style="display:none">
+            <div class="grid-spinner__dot"></div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+/* ═══════════════════════════════════════════
+   LAYOUT GENERAL
+═══════════════════════════════════════════ */
+.buscar-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 36px 24px 72px;
+    align-items: start;
+    font-family: var(--font-main);
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+.filters-panel {
+    background: #fff;
+    border: 1px solid #e8ecf0;
+    border-radius: 16px;
+    padding: 28px 24px;
+    position: sticky;
+    top: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.05);
+}
+
+/* ─── Mobile Filters Drawer (Desktop default hidden) ─── */
+.filters-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.6);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index: 1040; opacity: 0; transition: opacity .3s;
+}
+.filters-overlay.is-open { display: block; opacity: 1; }
+.close-filters-btn {
+    display: none; background: transparent; border: none;
+    font-size: 1.25rem; color: #64748b; cursor: pointer;
+    padding: 4px; border-radius: 8px; align-items: center; justify-content: center;
+}
+.close-filters-btn:hover { background: #f1f5f9; color: #0f172a; }
+.mobile-filters-btn {
+    display: none; align-items: center; gap: 8px;
+    background: #fff; padding: 8px 16px;
+    border: 1px solid #e2e8f0; border-radius: 10px;
+    font-size: .88rem; font-weight: 700; color: #0f172a;
+    box-shadow: 0 2px 6px rgba(0,0,0,.04); cursor: pointer; transition: all .2s;
+}
+.mobile-filters-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+.filters-panel__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.filters-panel__title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -.01em;
+}
+.filters-panel__count {
+    font-size: .75rem;
+    font-weight: 700;
+    background: #FFF3EF;
+    color: #FF5722;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.filter-group { margin-bottom: 20px; }
+
+.filter-label {
+    display: block;
+    font-size: .78rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+}
+.filter-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.filter-km-badge {
+    font-size: .72rem;
+    font-weight: 700;
+    color: #0f172a;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+/* Tabs tipo/condición */
+.filter-type-tabs,
+.filter-condition-tabs {
+    display: flex;
+    background: #f8fafc;
+    border: 1px solid #e8ecf0;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+}
+.type-tab, .condition-tab {
+    flex: 1;
+    text-align: center;
+    cursor: pointer;
+}
+.type-tab input,
+.condition-tab input { display: none; }
+.type-tab span,
+.condition-tab span {
+    display: block;
+    padding: 7px 4px;
+    font-size: .8rem;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 8px;
+    transition: all .2s;
+}
+.type-tab input:checked + span,
+.condition-tab input:checked + span {
+    background: #fff;
+    color: #FF5722;
+    box-shadow: 0 1px 4px rgba(0,0,0,.1);
+    font-weight: 700;
+}
+
+/* Selects */
+.filter-select-wrap { position: relative; }
+.filter-select {
+    width: 100%;
+    padding: 10px 36px 10px 14px;
+    border: 1px solid #e8ecf0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-family: var(--font-main);
+    font-size: .88rem;
+    color: #0f172a;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color .2s;
+}
+.filter-select:focus {
+    outline: none;
+    border-color: #FF5722;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(255,87,34,.08);
+}
+.filter-select__arrow {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: .7rem;
+    pointer-events: none;
+}
+
+/* Inputs */
+.filter-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #e8ecf0;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-family: var(--font-main);
+    font-size: .88rem;
+    color: #0f172a;
+    box-sizing: border-box;
+    transition: border-color .2s;
+}
+.filter-input:focus {
+    outline: none;
+    border-color: #FF5722;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(255,87,34,.08);
+}
+.filter-input-wrap { position: relative; }
+.filter-input-prefix {
+    position: absolute;
+    left: 13px; top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: .9rem;
+    pointer-events: none;
+}
+.filter-input--price { padding-left: 26px; }
+
+/* Slider */
+.filter-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #e8ecf0;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+.filter-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    background: #FF5722;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(255,87,34,.35);
+    cursor: pointer;
+    transition: transform .15s;
+}
+.filter-range::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.filter-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: .7rem;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+
+/* Acciones del filtro */
+.filter-actions { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
+.btn-filter-apply {
+    width: 100%;
+    padding: 12px;
+    background: #FF5722;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: var(--font-main);
+    font-size: .9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    letter-spacing: .01em;
+}
+.btn-filter-apply:hover {
+    background: #E64A19;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(255,87,34,.3);
+}
+.btn-filter-clear {
+    display: block;
+    text-align: center;
+    font-size: .83rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 8px;
+    transition: color .2s, background .2s;
+}
+.btn-filter-clear:hover { color: #FF5722; background: #FFF3EF; }
+
+/* Bloque IA */
+.sidebar-ai-block {
+    margin-top: 24px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e8ecf0;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.sidebar-ai-block__icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#FF7043,#FF5722);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: .9rem;
+    flex-shrink: 0;
+}
+.sidebar-ai-block__text {
+    display: flex; flex-direction: column; gap: 3px;
+}
+.sidebar-ai-block__text strong {
+    font-size: .82rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+.sidebar-ai-block__text span {
+    font-size: .75rem;
+    color: #64748b;
+    line-height: 1.45;
+}
+.sidebar-ai-block__btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg,#FF7043,#FF5722);
+    color: #fff;
+    font-family: var(--font-main);
+    font-size: .8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .2s, transform .15s;
+}
+.sidebar-ai-block__btn:hover { opacity: .9; transform: translateY(-1px); }
+
+/* ═══════════════════════════════════════════
+   PANEL DERECHO
+═══════════════════════════════════════════ */
+.results-panel { min-width: 0; }
+
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.results-header__meta { display: flex; align-items: baseline; gap: 12px; }
+.results-header__title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -.02em;
+}
+.results-header__count {
+    font-size: .82rem;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+/* Sort bar */
+.sort-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sort-bar__label { font-size: .8rem; font-weight: 700; color: #64748b; white-space: nowrap; }
+.sort-bar__options { display: flex; gap: 6px; flex-wrap: wrap; }
+.sort-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #e8ecf0;
+    background: #f8fafc;
+    font-family: var(--font-main);
+    font-size: .78rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all .18s;
+    white-space: nowrap;
+}
+.sort-chip:hover { border-color: #FF5722; color: #FF5722; background: #FFF3EF; }
+.sort-chip--active { background: #FF5722; color: #fff; border-color: #FF5722; box-shadow: 0 2px 8px rgba(255,87,34,.25); }
+
+/* ═══════════════════════════════════════════
+   GRILLA
+═══════════════════════════════════════════ */
+.vehicles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 24px;
+    position: relative;
+}
+
+/* ─── Spinner AJAX ─── */
+.grid-spinner {
+    display: flex; align-items: center; justify-content: center;
+    padding: 60px 0;
+}
+.grid-spinner__dot {
+    width: 36px; height: 36px;
+    border: 3px solid #f1f5f9;
+    border-top-color: #FF5722;
+    border-radius: 50%;
+    animation: spin .65s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Paginación ─── */
+.pagination-wrapper {
+    display: flex; justify-content: center;
+    margin-top: 48px;
+    grid-column: 1 / -1;
+}
+.pagination { display: flex; align-items: center; gap: 8px; }
+.page-link {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 18px;
+    border: 1.5px solid #e8ecf0;
+    border-radius: 10px;
+    background: #fff;
+    font-family: var(--font-main);
+    font-size: .84rem;
+    font-weight: 700;
+    color: #334155;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .18s;
+}
+.page-link:hover { border-color: #FF5722; color: #FF5722; background: #FFF3EF; }
+.pagination-info {
+    font-size: .84rem;
+    font-weight: 600;
+    color: #64748b;
+    padding: 9px 18px;
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+/* ─── Tarjeta destacada ─── */
+.vehicle-card-wrapper.is-featured .vehicle-card {
+    border: 1.5px solid rgba(245,158,11,.5);
+    box-shadow: 0 0 0 3px rgba(245,158,11,.07), 0 8px 24px rgba(0,0,0,.09);
+}
+.badge-featured {
+    position: absolute; top: 12px; right: 12px;
+    background: linear-gradient(135deg,#F59E0B,#FF5722);
+    color: #fff;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: .65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    box-shadow: 0 3px 10px rgba(245,158,11,.35);
+    z-index: 2;
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+    grid-column: 1/-1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 80px 30px;
+    background: #fff;
+    border: 1.5px dashed #e8ecf0;
+    border-radius: 16px;
+}
+.empty-state__icon {
+    width: 72px; height: 72px;
+    background: #f8fafc;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 20px;
+    color: #94a3b8;
+    font-size: 1.8rem;
+    border: 1.5px solid #e8ecf0;
+}
+.empty-state h3 { margin: 0 0 8px; font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+.empty-state p { margin: 0 0 24px; color: #64748b; font-size: .9rem; max-width: 420px; }
+.empty-state__actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+.btn-ai-suggest {
+    padding: 11px 22px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg,#FF7043,#FF5722);
+    color: #fff;
+    font-family: var(--font-main);
+    font-size: .88rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: opacity .2s, transform .15s;
+    box-shadow: 0 4px 14px rgba(255,87,34,.3);
+}
+.btn-ai-suggest:hover { opacity: .9; transform: translateY(-2px); }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+    .buscar-layout { grid-template-columns: 1fr; }
+    
+    .mobile-filters-btn { display: flex; }
+    .close-filters-btn { display: flex; }
+    
+    .filters-panel { 
+        position: fixed; top: 0; left: 0; 
+        height: 100%; width: 320px; max-width: 85vw;
+        z-index: 1050; border-radius: 0;
+        margin: 0; overflow-y: auto; padding-bottom: 80px;
+        transform: translateX(-100%);
+        transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .filters-panel.is-open { transform: translateX(0); }
+    
+    .results-header { flex-direction: column; align-items: flex-start; padding-bottom: 12px; }
+}
+@media (max-width: 640px) {
+    .buscar-layout { padding: 20px 16px 48px; }
+    .sort-bar { flex-direction: column; align-items: flex-start; }
+    .vehicles-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ══════════════════════════════════════
+       1. KM SLIDER
+    ══════════════════════════════════════ */
+    const kmRange = document.getElementById('kmRange');
+    const kmLabel = document.getElementById('kmLabel');
+    if (kmRange && kmLabel) {
+        kmRange.addEventListener('input', () => {
+            const v = parseInt(kmRange.value);
+            kmLabel.textContent = v === 0 ? 'Sin límite' : v.toLocaleString('es-CO') + ' km';
+        });
+    }
+
+    /* ══════════════════════════════════════
+       2. FILTROS CASCADA: tipo → marca → modelo
+    ══════════════════════════════════════ */
+    const marcaSelect  = document.getElementById('marcaSelect');
+    const modeloSelect = document.getElementById('modeloSelect');
+
+    function getTipo() {
+        const r = document.querySelector('input[name="tipo"]:checked');
+        return r ? r.value.trim() : '';
+    }
+
+    function filtrarMarcas() {
+        const tipo = getTipo();
+        marcaSelect.querySelectorAll('option').forEach(opt => {
+            if (!opt.value) { opt.style.display = ''; return; }
+            opt.style.display = (!tipo || (opt.dataset.tipo || '').trim() === tipo) ? '' : 'none';
+        });
+        const cur = marcaSelect.options[marcaSelect.selectedIndex];
+        if (cur && cur.value && cur.style.display === 'none') marcaSelect.value = '';
+    }
+
+    function filtrarModelos() {
+        const tipo     = getTipo();
+        const marcaSel = marcaSelect.value;
+        modeloSelect.querySelectorAll('option').forEach(opt => {
+            if (!opt.value) { opt.style.display = ''; return; }
+            const tipoOk  = !tipo     || (opt.dataset.tipo  || '').trim() === tipo;
+            const marcaOk = !marcaSel || (opt.dataset.marca || '').trim() === marcaSel;
+            opt.style.display = (tipoOk && marcaOk) ? '' : 'none';
+        });
+        const sel = modeloSelect.options[modeloSelect.selectedIndex];
+        if (sel && sel.value && sel.style.display === 'none') modeloSelect.value = '';
+    }
+
+    document.querySelectorAll('input[name="tipo"]').forEach(r => {
+        r.addEventListener('change', () => { filtrarMarcas(); filtrarModelos(); });
+    });
+    if (marcaSelect) marcaSelect.addEventListener('change', filtrarModelos);
+    filtrarMarcas();
+    filtrarModelos();
+
+    /* ══════════════════════════════════════
+       3. AJAX: fetch de la grilla
+    ══════════════════════════════════════ */
+    const form        = document.getElementById('filterForm');
+    const grid        = document.getElementById('vehiclesGrid');
+    const spinner     = document.getElementById('gridSpinner');
+    const hiddenOrden = document.getElementById('hiddenOrden');
+
+    function fetchResults(page) {
+        // Leer todos los campos del formulario
+        const params = new URLSearchParams(new FormData(form));
+        if (page) params.set('page', page);
+        params.set('ajax', '1');
+
+        // Actualizar URL en el historial (sin ajax=1)
+        const urlParams = new URLSearchParams(params);
+        urlParams.delete('ajax');
+        history.pushState({}, '', '/buscar?' + urlParams.toString());
+
+        // Fade out de la grilla + spinner
+        grid.style.opacity = '0.35';
+        grid.style.pointerEvents = 'none';
+        spinner.style.display = 'flex';
+
+        fetch('/buscar?' + params.toString())
+            .then(r => r.text())
+            .then(html => {
+                grid.innerHTML = html;
+                grid.style.opacity = '1';
+                grid.style.pointerEvents = '';
+                spinner.style.display = 'none';
+                bindPagination();
+                grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(() => {
+                grid.style.opacity = '1';
+                grid.style.pointerEvents = '';
+                spinner.style.display = 'none';
+            });
+    }
+
+    // Submit del formulario de filtros
+    form.addEventListener('submit', e => { e.preventDefault(); fetchResults(); });
+
+    /* ══════════════════════════════════════
+       4. PAGINACIÓN AJAX
+    ══════════════════════════════════════ */
+    function bindPagination() {
+        document.querySelectorAll('.page-link[data-page]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                fetchResults(a.dataset.page);
+            });
+        });
+    }
+    bindPagination();
+
+    /* ══════════════════════════════════════
+       5. MOBILE FILTERS DRAWER LÓGICA
+    ══════════════════════════════════════ */
+    window.toggleFilters = function() {
+        const panel = document.getElementById('filterPanel');
+        const overlay = document.getElementById('filtersOverlay');
+        panel.classList.toggle('is-open');
+        overlay.classList.toggle('is-open');
+        document.body.style.overflow = panel.classList.contains('is-open') ? 'hidden' : '';
+    };
+
+    // Cerrar el drawer explícitamente al aplicar filtros en mobile
+    form.addEventListener('submit', () => {
+        if (window.innerWidth <= 1024) {
+            document.getElementById('filterPanel').classList.remove('is-open');
+            document.getElementById('filtersOverlay').classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+    });
+
+    /* ══════════════════════════════════════
+       5. SORT CHIPS → actualizar orden y refrescar
+    ══════════════════════════════════════ */
+    document.querySelectorAll('.sort-chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Actualizar visual activo
+            document.querySelectorAll('.sort-chip').forEach(b => b.classList.remove('sort-chip--active'));
+            btn.classList.add('sort-chip--active');
+            // Sincronizar con el campo oculto del formulario
+            hiddenOrden.value = btn.dataset.orden;
+            // Resetear a página 1 al cambiar orden
+            const pageInput = form.querySelector('input[name="page"]');
+            if (pageInput) pageInput.value = '1';
+            // Hacer fetch AJAX con el nuevo orden
+            fetchResults();
+        });
+    });
+
+});
+
+/* ══════════════════════════════════════
+   6. TRACKING WHATSAPP (global)
+══════════════════════════════════════ */
+function trackWhatsApp(vid) {
+    fetch('/api/vehiculo/' + vid + '/track-whatsapp', { method: 'POST' }).catch(() => {});
+}
+
+/* ══════════════════════════════════════
+   7. AJAX FAVORITOS
+══════════════════════════════════════ */
+function showFavToast(msg, category) {
+    const container = document.getElementById('dm-toast-container');
+    if (!container) return;
+    const iconMap = {
+        success: 'fa-check-circle',
+        info:    'fa-info-circle',
+        warning: 'fa-exclamation-triangle',
+        error:   'fa-times-circle'
+    };
+    const icon = iconMap[category] || 'fa-info-circle';
+    const toast = document.createElement('div');
+    toast.className = `dm-toast ${category}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="dm-toast-icon"><i class="fas ${icon}"></i></div>
+        <div class="dm-toast-content"><span class="dm-toast-msg">${msg}</span></div>
+        <button class="dm-toast-close" onclick="this.parentElement.remove()" aria-label="Cerrar">&times;</button>
+        <div class="dm-toast-progress"><div class="dm-toast-progress-bar" style="width:100%"></div></div>
+    `;
+    container.appendChild(toast);
+    // Animar barra de progreso
+    const bar = toast.querySelector('.dm-toast-progress-bar');
+    let width = 100;
+    const interval = setInterval(() => {
+        width -= 100 / 30; // 3 segundos / 30 pasos
+        if (width <= 0) {
+            clearInterval(interval);
+            toast.remove();
+        } else {
+            bar.style.width = width + '%';
+        }
+    }, 100);
+}
+
+async function toggleFavorite(btn, vid) {
+    try {
+        const response = await fetch(`/users/api/favorito/toggle/${vid}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            const icon = btn.querySelector('i');
+            if (data.state === 'added') {
+                btn.classList.add('is-active');
+                icon.className = 'fas fa-heart';
+                showFavToast('Vehículo guardado en favoritos', 'success');
+            } else {
+                btn.classList.remove('is-active');
+                icon.className = 'far fa-heart';
+                showFavToast('Eliminado de favoritos', 'remove');
+            }
+        }
+    } catch (err) {
+        console.error('Error toggling favorite:', err);
+    }
+}
+</script>
+
+<!-- ══ LOADER PREMIUM — BUSCAR.HTML ══ -->
+<div id="dm-page-loader" role="status">
+  <div class="dml-inner">
+    <div class="dml-brand">DRIVE<span>MARKET</span></div>
+    <div class="dml-scene">
+      <div class="dml-car-wrap">
+        <div class="dml-exhaust"><span></span><span></span><span></span></div>
+        <svg class="dml-car" viewBox="0 0 160 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="80" cy="73" rx="62" ry="4" fill="rgba(0,0,0,0.1)"/>
+          <rect x="10" y="36" width="136" height="28" rx="7" fill="#0f172a"/>
+          <path d="M35 36 C40 18 54 12 72 11 L106 11 C120 11 135 20 142 36Z" fill="#1e293b"/>
+          <rect x="10" y="48" width="136" height="3" rx="1.5" fill="#FF5722" opacity="0.55"/>
+          <path d="M42 35 C45 22 55 15 68 15 L96 15 C106 15 114 21 118 35Z" fill="#7dd3fc" opacity="0.75"/>
+          <path d="M120 35 C122 25 130 18 140 20 L148 26 L148 35Z" fill="#7dd3fc" opacity="0.55"/>
+          <rect x="142" y="40" width="12" height="8" rx="3" fill="#FF8C00"/>
+          <rect x="8" y="42" width="8" height="6" rx="2" fill="#ef4444" opacity="0.9"/>
+          <circle class="dml-wheel" cx="118" cy="64" r="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+          <circle cx="118" cy="64" r="5" fill="#FF5722"/>
+          <line class="dml-spoke" x1="118" y1="52" x2="118" y2="76" stroke="#64748b" stroke-width="1.5"/>
+          <line class="dml-spoke" x1="106" y1="64" x2="130" y2="64" stroke="#64748b" stroke-width="1.5"/>
+          <circle class="dml-wheel" cx="44" cy="64" r="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+          <circle cx="44" cy="64" r="5" fill="#FF5722"/>
+          <line class="dml-spoke" x1="44" y1="52" x2="44" y2="76" stroke="#64748b" stroke-width="1.5"/>
+          <line class="dml-spoke" x1="32" y1="64" x2="56" y2="64" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="2" y1="76" x2="158" y2="76" stroke="#e2e8f0" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="dml-road-strip"></div>
+    </div>
+    <div class="dml-text-wrap">
+      <p class="dml-headline" id="dmlHeadline">Buscando los mejores vehiculos para ti</p>
+      <p class="dml-sub">Drive Market — Tu mercado automotor de confianza</p>
+    </div>
+    <div class="dml-progress-track"><div class="dml-progress-bar"></div></div>
+  </div>
+</div>
+<style>
+#dm-page-loader{position:fixed;inset:0;z-index:99999;background:linear-gradient(160deg,#f8fafc 0%,#f1f5f9 70%,#e8edf4 100%);display:flex;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s ease;opacity:1;visibility:visible}
+#dm-page-loader.dml-hide{opacity:0;visibility:hidden;pointer-events:none}
+.dml-inner{display:flex;flex-direction:column;align-items:center;width:100%;max-width:220px;padding:0 20px}
+.dml-brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1rem;font-weight:900;color:#0f172a;letter-spacing:-.03em;margin-bottom:22px}
+.dml-brand span{color:#FF5722}
+.dml-scene{position:relative;width:100%}
+.dml-car-wrap{position:relative;width:100%;animation:dmlBounce .45s ease-in-out infinite alternate}
+@keyframes dmlBounce{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+.dml-car{width:100%}
+.dml-wheel{transform-box:fill-box;transform-origin:center;animation:dmlSpin .5s linear infinite}
+.dml-spoke{transform-box:fill-box;transform-origin:center;animation:dmlSpin .5s linear infinite}
+@keyframes dmlSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.dml-exhaust{position:absolute;left:-8px;bottom:12px;display:flex;flex-direction:row-reverse;gap:4px;align-items:center}
+.dml-exhaust span{border-radius:50%;background:#94a3b8;animation:dmlPuff .7s ease-in-out infinite alternate}
+.dml-exhaust span:nth-child(1){width:10px;height:10px;animation-delay:0s;opacity:.5}
+.dml-exhaust span:nth-child(2){width:7px;height:7px;animation-delay:.18s;opacity:.3}
+.dml-exhaust span:nth-child(3){width:5px;height:5px;animation-delay:.32s;opacity:.15}
+@keyframes dmlPuff{from{transform:scale(.5) translateY(0)}to{transform:scale(1.4) translateY(-10px) translateX(-6px)}}
+.dml-road-strip{height:3px;background:repeating-linear-gradient(90deg,#FF5722 0,#FF5722 16px,transparent 16px,transparent 32px);border-radius:2px;opacity:.3;margin-top:2px}
+.dml-text-wrap{text-align:center;margin:20px 0 14px}
+.dml-headline{font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:700;color:#0f172a;margin:0 0 5px;letter-spacing:-.01em;transition:opacity .35s ease}
+.dml-sub{font-family:'Plus Jakarta Sans',sans-serif;font-size:.7rem;font-weight:500;color:#94a3b8;margin:0}
+.dml-progress-track{width:100%;height:3px;background:#e2e8f0;border-radius:4px;overflow:hidden}
+.dml-progress-bar{height:100%;width:40%;background:linear-gradient(90deg,#FF5722,#FF8C00);border-radius:4px;animation:dmlProgress 1.4s ease-in-out infinite}
+@keyframes dmlProgress{0%{transform:translateX(-100%);width:40%}50%{width:60%}100%{transform:translateX(280%);width:40%}}
+</style>
+<script>
+(function(){
+var loader=document.getElementById('dm-page-loader');
+var headline=document.getElementById('dmlHeadline');
+if(!loader)return;
+var msgs=['Buscando los mejores vehiculos para ti','Filtrando el inventario disponible','Verificando precios actualizados','Preparando resultados personalizados'];
+var mi=0;
+var rot=setInterval(function(){mi=(mi+1)%msgs.length;if(headline){headline.style.opacity='0';setTimeout(function(){headline.textContent=msgs[mi];headline.style.opacity='1';},300);}},2200);
+function hide(){clearInterval(rot);loader.classList.add('dml-hide');}
+if(document.readyState==='complete'){hide();}else{window.addEventListener('load',hide);setTimeout(hide,4500);}
+})();
+</script>
+{% endblock %}

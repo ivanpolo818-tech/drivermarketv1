@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Acceso Requerido - Drive Market{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/acceso.css') }}">
+
+<section class="acceso-seccion">
+    <div class="acceso-card">
+        
+        <div class="icon-header">
+            <i class="fas fa-lock-open icon-lock"></i>
+        </div>
+        
+        <h2 class="card-title">🔐 Acceso Requerido</h2>
+        <p class="card-description">
+            Para acceder a esta función (publicar, favoritos, etc.), necesitas tener una cuenta activa o iniciar sesión. ¡Es rápido y fácil!
+        </p>
+        
+        <div class="botones-acceso">
+            <a href="{{ url_for('login') }}" class="btn-acceso btn-login">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </a>
+            <a href="{{ url_for('registro') }}" class="btn-acceso btn-registro">
+                <i class="fas fa-user-plus"></i> Crear Cuenta
+            </a>
+        </div>
+        
+      
+    </div>
+</section>
+{% endblock %}

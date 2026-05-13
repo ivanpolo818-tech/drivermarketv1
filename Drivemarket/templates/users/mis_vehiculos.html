@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+{% block title %}Mis Vehículos | Drive Market{% endblock %}
+
+{% block content %}
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+<div class="elite-dashboard-wrapper">
+
+    
+    <!-- Botón de Hamburguesa para Móvil -->
+    <button id="mobileSidebarToggle" style="display: none; width: 100%; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; padding: 14px 20px; font-weight: 700; color: var(--c-text); align-items: center; justify-content: space-between; cursor: pointer; box-shadow: var(--shadow-soft); margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class='bx bx-menu' style="font-size: 1.4rem; color: var(--c-brand);"></i>
+            Menú de Navegación
+        </div>
+        <i class='bx bx-chevron-down' id="toggleChevron" style="transition: 0.3s; font-size: 1.2rem;"></i>
+    </button>
+    <style>@media (max-width: 768px) { #mobileSidebarToggle { display: flex !important; } }</style>
+
+    <aside class="elite-sidebar">
+        <div class="sidebar-profile">
+            <div class="profile-avatar">
+                {% set foto_filename = session.get('foto', '') | string | trim %}
+                {% if foto_filename %}
+                    <img src="{{ url_for('static', filename='uploads/usuarios/' + foto_filename) }}" alt="Avatar">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/default_user.png') }}" alt="Avatar Default">
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <span class="profile-role">Gestor de Inventario</span>
+                <span class="profile-name">{{ session.get('nombre', 'Usuario') }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Mi Cuenta</div>
+            <a href="{{ url_for('users.perfil') }}" class="menu-item">
+                <i class='bx bx-id-card'></i> Información Personal
+            </a>
+            <a href="{{ url_for('users.mis_vehiculos') }}" class="menu-item {% if request.endpoint == 'users.mis_vehiculos' %}active{% endif %}">
+                <i class='bx bx-car'></i> Mis Vehículos 
+            </a>
+            <a href="{{ url_for('users.favoritos') }}" class="menu-item">
+                <i class='bx bx-heart'></i> Guardados
+            </a>
+            {% if session.get('rol') == 'vendedor' %}
+            <a href="{{ url_for('vendedor.dashboard') }}" class="menu-item">
+                <i class='bx bx-store-alt'></i> Dashboard Vendedor
+            </a>
+            {% endif %}
+            
+            <a href="{{ url_for('mensajes.centro_mensajes') }}" class="menu-item">
+                <i class='bx bx-message-square-dots'></i> Bandeja de Entrada
+            </a>
+            
+            {% if session.get('rol') in ['admin', 'superadmin', 'editor', 'moderador'] %}
+            <div class="menu-divider"></div>
+            <div class="menu-label text-purple">Administración</div>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="menu-item admin">
+                <i class='bx bx-shield-quarter'></i> Panel de Admin
+            </a>
+            {% endif %}
+
+            <div class="menu-divider"></div>
+            <a href="{{ url_for('logout') }}" class="menu-item danger">
+                <i class='bx bx-log-out-circle'></i> Cerrar Sesión
+            </a>
+        </nav>
+    </aside>
+
+    <main class="elite-main">
+        
+        <header class="main-header-elite">
+            <div>
+                <h1 class="elite-title">Mis Publicaciones</h1>
+                <p class="elite-subtitle">Gestiona tu inventario, edita información y monitorea tus ventas en tiempo real.</p>
+            </div>
+            
+            {% if vehiculos %}
+            <a href="{{ url_for('vender') }}" class="btn-ultra-primary">
+                <i class='bx bx-plus-circle'></i> Nuevo Vehículo
+            </a>
+            {% endif %}
+        </header>
+
+        {% if vehiculos %}
+        
+        <section class="stats-grid">
+            <div class="stat-widget">
+                <div class="stat-icon-box bg-blue"><i class='bx bx-layer'></i></div>
+                <div class="stat-data">
+                    <h4>Total Publicados</h4>
+                    <h2>{{ vehiculos|length }}</h2>
+                </div>
+            </div>
+            <div class="stat-widget">
+                <div class="stat-icon-box bg-green"><i class='bx bx-check-shield'></i></div>
+                <div class="stat-data">
+                    <h4>Vehículos Activos</h4>
+                    <h2>{{ vehiculos | selectattr('estado', 'equalto', 'activo') | list | length }}</h2>
+                </div>
+            </div>
+            <div class="stat-widget">
+                <div class="stat-icon-box bg-orange"><i class='bx bx-time-five'></i></div>
+                <div class="stat-data">
+                    <h4>En Revisión</h4>
+                    <h2>{{ vehiculos | selectattr('estado', 'equalto', 'revision') | list | length }}</h2>
+                </div>
+            </div>
+        </section>
+
+        <div class="controls-bar">
+            <div class="search-box">
+                <i class='bx bx-search'></i>
+                <input type="text" id="buscarVehiculo" placeholder="Buscar por marca, modelo o placa...">
+            </div>
+            <div class="filter-box">
+                <i class='bx bx-filter-alt'></i>
+                <select id="filtroEstado">
+                    <option value="todos">Todos los estados</option>
+                    <option value="activo">Activos</option>
+                    <option value="revision">En Revisión</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="inventory-grid" id="gridVehiculos">
+            {% for v in vehiculos %}
+            <article class="elite-card" data-estado="{{ v.estado }}" data-texto="{{ v.marca | lower }} {{ v.modelo | lower }} {{ v.placa | lower }}">
+                
+                <div class="card-hero">
+                    {% if v.imagen_principal and v.imagen_principal != '' %}
+                        <img src="{{ url_for('static', filename=v.imagen_principal) }}" alt="{{ v.marca }} {{ v.modelo }}" loading="lazy">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default_car.jpg') }}" alt="Sin imagen">
+                    {% endif %}
+                    
+                    <div class="hero-overlay"></div>
+                    
+                    {% set st = v.estado or 'revision' %}
+                    <div class="hero-status status-{{ st }}">
+                        {% if st == 'activo' %}
+                            Activo
+                        {% elif st in ['pausado', 'inactivo'] %}
+                            Pausado
+                        {% elif st == 'bloqueado' %}
+                            Bloqueado
+                        {% elif st == 'vendido' %}
+                            Vendido
+                        {% else %}
+                            En Revisión
+                        {% endif %}
+                    </div>
+
+                    <div class="hero-price">
+                        ${{ "{:,.0f}".format(v.precio|float) }}
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="vehicle-name" title="{{ v.marca }} {{ v.modelo }}">{{ v.marca }} {{ v.modelo }}</h3>
+                    
+                    <div class="vehicle-specs">
+                        <div class="spec">
+                            <i class='bx bx-calendar'></i> {{ v.anio }}
+                        </div>
+                        <div class="spec">
+                            <i class='bx bx-barcode-reader'></i> {{ v.placa if v.placa else 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-action-bar">
+                    <a href="{{ url_for('detalle', id=v.id) }}" class="action-btn view" title="Ver">
+                        <i class='bx bx-show'></i>
+                    </a>
+                    <div class="action-divider"></div>
+                    <a href="{{ url_for('admin.editar_vehiculo', id=v.id) }}" class="action-btn edit" title="Editar">
+                        <i class='bx bx-edit-alt'></i>
+                    </a>
+                    <div class="action-divider"></div>
+                    {% set del_url = url_for('admin.borrar_vehiculo', id=v.id) %}
+                    <button class="action-btn delete" type="button" title="Eliminar" onclick="confirmarEliminacion('{{ v.id }}', '{{ v.marca }} {{ v.modelo }}')">
+                        <i class='bx bx-trash'></i>
+                    </button>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="pagination-container" id="paginationControls"></div>
+
+        <div id="noResultsMsg" class="no-results-msg" style="display: none;">
+            <i class='bx bx-search-alt-2'></i>
+            <p>No encontramos vehículos con esos filtros.</p>
+        </div>
+
+        {% else %}
+        
+        <div class="elite-empty-state">
+            <div class="empty-graphic">
+                <div class="glow-effect"></div>
+                <i class='bx bx-car'></i>
+            </div>
+            <h2>Tu inventario está vacío</h2>
+            <p>Empieza a vender hoy mismo. Sube fotos de tu vehículo y llega a miles de compradores potenciales.</p>
+            <a href="{{ url_for('vender') }}" class="btn-ultra-primary">
+                <i class='bx bx-plus-circle'></i> Publicar mi primer vehículo
+            </a>
+        </div>
+
+        {% endif %}
+
+    </main>
+</div>
+
+
+<style>
+/* ========================================================= */
+/* VARIABLES Y RESET (ELITE DASHBOARD)                       */
+/* ========================================================= */
+:root {
+    --c-brand: #FF6A00;
+    --c-brand-dark: #E64E00;
+    --c-bg: #f4f4f5;
+    --c-surface: #ffffff;
+    --c-text: #09090b;
+    --c-text-muted: #71717a;
+    --c-border: #e4e4e7;
+    --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    --radius-xl: 20px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--c-bg); color: var(--c-text); }
+
+/* Layout Global */
+.elite-dashboard-wrapper { display: flex; max-width: 1400px; margin: 30px auto 80px; padding: 0 20px; gap: 30px; }
+
+/* ========================================================= */
+/* SIDEBAR                                                   */
+/* ========================================================= */
+.elite-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 30px; height: fit-content; }
+
+.sidebar-profile { background: var(--c-surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.profile-avatar { width: 54px; height: 54px; border-radius: 14px; overflow: hidden; background: #f4f4f5; border: 2px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-info { display: flex; flex-direction: column; }
+.profile-role { font-size: 0.75rem; color: var(--c-brand); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.profile-name { font-size: 1.1rem; font-weight: 800; color: var(--c-text); line-height: 1.2;}
+
+.sidebar-menu { background: var(--c-surface); border-radius: var(--radius-lg); padding: 20px 12px; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); }
+.menu-label { font-size: 0.7rem; font-weight: 800; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 12px; }
+.text-purple { color: #8b5cf6; }
+.menu-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; color: var(--c-text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: var(--transition); }
+.menu-item i { font-size: 1.3rem; }
+.menu-item:hover { background: #f4f4f5; color: var(--c-text); transform: translateX(4px);}
+.menu-item.active { background: rgba(255, 106, 0, 0.1); color: var(--c-brand); }
+.menu-item.active i { color: var(--c-brand); }
+.menu-item.admin:hover { background: #f5f3ff; color: #8b5cf6; }
+.menu-item.danger:hover { background: #fef2f2; color: #ef4444; }
+.menu-divider { height: 1px; background: var(--c-border); margin: 15px 12px; }
+
+/* ========================================================= */
+/* MAIN CONTENT                                              */
+/* ========================================================= */
+.elite-main { flex: 1; min-width: 0; }
+
+.main-header-elite { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.elite-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+.elite-subtitle { color: var(--c-text-muted); font-size: 1rem; margin: 0; }
+
+.btn-ultra-primary { background: linear-gradient(135deg, var(--c-brand) 0%, #FF4500 100%); color: white; border: none; padding: 14px 24px; border-radius: 14px; font-weight: 700; font-size: 1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 10px 20px rgba(255, 106, 0, 0.25); transition: var(--transition); }
+.btn-ultra-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 106, 0, 0.35); color: white;}
+
+/* Widgets */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+.stat-widget { background: var(--c-surface); border-radius: var(--radius-lg); padding: 20px; display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); transition: var(--transition);}
+.stat-widget:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+.stat-icon-box { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+.bg-blue { background: #eff6ff; color: #3b82f6; }
+.bg-green { background: #ecfdf5; color: #10b981; }
+.bg-orange { background: #fff7ed; color: #f59e0b; }
+.stat-data h4 { margin: 0 0 4px; font-size: 0.85rem; color: var(--c-text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+.stat-data h2 { margin: 0; font-size: 1.8rem; font-weight: 800; color: var(--c-text); line-height: 1; }
+
+/* Controles */
+.controls-bar { display: flex; gap: 16px; margin-bottom: 30px; }
+.search-box { flex: 1; position: relative; }
+.search-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); font-size: 1.2rem;}
+.search-box input { width: 100%; padding: 14px 20px 14px 45px; border-radius: 14px; border: 1px solid var(--c-border); font-size: 1rem; font-family: inherit; font-weight: 500; outline: none; transition: var(--transition); background: var(--c-surface); box-shadow: var(--shadow-soft);}
+.search-box input:focus { border-color: var(--c-brand); box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.1); }
+.filter-box { position: relative; min-width: 200px;}
+.filter-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--c-brand); font-size: 1.2rem; pointer-events: none;}
+.filter-box select { width: 100%; padding: 14px 20px 14px 45px; border-radius: 14px; border: 1px solid var(--c-border); font-size: 1rem; font-weight: 600; font-family: inherit; outline: none; cursor: pointer; background: var(--c-surface); box-shadow: var(--shadow-soft); appearance: none;}
+.filter-box select:focus { border-color: var(--c-brand); }
+
+/* ========================================================= */
+/* TARJETAS ELITE (DISEÑO SAAS)                              */
+/* ========================================================= */
+.inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+
+.elite-card { background: var(--c-surface); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); display: flex; flex-direction: column; transition: var(--transition); }
+.elite-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); border-color: #cbd5e1; }
+
+/* Sección Imagen y Overlays */
+.card-hero { position: relative; aspect-ratio: 16/10; overflow: hidden; background: #e4e4e7; }
+.card-hero img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+.elite-card:hover .card-hero img { transform: scale(1.08); }
+.hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%); pointer-events: none; z-index: 1;}
+
+.hero-status { position: absolute; top: 12px; right: 12px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: white; z-index: 2; backdrop-filter: blur(8px); }
+.status-activo { background: rgba(16, 185, 129, 0.9); }
+.status-pausado, .status-inactivo { background: rgba(107, 114, 128, 0.9); }
+.status-bloqueado { background: rgba(239, 68, 68, 0.9); }
+.status-vendido { background: rgba(245, 158, 11, 0.9); }
+.status-revision { background: rgba(245, 158, 11, 0.9); }
+
+.hero-price { position: absolute; bottom: 12px; left: 16px; font-size: 1.4rem; font-weight: 800; color: white; z-index: 2; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+/* Cuerpo de la Tarjeta */
+.card-content { padding: 20px; flex: 1; }
+.vehicle-name { font-size: 1.15rem; font-weight: 800; color: var(--c-text); margin: 0 0 12px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.3px;}
+.vehicle-specs { display: flex; gap: 16px; }
+.spec { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: var(--c-text-muted); background: #f4f4f5; padding: 4px 10px; border-radius: 8px;}
+.spec i { font-size: 1.1rem; color: #a1a1aa; }
+
+/* Barra de Acciones Segmentada */
+.card-action-bar { display: flex; align-items: center; border-top: 1px solid var(--c-border); background: #fafafa; }
+.action-btn { flex: 1; display: flex; align-items: center; justify-content: center; padding: 14px 0; font-size: 1.2rem; color: var(--c-text-muted); text-decoration: none; transition: var(--transition); cursor: pointer; border: none; background: transparent;}
+.action-divider { width: 1px; height: 24px; background: var(--c-border); }
+.action-btn.view:hover { color: #3b82f6; background: #eff6ff; }
+.action-btn.edit:hover { color: #f59e0b; background: #fff7ed; }
+.action-btn.delete { flex: 1; color: #ef4444; }
+.action-btn.delete i { color: #ef4444; }
+.action-btn.delete:hover { background: #fef2f2; }
+
+/* Estilos para el Modal Elite */
+.elite-modal-ov {
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px); z-index: 1000;
+    display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: all 0.3s;
+}
+.elite-modal-ov.show { display: flex; opacity: 1; }
+.elite-modal {
+    background: #fff; width: 100%; max-width: 400px;
+    border-radius: var(--radius-xl); padding: 32px;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+    text-align: center; transform: translateY(20px); transition: 0.3s;
+}
+.elite-modal-ov.show .elite-modal { transform: translateY(0); }
+
+/* ========================================================= */
+/* PAGINACIÓN Y ESTADOS                                      */
+/* ========================================================= */
+.pagination-container { display: flex; justify-content: center; gap: 8px; margin-top: 40px; }
+.btn-page { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-text); font-weight: 700; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;}
+.btn-page:hover:not(.disabled):not(.active) { background: #f4f4f5; }
+.btn-page.active { background: var(--c-text); color: white; border-color: var(--c-text); }
+.btn-page.disabled { opacity: 0.4; cursor: not-allowed; }
+
+.no-results-msg { text-align: center; padding: 60px 20px; background: var(--c-surface); border-radius: var(--radius-lg); border: 1px dashed var(--c-border); }
+.no-results-msg i { font-size: 3rem; color: #cbd5e1; margin-bottom: 15px; }
+.no-results-msg p { color: var(--c-text-muted); font-size: 1.1rem; font-weight: 500; }
+
+/* Empty State Global */
+.elite-empty-state { text-align: center; padding: 80px 20px; background: var(--c-surface); border-radius: var(--radius-xl); border: 1px dashed #cbd5e1; display: flex; flex-direction: column; align-items: center; margin-top: 20px;}
+.empty-graphic { position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+.empty-graphic i { font-size: 5rem; color: #94a3b8; position: relative; z-index: 2; }
+.glow-effect { position: absolute; inset: 0; background: var(--c-brand); filter: blur(30px); opacity: 0.15; border-radius: 50%; z-index: 1;}
+.elite-empty-state h2 { font-size: 1.8rem; font-weight: 800; color: var(--c-text); margin-bottom: 12px; }
+.elite-empty-state p { color: var(--c-text-muted); font-size: 1.05rem; max-width: 450px; margin-bottom: 30px; line-height: 1.6; }
+
+/* ========================================================= */
+/* RESPONSIVE                                                */
+/* ========================================================= */
+@media (max-width: 1024px) {
+    .elite-dashboard-wrapper { flex-direction: column; }
+    .elite-sidebar { width: 100%; position: static; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;}
+    .sidebar-profile { margin-bottom: 0; }
+}
+@media (max-width: 768px) {
+    .elite-sidebar { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .controls-bar { flex-direction: column; }
+    .main-header-elite { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .btn-ultra-primary { width: 100%; justify-content: center; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputBuscar = document.getElementById('buscarVehiculo');
+    const selectFiltro = document.getElementById('filtroEstado');
+    const todasLasTarjetas = Array.from(document.querySelectorAll('.elite-card'));
+    const paginationContainer = document.getElementById('paginationControls');
+    const noResultsMsg = document.getElementById('noResultsMsg');
+    
+    // CONFIGURACIÓN DE PAGINACIÓN
+    const itemsPerPage = 8;
+    let currentPage = 1;
+    let tarjetasFiltradas = [...todasLasTarjetas];
+
+    function applyFilters() {
+        if (!inputBuscar || !selectFiltro) return;
+        
+        const texto = inputBuscar.value.toLowerCase();
+        const estado = selectFiltro.value;
+
+        // Filtrar el array
+        tarjetasFiltradas = todasLasTarjetas.filter(tarjeta => {
+            const textoTarjeta = tarjeta.getAttribute('data-texto');
+            const estadoTarjeta = tarjeta.getAttribute('data-estado');
+            
+            const coincideTexto = textoTarjeta.includes(texto);
+            const coincideEstado = estado === 'todos' || estadoTarjeta === estado;
+
+            return coincideTexto && coincideEstado;
+        });
+
+        if(tarjetasFiltradas.length === 0) {
+            noResultsMsg.style.display = 'block';
+            paginationContainer.style.display = 'none';
+        } else {
+            noResultsMsg.style.display = 'none';
+            paginationContainer.style.display = 'flex';
+        }
+
+        currentPage = 1; 
+        renderPage();
+    }
+
+    function renderPage() {
+        todasLasTarjetas.forEach(t => t.style.display = 'none');
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        
+        const tarjetasAMostrar = tarjetasFiltradas.slice(startIndex, endIndex);
+        tarjetasAMostrar.forEach(t => t.style.display = 'flex');
+
+        renderPaginationControls();
+    }
+
+    function renderPaginationControls() {
+        if (!paginationContainer) return;
+        paginationContainer.innerHTML = '';
+        
+        const totalPages = Math.ceil(tarjetasFiltradas.length / itemsPerPage);
+
+        if (totalPages <= 1) {
+            paginationContainer.style.display = 'none';
+            return;
+        } else {
+            paginationContainer.style.display = 'flex';
+        }
+
+        // Anterior
+        const prevBtn = document.createElement('button');
+        prevBtn.className = `btn-page ${currentPage === 1 ? 'disabled' : ''}`;
+        prevBtn.innerHTML = "<i class='bx bx-chevron-left'></i>";
+        prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; renderPage(); window.scrollTo({top: 0, behavior: 'smooth'}); } };
+        paginationContainer.appendChild(prevBtn);
+
+        // Números
+        for(let i = 1; i <= totalPages; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `btn-page ${currentPage === i ? 'active' : ''}`;
+            pageBtn.innerText = i;
+            pageBtn.onclick = () => { currentPage = i; renderPage(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+            paginationContainer.appendChild(pageBtn);
+        }
+
+        // Siguiente
+        const nextBtn = document.createElement('button');
+        nextBtn.className = `btn-page ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextBtn.innerHTML = "<i class='bx bx-chevron-right'></i>";
+        nextBtn.onclick = () => { if(currentPage < totalPages) { currentPage++; renderPage(); window.scrollTo({top: 0, behavior: 'smooth'}); } };
+        paginationContainer.appendChild(nextBtn);
+    }
+
+    if (inputBuscar) inputBuscar.addEventListener('keyup', applyFilters);
+    if (selectFiltro) selectFiltro.addEventListener('change', applyFilters);
+
+    if (todasLasTarjetas.length > 0) {
+        applyFilters(); 
+    }
+});
+
+</script>
+{% endblock %}
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+<script>
+// --- FUNCIÓN DE ELIMINACIÓN CON ESTILO PREMIUM ---
+function confirmarEliminacion(vehiculoId, vehiculoNombre) {
+    Swal.fire({
+        title: '¿Eliminar vehículo?',
+        html: `Esta acción es <b>permanente</b>. Se eliminarán todas las fotos y la información de <b>${vehiculoNombre}</b> de la plataforma.`,
+        showCancelButton: true,
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#ffffff',
+        background: '#ffffff',
+        padding: '2rem',
+        showLoaderOnConfirm: true,
+        customClass: {
+            container: 'elite-swal-container',
+            popup: 'elite-swal-popup-rounded',
+            title: 'elite-swal-title-bold',
+            htmlContainer: 'elite-swal-text',
+            confirmButton: 'elite-swal-confirm-red',
+            cancelButton: 'elite-swal-cancel-outline'
+        },
+        // Simulamos el icono de la imagen con HTML personalizado para mayor fidelidad
+        iconHtml: '<i class="bx bx-trash" style="color: #ef4444; font-size: 3rem;"></i>',
+        iconColor: '#fee2e2', // Fondo del circulo del icono
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar carga mientas se elimina
+            Swal.fire({
+                title: 'Eliminando...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+            
+            // Enviar formulario de eliminación
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/vehiculo/eliminar/${vehiculoId}`;
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+</script>
+
+<style>
+/* ESTILOS CLAVE PARA EL MODAL PRECIOSO */
+.elite-swal-popup-rounded {
+    border-radius: 24px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+.elite-swal-title-bold {
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    color: #1a1a1a !important;
+    margin-top: 10px !important;
+}
+.elite-swal-text {
+    font-size: 0.95rem !important;
+    color: #4b5563 !important;
+    line-height: 1.6 !important;
+}
+.elite-swal-confirm-red {
+    border-radius: 14px !important;
+    padding: 12px 30px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    text-transform: none !important;
+}
+.elite-swal-cancel-outline {
+    border: 1px solid #e5e7eb !important;
+    color: #1a1a1a !important;
+    border-radius: 14px !important;
+    padding: 12px 30px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+}
+.elite-swal-cancel-outline:hover {
+    background: #f9fafb !important;
+}
+
+/* FIX MOBILE SIDEBAR HAMBURGER */
+@media (max-width: 768px) {
+    .elite-sidebar { display: none !important; width: 100%; grid-template-columns: 1fr; margin-top: 10px; animation: slideDownElite 0.3s ease-out forwards; }
+    .elite-sidebar.show-mobile { display: block !important; }
+    @keyframes slideDownElite { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: translateY(0); } }
+    
+    .main-header-elite { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px;}
+    .elite-title { font-size: 1.6rem !important; }
+    .elite-dashboard-wrapper { gap: 16px; padding: 0 10px; margin-top: 15px;}
+    .elite-form-card { padding: 20px 16px !important; }
+    .card-header h2 { font-size: 1.2rem !important; }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    if(mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.elite-sidebar');
+            if(sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const chevron = document.getElementById('toggleChevron');
+                if(sidebar.classList.contains('show-mobile')) {
+                    chevron.style.transform = 'rotate(180deg)';
+                    mobileToggle.style.borderColor = 'var(--c-brand)';
+                } else {
+                    chevron.style.transform = 'rotate(0deg)';
+                    mobileToggle.style.borderColor = 'var(--c-border)';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

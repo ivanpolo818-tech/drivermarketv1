@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte: {{ entidad }} - Drivemarket</title>
+  <style>
+    :root {
+      --primary: #ff7043;
+      --text: #1f2937;
+      --text-mut: #6b7280;
+      --border: #e5e7eb;
+    }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #fff;
+    }
+    /* Encabezado del documento */
+    .print-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 1.5rem; margin-bottom: 2rem;
+    }
+    .print-brand h1 { margin: 0; color: var(--primary); font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; }
+    .print-brand p { margin: .2rem 0 0; color: var(--text-mut); font-size: .85rem; }
+    .print-meta { text-align: right; }
+    .print-meta h2 { margin: 0 0 .5rem; font-size: 1.4rem; color: var(--text); }
+    .print-meta p { margin: 0; font-size: .9rem; color: var(--text-mut); }
+    
+    /* Tabla de datos */
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; margin-bottom: 2rem; page-break-inside: auto; }
+    tr    { page-break-inside: avoid; page-break-after: auto; }
+    thead { display: table-header-group; }
+    tfoot { display: table-footer-group; }
+    
+    th, td { padding: .75rem 1rem; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: #f9fafb; font-weight: 700; color: var(--text-mut); text-transform: uppercase; font-size: .75rem; letter-spacing: .05em; border-top: 1px solid var(--border); }
+    td { color: var(--text); }
+    
+    /* Pie de página */
+    .print-footer { text-align: center; color: var(--text-mut); font-size: .8rem; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+    
+    /* Utilidades de impresión */
+    .no-print { display: none; }
+    @media screen {
+      .print-btn-float {
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        position: fixed; bottom: 2rem; right: 2rem;
+        background: var(--primary); color: #fff; border: none; border-radius: 50px;
+        padding: 1rem 1.5rem; font-size: 1rem; font-weight: 700;
+        box-shadow: 0 10px 25px rgba(255,112,67,0.4); cursor: pointer; transition: transform .2s;
+      }
+      .print-btn-float:hover { transform: translateY(-3px); }
+    }
+    @media print {
+      body { padding: 0; }
+      .print-btn-float { display: none !important; }
+      @page { margin: 1cm; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body onload="window.print()">
+
+  <button class="print-btn-float" onclick="window.print()">
+    <i class="fas fa-print"></i> Guardar como PDF / Imprimir
+  </button>
+
+  <header class="print-header">
+    <div class="print-brand">
+      <h1><i class="fas fa-car-side"></i> Drivemarket</h1>
+      <p>Reporte Oficial del Sistema</p>
+    </div>
+    <div class="print-meta">
+      <h2>Reporte de {{ entidad }}</h2>
+      <p>Generado: <strong>{{ run_date }}</strong></p>
+      {% if fecha_inicio or fecha_fin %}
+        <p>Periodo: <strong>{{ fecha_inicio or 'Inicio' }}</strong> al <strong>{{ fecha_fin or 'Hoy' }}</strong></p>
+      {% else %}
+        <p>Periodo: <strong>Histórico Completo</strong></p>
+      {% endif %}
+      <p>Total registros: <strong>{{ datos|length }}</strong></p>
+    </div>
+  </header>
+
+  <table>
+    <thead>
+      <tr>
+        {% if datos %}
+          {% for clave in datos[0].keys() %}
+            <th>{{ clave }}</th>
+          {% endfor %}
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in datos %}
+      <tr>
+        {% for valor in fila.values() %}
+        <td>{{ valor if valor is not none else '—' }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <footer class="print-footer">
+    Documento generado confidencialmente para uso administrativo. © Drivemarket.
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,1863 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Manual técnico completo para desarrolladores de la plataforma Drivemarket">
+      
+      
+        <meta name="author" content="Equipo Técnico Drivemarket">
+      
+      
+        <link rel="canonical" href="https://drivemarket-docs.example.com/inicio/LEETE/">
+      
+      
+        <link rel="prev" href="../guia-ejecucion/">
+      
+      
+        <link rel="next" href="../instalacion/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Lectura recomendada - Documentación Técnica</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#inicio-rapido-3-pasos" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="Documentación Técnica" class="md-header__button md-logo" aria-label="Documentación Técnica" data-md-component="logo">
+      <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -1px; margin-right: 0.25rem;">
+  <span style="color: currentColor;">DRIVE</span><span style="color: #ea580c;">MARKET</span>
+</span>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Documentación Técnica
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lectura recomendada
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="orange"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="orange"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/drivemarket/drivemarket" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    drivemarket/drivemarket
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../bienvenida/" class="md-tabs__link">
+          
+  
+  
+  Inicio rápido
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../documentacion/" class="md-tabs__link">
+          
+  
+  
+  Documentación
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../referencia/resumen/" class="md-tabs__link">
+          
+  
+  
+  Referencias
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Documentación Técnica" class="md-nav__button md-logo" aria-label="Documentación Técnica" data-md-component="logo">
+      <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -1px; margin-right: 0.25rem;">
+  <span style="color: currentColor;">DRIVE</span><span style="color: #ea580c;">MARKET</span>
+</span>
+    </a>
+    Documentación Técnica
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/drivemarket/drivemarket" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    drivemarket/drivemarket
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio rápido
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inicio rápido
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bienvenida/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bienvenida
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../primeros-pasos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros pasos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guia-ejecucion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de ejecución
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lectura recomendada
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lectura recomendada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#inicio-rapido-3-pasos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Inicio rápido (3 pasos)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Inicio rápido (3 pasos)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-instalar-dependencias" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1️⃣ Instalar dependencias
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-ver-en-navegador" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2️⃣ Ver en navegador
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-compilar-para-produccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3️⃣ Compilar para producción
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentacion-disponible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Documentación disponible
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#estructura-del-proyecto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📁 Estructura del proyecto
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lo-que-esta-documentado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Lo que está documentado
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 Lo que está documentado">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#codigo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Código
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ API Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Base de datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagramas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Diagramas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#desarrollo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Desarrollo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caracteristicas-del-sitio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎨 Características del sitio
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tecnologias-documentadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Tecnologías documentadas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#como-usar-la-documentacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📖 Cómo usar la documentación
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📖 Cómo usar la documentación">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#para-desarrolladores-nuevos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        👨‍💻 Para desarrolladores nuevos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#para-consultas-tecnicas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔍 Para consultas técnicas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#para-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Para deployment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#para-code-reviews" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎓 Para code reviews
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#desplegar-en-produccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Desplegar en producción
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Desplegar en producción">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#github-pages-recomendado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Pages (recomendado)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otro-servidor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Otro servidor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#netlify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Netlify
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist-para-comenzar" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ Checklist para comenzar
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problemas-frecuentes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📞 Problemas frecuentes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📞 Problemas frecuentes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-no-encontrado" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python no encontrado
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#puerto-8000-en-uso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Puerto 8000 en uso
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pdf-no-se-genera" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PDF no se genera
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cambios-no-aparecen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cambios no aparecen
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#archivos-de-referencia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Archivos de referencia
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tu-proximo-paso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 Tu próximo paso
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación local
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentación
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice de documentación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentacion/manual-tecnico/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manual técnico
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentacion/diagramas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagramas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentacion/referencia-rapida/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia rápida
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentacion/indice/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice maestro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencias
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencias
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/resumen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resumen completo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/estado/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado del proyecto
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación del sitio de docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/documentacion-completada/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación completada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/estructura-carpetas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estructura de carpetas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navegación" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Inicio
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../bienvenida/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Inicio rápido
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="documentacion-tecnica-drivemarket">📖 Documentación Técnica Drivemarket<a class="headerlink" href="#documentacion-tecnica-drivemarket" title="Permanent link">&para;</a></h1>
+<p><strong>Documentación completa para desarrolladores de la plataforma Drivemarket</strong></p>
+<h2 id="inicio-rapido-3-pasos">🚀 Inicio rápido (3 pasos)<a class="headerlink" href="#inicio-rapido-3-pasos" title="Permanent link">&para;</a></h2>
+<h3 id="1-instalar-dependencias">1️⃣ Instalar dependencias<a class="headerlink" href="#1-instalar-dependencias" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>setup_docs.py<span class="w"> </span>install
+</code></pre></div>
+<h3 id="2-ver-en-navegador">2️⃣ Ver en navegador<a class="headerlink" href="#2-ver-en-navegador" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>python<span class="w"> </span>setup_docs.py<span class="w"> </span>serve
+</code></pre></div>
+Abre: <strong><a href="http://localhost:8000">http://localhost:8000</a></strong></p>
+<h3 id="3-compilar-para-produccion">3️⃣ Compilar para producción<a class="headerlink" href="#3-compilar-para-produccion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>setup_docs.py<span class="w"> </span>build
+</code></pre></div>
+<p><strong>¿Tienes más tiempo?</strong> Lee <code>GUIA_RAPIDA_EJECUCION.md</code></p>
+<hr />
+<h2 id="documentacion-disponible">📚 Documentación disponible<a class="headerlink" href="#documentacion-disponible" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>GUIA_RAPIDA_EJECUCION.md</strong></td>
+<td>3 pasos para ejecutar ⚡</td>
+</tr>
+<tr>
+<td><strong>MANUAL_TECNICO_COMPLETO.md</strong></td>
+<td>Manual completo (3,500+ líneas) 📖</td>
+</tr>
+<tr>
+<td><strong>DIAGRAMAS_TECNICOS.md</strong></td>
+<td>10 diagramas Mermaid interactivos 📊</td>
+</tr>
+<tr>
+<td><strong>GUIA_RAPIDA_REFERENCIA.md</strong></td>
+<td>Quick reference para desarrolladores 🔍</td>
+</tr>
+<tr>
+<td><strong>RESUMEN_DOCUMENTACION_FINAL.md</strong></td>
+<td>Guía completa con todos los detalles 📋</td>
+</tr>
+<tr>
+<td><strong>SUMARIO_VISUAL.md</strong></td>
+<td>Estadísticas y visual general 📈</td>
+</tr>
+<tr>
+<td><strong>INDICE_MAESTRO.md</strong></td>
+<td>Índice de navegación maestro 📑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="estructura-del-proyecto">📁 Estructura del proyecto<a class="headerlink" href="#estructura-del-proyecto" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>📦 Drivemarket/
+├── 📄 app.py                         # Aplicación Flask principal
+├── 📄 models.py                      # Modelos SQLAlchemy
+├── 📄 db_config.py                   # Configuración de BD
+├── 📄 [routes].py                    # Blueprints (7 módulos)
+├── 📁 helpers/                       # Funciones auxiliares (6 módulos)
+├── 📁 static/                        # CSS, JS, imágenes
+├── 📁 templates/                     # HTML templates
+│
+├── 📄 requirements.txt               # Dependencias de la app
+├── 📄 requirements-docs.txt          # Dependencias de MkDocs
+├── 📄 mkdocs.yml                     # Configuración de MkDocs
+├── 📄 setup_docs.py                  # Script de automatización
+│
+└── 📁 docs/                          # Documentación
+    ├── index.md                      # Página principal
+    ├── stylesheets/extra.css         # Estilos personalizados
+    ├── 📁 guia-inicio/               # Guía de inicio
+    ├── 📁 manual-tecnico/            # Manual técnico
+    ├── 📁 diagramas/                 # Diagramas Mermaid
+    ├── 📁 guias-desarrollo/          # Guías de desarrollo
+    └── 📁 referencias/               # Referencias rápidas
+</code></pre></div>
+<hr />
+<h2 id="lo-que-esta-documentado">🎯 Lo que está documentado<a class="headerlink" href="#lo-que-esta-documentado" title="Permanent link">&para;</a></h2>
+<h3 id="codigo">✅ Código<a class="headerlink" href="#codigo" title="Permanent link">&para;</a></h3>
+<ul>
+<li>7 Blueprints de Flask explicados</li>
+<li>6 módulos de helpers</li>
+<li>Patrones de diseño utilizados</li>
+<li>Arquitectura de carpetas</li>
+</ul>
+<h3 id="api-endpoints">✅ API Endpoints<a class="headerlink" href="#api-endpoints" title="Permanent link">&para;</a></h3>
+<ul>
+<li>50+ endpoints documentados</li>
+<li>Métodos HTTP, parámetros, respuestas</li>
+<li>Ejemplos de uso</li>
+<li>Códigos de error</li>
+</ul>
+<h3 id="base-de-datos">✅ Base de datos<a class="headerlink" href="#base-de-datos" title="Permanent link">&para;</a></h3>
+<ul>
+<li>22 tablas documentadas</li>
+<li>Relaciones y constraints</li>
+<li>Índices y optimizaciones</li>
+<li>Diagrama ER completo</li>
+</ul>
+<h3 id="diagramas">✅ Diagramas<a class="headerlink" href="#diagramas" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Diagrama ER (relaciones de datos)</li>
+<li>Diagrama de arquitectura</li>
+<li>Flujos de autenticación</li>
+<li>Flujos de mensajería</li>
+<li>Flujos de notificaciones</li>
+<li>Y 5 más...</li>
+</ul>
+<h3 id="desarrollo">✅ Desarrollo<a class="headerlink" href="#desarrollo" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Setup del entorno</li>
+<li>Testing unitario e integración</li>
+<li>Guía de deployment</li>
+<li>Buenas prácticas</li>
+</ul>
+<hr />
+<h2 id="caracteristicas-del-sitio">🎨 Características del sitio<a class="headerlink" href="#caracteristicas-del-sitio" title="Permanent link">&para;</a></h2>
+<ul>
+<li>✨ <strong>Interfaz profesional</strong>: Material Design personalizado</li>
+<li>🌙 <strong>Modo oscuro/claro</strong>: Toggle en la esquina</li>
+<li>📱 <strong>Responsive</strong>: Funciona en móvil, tablet, desktop</li>
+<li>🔍 <strong>Búsqueda</strong>: Busca en toda la documentación</li>
+<li>📄 <strong>PDF Export</strong>: Exporta secciones a PDF</li>
+<li>💻 <strong>Syntax Highlighting</strong>: Código coloreado por lenguaje</li>
+<li>📊 <strong>Diagramas interactivos</strong>: Mermaid nativo</li>
+<li>⚡ <strong>Navegación rápida</strong>: Sidebar + breadcrumbs</li>
+</ul>
+<hr />
+<h2 id="tecnologias-documentadas">🔧 Tecnologías documentadas<a class="headerlink" href="#tecnologias-documentadas" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>Backend:
+  - Flask 2.3.3 (web framework)
+  - SQLAlchemy 3.0.5 (ORM)
+  - PostgreSQL 12+ (database)
+  - Authlib 1.6.9 (OAuth)
+  - Flask-Mail 0.10.0 (email)
+  - OpenAI API (chatbot)
+
+Documentación:
+  - MkDocs 1.5.3 (site generator)
+  - Material Theme (professional UI)
+  - Mermaid.js (diagramas)
+  - Markdown (content)
+</code></pre></div>
+<hr />
+<h2 id="como-usar-la-documentacion">📖 Cómo usar la documentación<a class="headerlink" href="#como-usar-la-documentacion" title="Permanent link">&para;</a></h2>
+<h3 id="para-desarrolladores-nuevos">👨‍💻 Para desarrolladores nuevos<a class="headerlink" href="#para-desarrolladores-nuevos" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Lee <code>guia-inicio/bienvenida.md</code> (5 min)</li>
+<li>Sigue <code>guia-inicio/primeros-pasos.md</code> (10 min)</li>
+<li>Revisa endpoints en <code>manual-tecnico/api-endpoints.md</code> (15 min)</li>
+<li>Consulta diagramas según necesidad</li>
+</ol>
+<h3 id="para-consultas-tecnicas">🔍 Para consultas técnicas<a class="headerlink" href="#para-consultas-tecnicas" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Endpoints</strong>: <code>manual-tecnico/api-endpoints.md</code></li>
+<li><strong>Modelos</strong>: <code>manual-tecnico/modelos-base-datos.md</code></li>
+<li><strong>Arquitectura</strong>: <code>diagramas/</code> o <code>manual-tecnico/estructura-codigo.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>referencias/troubleshooting.md</code></li>
+</ul>
+<h3 id="para-deployment">🚀 Para deployment<a class="headerlink" href="#para-deployment" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Setup</strong>: <code>guias-desarrollo/setup-desarrollo.md</code></li>
+<li><strong>Testing</strong>: <code>guias-desarrollo/testing.md</code></li>
+<li><strong>Deploy</strong>: <code>guias-desarrollo/deploy.md</code></li>
+<li><strong>Variables</strong>: <code>referencias/variables-entorno.md</code></li>
+</ul>
+<h3 id="para-code-reviews">🎓 Para code reviews<a class="headerlink" href="#para-code-reviews" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Endpoints</strong>: <code>manual-tecnico/api-endpoints.md</code></li>
+<li><strong>Patrones</strong>: <code>manual-tecnico/estructura-codigo.md</code></li>
+<li><strong>Buenas prácticas</strong>: <code>guias-desarrollo/buenas-practicas.md</code></li>
+</ul>
+<hr />
+<h2 id="desplegar-en-produccion">🚀 Desplegar en producción<a class="headerlink" href="#desplegar-en-produccion" title="Permanent link">&para;</a></h2>
+<h3 id="github-pages-recomendado">GitHub Pages (recomendado)<a class="headerlink" href="#github-pages-recomendado" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code>python<span class="w"> </span>setup_docs.py<span class="w"> </span>deploy
+</code></pre></div>
+Sitio en: <code>https://username.github.io/drivemarket/</code></p>
+<h3 id="otro-servidor">Otro servidor<a class="headerlink" href="#otro-servidor" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Compilar</span>
+python<span class="w"> </span>setup_docs.py<span class="w"> </span>build
+
+<span class="c1"># 2. Copiar contenido de site/ a tu servidor</span>
+scp<span class="w"> </span>-r<span class="w"> </span>site/*<span class="w"> </span>usuario@servidor:/var/www/docs/
+</code></pre></div>
+<h3 id="netlify">Netlify<a class="headerlink" href="#netlify" title="Permanent link">&para;</a></h3>
+<p>Conectar repo en Netlify con:
+- <strong>Build command</strong>: <code>mkdocs build</code>
+- <strong>Publish directory</strong>: <code>site</code></p>
+<hr />
+<h2 id="checklist-para-comenzar">✅ Checklist para comenzar<a class="headerlink" href="#checklist-para-comenzar" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Leer esta página (LÉETE.md)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Ejecutar <code>python setup_docs.py install</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Ejecutar <code>python setup_docs.py serve</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Abrir <a href="http://localhost:8000">http://localhost:8000</a> en navegador</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Revisar guía de inicio</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Consultar manual técnico según necesidad</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Desplegar a producción cuando esté listo</li>
+</ul>
+<hr />
+<h2 id="problemas-frecuentes">📞 Problemas frecuentes<a class="headerlink" href="#problemas-frecuentes" title="Permanent link">&para;</a></h2>
+<h3 id="python-no-encontrado">Python no encontrado<a class="headerlink" href="#python-no-encontrado" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Windows</span>
+py<span class="w"> </span>setup_docs.py<span class="w"> </span>install
+
+<span class="c1"># Mac/Linux</span>
+python3<span class="w"> </span>setup_docs.py<span class="w"> </span>install
+</code></pre></div>
+<h3 id="puerto-8000-en-uso">Puerto 8000 en uso<a class="headerlink" href="#puerto-8000-en-uso" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>mkdocs<span class="w"> </span>serve<span class="w"> </span>--dev-addr<span class="w"> </span><span class="m">127</span>.0.0.1:8001
+</code></pre></div>
+<h3 id="pdf-no-se-genera">PDF no se genera<a class="headerlink" href="#pdf-no-se-genera" title="Permanent link">&para;</a></h3>
+<p>Requiere Chrome instalado. Descárgalo en <a href="https://google.com/chrome/">https://google.com/chrome/</a></p>
+<h3 id="cambios-no-aparecen">Cambios no aparecen<a class="headerlink" href="#cambios-no-aparecen" title="Permanent link">&para;</a></h3>
+<p>Recarga el navegador (Ctrl+Shift+R) o reinicia el servidor</p>
+<hr />
+<h2 id="archivos-de-referencia">📚 Archivos de referencia<a class="headerlink" href="#archivos-de-referencia" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Cuándo usarlo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GUIA_RAPIDA_EJECUCION.md</code></td>
+<td>Para ejecutar en 3 pasos</td>
+</tr>
+<tr>
+<td><code>MANUAL_TECNICO_COMPLETO.md</code></td>
+<td>Para referencia técnica completa</td>
+</tr>
+<tr>
+<td><code>DIAGRAMAS_TECNICOS.md</code></td>
+<td>Para visualizar arquitectura</td>
+</tr>
+<tr>
+<td><code>RESUMEN_DOCUMENTACION_FINAL.md</code></td>
+<td>Para entender todo el sistema</td>
+</tr>
+<tr>
+<td><code>setup_docs.py</code></td>
+<td>Para ejecutar comandos</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="tu-proximo-paso">🎯 Tu próximo paso<a class="headerlink" href="#tu-proximo-paso" title="Permanent link">&para;</a></h2>
+<p><strong>¿Quieres comenzar ahora?</strong> Ejecuta:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>setup_docs.py<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>setup_docs.py<span class="w"> </span>serve
+</code></pre></div>
+<p>Luego abre: <strong><a href="http://localhost:8000">http://localhost:8000</a></strong></p>
+<p>¡Disfruta de la documentación! 🎉</p>
+<hr />
+<p><em>Documentación generada con ❤️ usando MkDocs + Material Theme</em>
+<em>Para más información, revisa <code>GUIA_RAPIDA_EJECUCION.md</code></em></p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Drivemarket. Todos los derechos reservados.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/drivemarket/drivemarket" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:tech@drivemarket.com" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "toc.integrate", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

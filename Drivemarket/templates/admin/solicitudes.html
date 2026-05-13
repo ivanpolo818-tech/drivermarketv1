@@ -1,0 +1,364 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Solicitudes de Verificación{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<div class="adm" id="adminRoot">
+  <!-- SIDEBAR -->
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <!-- MAIN -->
+  <main class="adm-main">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()" title="Menú">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-box" style="position:relative;">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Buscar tiendas..." id="solicitudesSearch" autocomplete="off" oninput="filterSolicitudes()">
+        </div>
+      </div>
+      <div class="topbar-right">
+        <!-- Dark mode -->
+        <button class="icon-btn" id="themeToggle" title="Cambiar tema" onclick="toggleTheme()">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <!-- User -->
+        <div class="avatar-wrap">
+          <div class="avatar"><i class="fas fa-user-shield"></i></div>
+          <span class="avatar-name">Admin</span>
+        </div>
+      </div>
+    </header>
+    
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div>
+          <h1><span class="heading-icon" style="background: linear-gradient(135deg, #a855f7, #7e22ce);"><i class="fas fa-certificate"></i></span>Verificación de Vendedores</h1>
+          <p class="subtext">Revisa el perfil y documentación KYC de los nuevos comercios antes de aprobarlos en Drive Market.</p>
+        </div>
+        <div class="kpi-badge badge-now" style="align-self: flex-start; margin-top: 10px; font-size: 0.9rem; padding: 0.5rem 1rem;">
+          <i class="fas fa-clock"></i> {{ solicitudes|length }} Solicitudes Pendientes
+        </div>
+      </div>
+      
+      {% if solicitudes %}
+      <!-- REQUESTS GRID (BENTO Layout) -->
+      <div class="requests-grid" id="requestsGrid">
+        {% for s in solicitudes %}
+        <div class="req-card" data-search="{{ s.nombre_tienda | lower }} {{ s.numero_id }} {{ s.email_comercial | lower }}">
+          <!-- STATUS & HEADER -->
+          <div class="req-header">
+            <div style="display:flex; align-items:center; gap: 1rem;">
+              <div class="req-icon"><i class="fas fa-store"></i></div>
+              <div>
+                <h3 class="req-title">{{ s.nombre_tienda }}</h3>
+                <span class="req-owner">Propietario: <strong>{{ s.nombre_usuario }}</strong></span>
+              </div>
+            </div>
+            <div class="req-status"><i class="fas fa-circle-notch fa-spin"></i> Pendiente</div>
+          </div>
+          
+          <div class="req-body">
+            <!-- COL 1: Info -->
+            <div class="req-data">
+              <h4 class="data-heading">Detalles Comerciales</h4>
+              <ul class="data-list">
+                <li>
+                  <i class="fas fa-id-card"></i>
+                  <div>
+                    <span class="lbl">ID / CC / NIT</span>
+                    <span class="val">{{ s.numero_id }}</span>
+                  </div>
+                </li>
+                <li>
+                  <i class="fas fa-envelope"></i>
+                  <div>
+                    <span class="lbl">Email</span>
+                    <a href="mailto:{{ s.email_comercial }}" class="val link">{{ s.email_comercial }}</a>
+                  </div>
+                </li>
+                <li>
+                  <i class="fab fa-whatsapp"></i>
+                  <div>
+                    <span class="lbl">Teléfono</span>
+                    <a href="https://wa.me/57{{ s.telefono_contacto }}" target="_blank" class="val link">{{ s.telefono_contacto }}</a>
+                  </div>
+                </li>
+              </ul>
+              
+              <div class="req-desc">
+                <span class="lbl">Descripción de tienda</span>
+                <p>{{ s.descripcion }}</p>
+              </div>
+            </div>
+            
+            <!-- COL 2: Documents -->
+            <div class="req-docs">
+              <h4 class="data-heading">Centro de Documentos KYC</h4>
+              <div class="docs-grid">
+                <!-- Frontal -->
+                <div class="doc-item">
+                  <div class="doc-label">Cara Frontal</div>
+                  {% if s.foto_id_frontal %}
+                  <div class="doc-preview" onclick="openImageModal(`{{ url_for('static', filename=s.foto_id_frontal) }}`)">
+                    <img src="{{ url_for('static', filename=s.foto_id_frontal) }}" alt="Frontal">
+                    <div class="doc-ov"><i class="fas fa-expand"></i></div>
+                  </div>
+                  {% else %}
+                  <div class="doc-missing"><i class="fas fa-exclamation-circle"></i> Faltante</div>
+                  {% endif %}
+                </div>
+                
+                <!-- Trasera -->
+                <div class="doc-item">
+                  <div class="doc-label">Cara Trasera</div>
+                  {% if s.foto_id_trasera %}
+                  <div class="doc-preview" onclick="openImageModal(`{{ url_for('static', filename=s.foto_id_trasera) }}`)">
+                    <img src="{{ url_for('static', filename=s.foto_id_trasera) }}" alt="Trasera">
+                    <div class="doc-ov"><i class="fas fa-expand"></i></div>
+                  </div>
+                  {% else %}
+                  <div class="doc-missing"><i class="fas fa-exclamation-circle"></i> Faltante</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- ACTIONS -->
+          <div class="req-footer">
+            <span style="font-size: 0.75rem; color: var(--text2); display:flex; align-items:center; gap:0.4rem;">
+              <i class="fas fa-shield-alt" style="color: #10b981;"></i> Asegúrate de validar los datos fiscales.
+            </span>
+            <div class="req-actions">
+              <form action="{{ url_for('admin.rechazar_vendedor', id=s.id) }}" method="POST">
+                <button type="submit" class="btn-action btn-reject" onclick="return confirm('¿Seguro quieres RECHAZAR esta solicitud? El usuario deberá aplicarla de nuevo.');">
+                  <i class="fas fa-times"></i> Rechazar
+                </button>
+              </form>
+              <form action="{{ url_for('admin.aprobar_vendedor', id=s.id) }}" method="POST">
+                <button type="submit" class="btn-action btn-approve" onclick="return confirm('¿Aprobar como tienda oficial?');">
+                  <i class="fas fa-check"></i> Aprobar Tienda
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <!-- EMPTY STATE -->
+      <div class="empty-state">
+        <div class="huge-icon"><i class="fas fa-shield-check"></i></div>
+        <h2>No hay solicitudes de verificación</h2>
+        <p>Todo está cubierto. Espera a que un nuevo usuario aplique como tienda particular para poder empezar su proceso KYC.</p>
+      </div>
+      {% endif %}
+      
+    </div><!-- /page-content -->
+  </main>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="adm-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;" onclick="closeImageModal()">
+  <div class="modal-content-img" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeImageModal()"><i class="fas fa-times"></i></button>
+    <img id="modalImgSrc" src="" alt="Zoom Document">
+  </div>
+</div>
+
+<style>
+/* ADMIN DASHBOARD INHERITED STYLES */
+:root {
+  --bg: #f1f5f9; --surface: #ffffff; --surface2: #f8fafc;
+  --border: #e5e7eb; --text: #0f172a; --text2: #64748b;
+  --primary: #ff7043; --primary-light: rgba(255,112,67,0.1);
+  --success: #10b981; --success-light: rgba(16,185,129,0.1);
+  --danger: #ef4444; --danger-light: rgba(239,68,68,0.1);
+  --shadow: 0 4px 24px rgba(0,0,0,.08);
+  --radius: 16px; --sidebar-w: 260px;
+  font-family: 'Inter', sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0f172a; --surface: #1e293b; --surface2: #162032;
+  --border: #334155; --text: #f1f5f9; --text2: #94a3b8;
+  --shadow: 0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;transition:transform .3s;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter: blur(4px);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+
+/* Top Bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:1.2rem;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.search-box{display:flex;align-items:center;gap:.7rem;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.6rem 1.2rem;}
+.search-box i{color:var(--text2);}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:.9rem;width:240px;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.6rem;color:var(--text);cursor:pointer;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.avatar-wrap{display:flex;align-items:center;gap:.7rem;padding:.4rem .8rem;border-radius:10px;border:1px solid transparent;transition:all .2s;cursor:pointer;}
+.avatar-wrap:hover{background:var(--surface2);border-color:var(--border);}
+.avatar{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),#a855f7);display:flex;align-items:center;justify-content:center;color:#fff;}
+.avatar-name{font-weight:600;font-size:.9rem;}
+
+/* Content */
+.page-content{padding:2rem;}
+.page-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;}
+.page-heading h1{font-size:1.6rem;font-weight:800;display:flex;align-items:center;gap:1rem;}
+.heading-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;box-shadow:0 6px 16px rgba(168,85,247,.3);}
+.subtext{color:var(--text2);margin-top:.4rem;font-size:.9rem;}
+.kpi-badge{display:flex;align-items:center;gap:.4rem;border-radius:30px;font-weight:700;}
+.badge-now{background:rgba(245,158,11,.15);color:#d97706;}
+
+/* BENTO GRID */
+.requests-grid{display:flex;flex-direction:column;gap:1.5rem;}
+.req-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;transition:transform .3s;}
+.req-card:hover{transform:translateY(-2px);box-shadow: 0 12px 32px rgba(0,0,0,.12);}
+.req-header{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+.req-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--primary),#f87171);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;}
+.req-title{margin:0;font-size:1.1rem;font-weight:800;color:var(--text);}
+.req-owner{font-size:.8rem;color:var(--text2);}
+.req-owner strong{color:var(--text);}
+.req-status{font-size:.8rem;font-weight:700;color:#f59e0b;background:rgba(245,158,11,.15);padding:.4rem .9rem;border-radius:20px;display:flex;align-items:center;gap:.4rem;}
+
+.req-body{display:grid;grid-template-columns:1fr 1fr;gap:2rem;padding:1.5rem;}
+.data-heading{font-size:.9rem;font-weight:800;color:var(--text);margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.05em;border-bottom:2px solid var(--border);padding-bottom:.5rem;display:inline-block;}
+
+.data-list{list-style:none;}
+.data-list li{display:flex;align-items:center;gap:.8rem;padding:.8rem 0;border-bottom:1px dashed var(--border);}
+.data-list li:last-child{border-bottom:none;}
+.data-list i{width:36px;height:36px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:1rem;}
+.lbl{display:block;font-size:.75rem;color:var(--text2);font-weight:600;text-transform:uppercase;margin-bottom:2px;}
+.val{font-size:.95rem;font-weight:600;color:var(--text);}
+.val.link{color:var(--primary);text-decoration:none;}
+.val.link:hover{text-decoration:underline;}
+
+.req-desc{margin-top:1.5rem;padding:1rem;background:var(--surface2);border-radius:12px;border:1px solid var(--border);}
+.req-desc p{font-size:.9rem;color:var(--text);margin-top:.4rem;line-height:1.5;}
+
+.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.doc-item{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.8rem;display:flex;flex-direction:column;}
+.doc-label{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:.6rem;text-align:center;}
+.doc-preview{position:relative;width:100%;height:140px;border-radius:8px;overflow:hidden;cursor:pointer;background:#000;}
+.doc-preview img{width:100%;height:100%;object-fit:cover;transition:transform .3s;opacity:0.9;}
+.doc-ov{position:absolute;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;opacity:0;transition:opacity .3s;}
+.doc-preview:hover img{transform:scale(1.05);opacity:1;}
+.doc-preview:hover .doc-ov{opacity:1;}
+.doc-missing{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text2);background:var(--surface2);border-radius:8px;font-size:.85rem;font-weight:600;gap:.4rem;border:2px dashed var(--border);}
+
+/* Footer Actions */
+.req-footer{display:flex;justify-content:space-between;align-items:center;padding:1.2rem 1.5rem;background:var(--surface2);border-top:1px solid var(--border);}
+.req-actions{display:flex;gap:1rem;}
+.btn-action{border:none;border-radius:10px;padding:.7rem 1.4rem;font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:all .2s;}
+.btn-reject{background:var(--surface);color:var(--danger);border:1px solid var(--danger-light);}
+.btn-reject:hover{background:var(--danger);color:#fff;border-color:var(--danger);}
+.btn-approve{background:linear-gradient(135deg,var(--success),#059669);color:#fff;box-shadow:0 4px 14px var(--success-light);}
+.btn-approve:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(16,185,129,.4);}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:4rem 2rem;background:var(--surface);border-radius:var(--radius);border:1px dashed var(--border);}
+.huge-icon{width:80px;height:80px;border-radius:50%;background:rgba(16,185,129,.1);color:var(--success);display:flex;align-items:center;justify-content:center;font-size:2.5rem;margin:0 auto 1.5rem;}
+.empty-state h2{font-size:1.5rem;font-weight:800;color:var(--text);margin-bottom:.5rem;}
+.empty-state p{color:var(--text2);font-size:.95rem;max-width:500px;margin:0 auto;}
+
+/* Image Modal Viewer */
+.modal-content-img{position:relative;max-width:800px;width:95%;border-radius:12px;background:transparent;animation:zoomIn .3s ease;}
+.modal-content-img img{width:100%;height:auto;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.5);}
+.modal-close{position:absolute;top:-40px;right:0;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;transition:transform .2s;}
+.modal-close:hover{transform:scale(1.1);}
+@keyframes zoomIn{from{transform:scale(0.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+
+/* Responsive */
+@media(max-width:1024px){.req-body{grid-template-columns:1fr; gap:1.5rem;}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:flex;}
+  .ham-btn{display:block;}
+  .search-box input{width:160px;}
+  .req-header{flex-direction:column;align-items:flex-start;gap:1rem;}
+  .req-footer{flex-direction:column;gap:1rem;}
+  .req-actions{width:100%;}
+  .btn-action{flex:1;justify-content:center;}
+  .docs-grid{grid-template-columns:1fr;}
+}
+</style>
+
+<script>
+// Theme Logic
+const root=document.getElementById('adminRoot');
+const savedTheme=localStorage.getItem('adminTheme')||'light';
+if(savedTheme==='dark') root.setAttribute('data-theme','dark');
+document.documentElement.setAttribute('data-theme',savedTheme);
+function toggleTheme(){
+  const isDark=root.getAttribute('data-theme')==='dark';
+  const next=isDark?'light':'dark';
+  root.setAttribute('data-theme',next);
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=isDark?'fas fa-moon':'fas fa-sun';
+}
+if(savedTheme==='dark') document.getElementById('themeIcon').className='fas fa-sun';
+
+// Sidebar Logic
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+
+// Search / Filter
+function filterSolicitudes() {
+  const q = document.getElementById('solicitudesSearch').value.toLowerCase();
+  const cards = document.querySelectorAll('.req-card');
+  cards.forEach(card => {
+    const text = card.getAttribute('data-search') || '';
+    card.style.display = text.includes(q) ? 'flex' : 'none';
+  });
+}
+
+// Modal logic for Images
+const modal = document.getElementById('imageModal');
+const modalImg = document.getElementById('modalImgSrc');
+function openImageModal(src) {
+  modalImg.src = src;
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeImageModal() {
+  modal.style.display = 'none';
+  modalImg.src = '';
+  document.body.style.overflow = '';
+}
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

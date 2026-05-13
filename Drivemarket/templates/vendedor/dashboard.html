@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vendedor_dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<body class="db-page">
+<div class="db-wrap">
+
+  <!-- ═══════════ SIDEBAR (shared include) ═══════════ -->
+  {% set active_page = 'dashboard' %}
+  {% include 'vendedor/_sidebar.html' %}
+
+
+  <!-- ═══════════ MAIN ═══════════ -->
+  <main class="db-main">
+
+    <!-- Header -->
+    <div class="db-header">
+      <div>
+        <h1>Dashboard <span style="font-size:.7rem;color:var(--ok);vertical-align:middle;margin-left:10px;">{{ sync_version or 'v3.0 Sync' }}</span></h1>
+        <p>Bienvenido de vuelta, <strong>{% if vendedor.nombre %}{{ vendedor.nombre.split()[0] }}{% else %}Vendedor{% endif %}</strong>. Así va tu negocio hoy.</p>
+      </div>
+      <div class="db-header-actions">
+        <!-- Notification Center -->
+        <div class="notif-box" style="position:relative;">
+          <button class="db-btn db-btn-ghost" style="padding:10px; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; position:relative;" id="notifBtn">
+            <i class="far fa-bell" style="font-size:1.2rem;"></i>
+            <span class="pulse-dot" style="position:absolute; top:8px; right:8px; width:10px; height:10px; background:var(--er); border-radius:50%; border:2px solid var(--card);"></span>
+          </button>
+          
+          <div class="notif-dropdown" id="notifDropdown" style="display:none; position:absolute; top:50px; right:0; width:320px; background:var(--card); border:1px solid var(--bd); border-radius:12px; box-shadow:var(--sh-lg); z-index:100; overflow:hidden;">
+            <div style="padding:15px; border-bottom:1px solid var(--bd); display:flex; justify-content:space-between; align-items:center;">
+              <h4 style="margin:0; font-size:.9rem; font-weight:800;">Notificaciones</h4>
+              <span style="font-size:.7rem; color:var(--pr); font-weight:700; cursor:pointer;">Marcar todas como leídas</span>
+            </div>
+            <div style="max-height:300px; overflow-y:auto;">
+              {% if notificaciones %}
+                {% for n in notificaciones %}
+                <div class="notif-item" style="padding:12px 15px; border-bottom:1px solid var(--bd-l); display:flex; gap:12px; cursor:pointer; transition: background .2s;" 
+                     onclick="window.location.href='{{ n.url_accion if n.url_accion else '#' }}'"
+                     onmouseover="this.style.background='var(--bd-l)'" onmouseout="this.style.background=''">
+                  <div style="width:36px; height:36px; border-radius:10px; background:var(--pr-l); color:var(--pr); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas {% if n.tipo == 'mensaje' %}fa-comment-alt{% elif n.tipo == 'verificacion' %}fa-check-circle{% else %}fa-bell{% endif %}"></i>
+                  </div>
+                  <div>
+                    <p style="margin:0; font-size:.8rem; font-weight:700; color:var(--t1);">{{ n.titulo }}</p>
+                    <p style="margin:2px 0 0; font-size:.72rem; color:var(--t2);">{{ n.mensaje }}</p>
+                    <span style="font-size:.65rem; color:var(--t3);">{{ n.fecha_creacion.strftime('%H:%M') if n.fecha_creacion else '--:--' }}</span>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div style="padding:40px 20px; text-align:center; color:var(--t3);">
+                  <i class="far fa-bell" style="font-size:2rem; margin-bottom:10px; opacity:.3;"></i>
+                  <p style="font-size:.8rem; margin:0;">No tienes notificaciones nuevas</p>
+                </div>
+              {% endif %}
+            </div>
+            <a href="{{ url_for('vendedor.notificaciones') }}" style="display:block; padding:12px; text-align:center; font-size:.8rem; font-weight:700; color:var(--pr); text-decoration:none; background:var(--bd-l);">Ver todas las notificaciones</a>
+          </div>
+        </div>
+
+        <button class="db-btn db-btn-ghost" onclick="exportDashboard()"><i class="fas fa-download"></i> Exportar</button>
+        <a href="{{ url_for('vendedor.publicar') }}" class="db-btn db-btn-primary"><i class="fas fa-plus"></i> Publicar Vehículo</a>
+      </div>
+    </div>
+
+    <!-- Alert Strip (dinámico) -->
+    {% if perfil_completo is defined and perfil_completo < 100 and estado_verificacion == 'aprobado' %}
+    <div class="db-alert db-alert-{% if perfil_completo < 50 %}warn{% else %}info{% endif %}" id="alertStrip">
+      <i class="fas fa-{% if perfil_completo < 50 %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+      <span>Tu perfil está al <strong>{{ perfil_completo }}%</strong>. Complétalo para aumentar tu visibilidad.</span>
+      <a href="{{ url_for('users.perfil') }}" style="margin-left:8px; color:inherit; text-decoration:underline;">Completar ahora</a>
+      <button onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    </div>
+    {% endif %}
+
+    <!-- Market Insight Section (Premium) -->
+    {% if market_insight %}
+    <div class="db-card market-insight-card" style="border-left: 4px solid {% if market_insight.competitivo %}var(--ok){% else %}var(--am){% endif %}; margin-bottom: 24px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+        <h3 style="font-size: 1rem; font-weight: 700; color: var(--t1); margin: 0;">
+          <i class="fas fa-brain" style="color: var(--pr); margin-right: 8px;"></i>Market Intelligence: {{ market_insight.id }}
+        </h3>
+        <span class="db-profile-badge" style="background: var(--pr-l); color: var(--pr);">Vendedor Premium</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+        <div class="mi-stat">
+          <p style="font-size: .75rem; color: var(--t2); margin: 0;">Tu Precio</p>
+          <strong style="font-size: 1.1rem; color: var(--t1);">$ {{ market_insight.precio_actual | int }}</strong>
+        </div>
+        <div class="mi-stat">
+          <p style="font-size: .75rem; color: var(--t2); margin: 0;">Promedio del Mercado</p>
+          <strong style="font-size: 1.1rem; color: var(--t1);">$ {{ market_insight.precio_mercado | int }}</strong>
+        </div>
+        <div class="mi-stat">
+          <p style="font-size: .75rem; color: var(--t2); margin: 0;">Posición</p>
+          <strong style="font-size: 1.1rem; color: {% if market_insight.diferencia <= 0 %}var(--ok){% else %}var(--er){% endif %};">
+            {% if market_insight.diferencia > 0 %}+{% endif %}{{ market_insight.diferencia }}% 
+            <i class="fas fa-arrow-{% if market_insight.diferencia <= 0 %}down{% else %}up{% endif %}"></i>
+          </strong>
+        </div>
+      </div>
+      <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed var(--bd); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i class="fas {% if market_insight.diferencia <= 5 %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}" style="color: {% if market_insight.diferencia <= 5 %}var(--ok){% else %}var(--am){% endif %};"></i>
+          <p style="font-size: .8rem; color: var(--t2); margin: 0;">{{ market_insight.msg | safe }}</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          {% if market_insight.diferencia > 0 %}
+          <button class="db-btn db-btn-ghost" style="padding:6px 12px; font-size:.75rem;" onclick="syncPrice('{{ market_insight.id_vehiculo }}', {{ market_insight.precio_mercado }})">
+            <i class="fas fa-sync-alt" style="margin-right:5px;"></i> Sincronizar
+          </button>
+          {% endif %}
+          <button class="db-btn db-btn-primary" style="padding:6px 12px; font-size:.75rem;" onclick="editManual('{{ market_insight.id_vehiculo }}', {{ market_insight.precio_actual }})">
+            <i class="fas fa-edit" style="margin-right:5px;"></i> Manual
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══ PROGRESO DE VERIFICACIÓN ═══ -->
+    {% if estado_verificacion != 'aprobado' %}
+    <div class="db-card" style="border-left:4px solid {% if estado_verificacion == 'pendiente' %}var(--am){% elif estado_verificacion == 'rechazado' %}var(--er){% else %}var(--pr){% endif %}; position:relative; overflow:hidden;">
+      <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:{% if estado_verificacion == 'pendiente' %}var(--am-l){% else %}var(--pr-l){% endif %};border-radius:50%;opacity:.4;"></div>
+      <div style="display:flex;align-items:center;gap:16px;position:relative;z-index:1;">
+        <div style="width:48px;height:48px;border-radius:14px;background:{% if estado_verificacion == 'pendiente' %}var(--am-l){% elif estado_verificacion == 'rechazado' %}var(--er-l){% else %}var(--pr-l){% endif %};color:{% if estado_verificacion == 'pendiente' %}var(--am){% elif estado_verificacion == 'rechazado' %}var(--er){% else %}var(--pr){% endif %};display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+          <i class="fas fa-{% if estado_verificacion == 'pendiente' %}hourglass-half{% elif estado_verificacion == 'rechazado' %}exclamation-circle{% else %}shield-check{% endif %}"></i>
+        </div>
+        <div style="flex:1;">
+          {% if estado_verificacion == 'pendiente' %}
+          <h3 style="margin:0 0 4px;font-size:.95rem;font-weight:700;color:var(--t1);">Verificación en revisión</h3>
+          <p style="margin:0;font-size:.82rem;color:var(--t2);">Tu solicitud está siendo revisada. Te notificaremos en 24-48 horas.</p>
+          {% elif estado_verificacion == 'rechazado' %}
+          <h3 style="margin:0 0 4px;font-size:.95rem;font-weight:700;color:var(--t1);">Verificación rechazada</h3>
+          <p style="margin:0;font-size:.82rem;color:var(--t2);">Revisa tus datos y vuelve a enviar tu solicitud.</p>
+          {% else %}
+          <h3 style="margin:0 0 4px;font-size:.95rem;font-weight:700;color:var(--t1);">Te falta completar tu verificación</h3>
+          <p style="margin:0;font-size:.82rem;color:var(--t2);">Completa tus datos y sube tu documento para ser un <strong>Vendedor Verificado</strong>.</p>
+          {% endif %}
+          {% if estado_verificacion != 'pendiente' %}
+          <div style="margin-top:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:700;color:var(--t2);margin-bottom:4px;">
+              <span>Progreso de verificación</span>
+              <span>{{ perfil_completo if perfil_completo is defined else 0 }}%</span>
+            </div>
+            <div class="goal-bar"><div class="goal-fill" data-width="{{ perfil_completo if perfil_completo is defined else 0 }}" style="background:linear-gradient(90deg,#FF6A00,#FF8A3D);"></div></div>
+          </div>
+          {% endif %}
+        </div>
+        <a href="{{ url_for('vendedor.verificacion') }}" class="db-btn db-btn-{% if estado_verificacion == 'pendiente' %}ghost{% else %}primary{% endif %}" style="flex-shrink:0;">
+          <i class="fas fa-{% if estado_verificacion == 'pendiente' %}eye{% else %}arrow-right{% endif %}"></i>
+          {% if estado_verificacion == 'pendiente' %}Ver estado{% elif estado_verificacion == 'rechazado' %}Reintentar{% else %}Completar{% endif %}
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- KPI Grid (Premium) -->
+
+    <!-- KPI CARDS -->
+    <div class="db-kpi-grid">
+      <div class="db-kpi" style="--kpi-color: var(--am);">
+        <div class="db-kpi-top"><span>Vehículos Publicados</span><div class="db-kpi-ico" style="background:var(--am-l);color:var(--am);"><i class="fas fa-car-side"></i></div></div>
+        <div class="db-kpi-val" data-count="{{ total_vehiculos or 0 }}" data-format="number">0</div>
+        <div class="db-kpi-trend up"><i class="fas fa-arrow-trend-up"></i> Tu inventario activo</div>
+        <div class="db-sparkline"><canvas id="sk1"></canvas></div>
+      </div>
+      <div class="db-kpi" style="--kpi-color: var(--ok);">
+        <div class="db-kpi-top"><span>Vistas Este Mes</span><div class="db-kpi-ico" style="background:var(--ok-l);color:var(--ok);"><i class="fas fa-eye"></i></div></div>
+        <div class="db-kpi-val" data-count="{{ vistas_mes or 0 }}" data-format="number">0</div>
+        <div class="db-kpi-trend up"><i class="fas fa-arrow-trend-up"></i> Mes en curso</div>
+        <div class="db-sparkline"><canvas id="sk2"></canvas></div>
+      </div>
+      <div class="db-kpi" style="--kpi-color: var(--bl);">
+        <div class="db-kpi-top"><span>Mensajes No Leídos</span><div class="db-kpi-ico" style="background:var(--bl-l);color:var(--bl);"><i class="fas fa-envelope"></i></div></div>
+        <div class="db-kpi-val" data-count="{{ mensajes_no_leidos or 0 }}" data-format="number">0</div>
+        <div class="db-kpi-trend {% if mensajes_no_leidos %}dn{% else %}up{% endif %}"><i class="fas fa-comment-dots"></i> Pendientes de respuesta</div>
+        <div class="db-sparkline"><canvas id="sk4"></canvas></div>
+      </div>
+      <div class="db-kpi" style="--kpi-color: #25D366;">
+        <div class="db-kpi-top"><span>Contactos WhatsApp</span><div class="db-kpi-ico" style="background:rgba(37, 211, 102, 0.1);color:#25D366;"><i class="fab fa-whatsapp"></i></div></div>
+        <div class="db-kpi-val" data-count="{{ total_whatsapp or 0 }}" data-format="number">0</div>
+        <div class="db-kpi-trend up"><i class="fas fa-chart-line"></i> Conversión directa</div>
+        <div class="db-sparkline"><canvas id="sk5"></canvas></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="db-chart-row">
+      <div class="db-card">
+        <div class="db-card-head">
+          <div><h2>Rendimiento Industrial</h2><p id="chartSub">Análisis de los últimos 12 meses</p></div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="db-period-btns">
+              <button class="period-btn" data-period="day">Día</button>
+              <button class="period-btn" data-period="week">Semana</button>
+              <button class="period-btn on" data-period="month">Mes</button>
+            </div>
+            <div class="db-tabs">
+              <button class="db-tab on" data-metric="vistas">Vistas</button>
+              <button class="db-tab" data-metric="publicaciones">Post</button>
+              <button class="db-tab" data-metric="favoritos">Favoritos</button>
+            </div>
+          </div>
+        </div>
+        <div class="db-chart-area"><canvas id="mainChart"></canvas></div>
+      </div>
+      <div class="db-card db-donut-card">
+        <div class="db-card-head">
+          <div><h2>Distribución de Stock</h2><p>Estado actual del inventario</p></div>
+        </div>
+        <div class="db-donut-area" style="height:220px; position:relative;">
+          <canvas id="inventoryChart"></canvas>
+        </div>
+        <div id="inventoryLegend" class="db-legend" style="margin-top:20px;">
+          <!-- Legend generated via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="db-bottom-row">
+      <!-- Inventory Table -->
+      <div class="db-card">
+        <div class="db-card-head">
+          <div><h2>Inventario</h2><p>Últimos vehículos publicados</p></div>
+          <a href="{{ url_for('vendedor.mis_vehiculos') }}" class="db-btn db-btn-ghost" style="padding:6px 14px; font-size:.78rem;">Ver todos <i class="fas fa-arrow-right"></i></a>
+        </div>
+        {% if ultimos_vehiculos %}
+        <div class="db-table-wrap">
+          <table class="db-table">
+            <thead>
+              <tr>
+                <th>Vehículo</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Vistas</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for v in ultimos_vehiculos %}
+              <tr>
+                <td>
+                  <div class="car-cell">
+                    <div class="car-thumb">
+                      {% if v.imagen %}
+                      <img src="{{ url_for('static', filename=v.imagen) }}" alt="{{ v.marca }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+                      {% else %}
+                      <i class="fas fa-car-side"></i>
+                      {% endif %}
+                    </div>
+                    <div>
+                      <div class="car-name">{{ v.marca }} {{ v.modelo }}</div>
+                      <div class="car-date">{{ v.fecha_publicacion.strftime('%d %b %Y') if v.fecha_publicacion else 'Hoy' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-weight:700;">${{ "{:,.0f}".format(v.precio|float) }}</td>
+                <td>
+                  {% if v.estado == 'pausado' %}
+                    <span class="chip chip-orange"><i class="fas fa-pause-circle" style="font-size:.45rem;"></i> Pausado</span>
+                  {% elif v.estado == 'vendido' %}
+                    <span class="chip chip-blue"><i class="fas fa-check-circle" style="font-size:.45rem;"></i> Vendido</span>
+                  {% else %}
+                    <span class="chip chip-green"><i class="fas fa-circle" style="font-size:.45rem;"></i> Activo</span>
+                  {% endif %}
+                </td>
+                <td style="color:var(--t2); font-weight:600;">{{ v.vistas or 0 }}</td>
+                <td>
+                  <div class="action-btns">
+                    <a href="{{ url_for('vendedor.editar_vehiculo', vid=v.id) }}" class="act-btn" title="Editar"><i class="fas fa-pen"></i></a>
+                    <a href="{{ url_for('detalle', id=v.id) }}" target="_blank" class="act-btn" title="Ver anuncio"><i class="fas fa-eye"></i></a>
+                    <button class="act-btn" title="Promover" style="color:var(--pr);border-color:var(--pr-l);background:var(--pr-l);"><i class="fas fa-rocket"></i></button>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="db-empty">
+          <i class="fas fa-box-open"></i>
+          <p>No tienes vehículos publicados aún.</p>
+          <a href="{{ url_for('vendedor.publicar') }}"><i class="fas fa-plus"></i> Publicar mi primer vehículo</a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Right column: Goals + Activity -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="db-card">
+          <div class="db-card-head"><div><h2>Metas del Mes</h2><p>Seguimiento de objetivos</p></div></div>
+          <div class="goal-list">
+            <div class="goal-item">
+              <div class="goal-top">
+                <div class="goal-label"><i class="fas fa-car" style="color:var(--pr);width:14px;text-align:center;"></i> Ventas</div>
+                <div class="goal-pct">{{ metas.ventas.pct }}%</div>
+              </div>
+              <div class="goal-bar"><div class="goal-fill" data-width="{{ metas.ventas.pct }}" style="background:linear-gradient(90deg,#FF6A00,#FF8A3D);"></div></div>
+              <div class="goal-sub">{{ metas.ventas.actual }} / {{ metas.ventas.meta }} vendidos</div>
+            </div>
+            <div class="goal-item">
+              <div class="goal-top">
+                <div class="goal-label"><i class="fas fa-users" style="color:var(--ok);width:14px;text-align:center;"></i> Nuevos Clientes</div>
+                <div class="goal-pct">{{ metas.clientes.pct }}%</div>
+              </div>
+              <div class="goal-bar"><div class="goal-fill" data-width="{{ metas.clientes.pct }}" style="background:linear-gradient(90deg,#10B981,#34D399);"></div></div>
+              <div class="goal-sub">{{ metas.clientes.actual }} / {{ metas.clientes.meta }} clientes</div>
+            </div>
+            <div class="goal-item">
+              <div class="goal-top">
+                <div class="goal-label"><i class="fas fa-reply" style="color:var(--bl);width:14px;text-align:center;"></i> Tasa de Respuesta</div>
+                <div class="goal-pct">{{ metas.respuesta.pct }}%</div>
+              </div>
+              <div class="goal-bar"><div class="goal-fill" data-width="{{ metas.respuesta.pct }}" style="background:linear-gradient(90deg,#3B82F6,#60A5FA);"></div></div>
+              <div class="goal-sub">{{ metas.respuesta.actual }}% / {{ metas.respuesta.meta }}% objetivo</div>
+            </div>
+            <div class="goal-item">
+              <div class="goal-top">
+                <div class="goal-label"><i class="fas fa-star" style="color:var(--am);width:14px;text-align:center;"></i> Satisfacción</div>
+                <div class="goal-pct">{{ metas.rating.pct }}%</div>
+              </div>
+              <div class="goal-bar"><div class="goal-fill" data-width="{{ metas.rating.pct }}" style="background:linear-gradient(90deg,#F59E0B,#FBBF24);"></div></div>
+              <div class="goal-sub">{{ metas.rating.actual }} / {{ metas.rating.meta }} estrellas</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="db-card db-activity">
+          <div class="db-card-head">
+            <div>
+              <h2><i class="fas fa-stream" style="color:var(--pr); margin-right:8px; font-size:.8rem;"></i>Actividad Reciente</h2>
+              <p>Últimas interacciones y eventos</p>
+            </div>
+          </div>
+          <div class="db-act-scroll" id="dbActList">
+            {% if actividad_reciente %}
+              {% for item in actividad_reciente %}
+              <div class="act-item" data-id="{{ item.titulo }}-{{ item.fecha_texto }}">
+                <div class="act-dot" style="background: {{ item.color_bg }}; color: {{ item.color }};">
+                  <i class="{{ item.icono }}"></i>
+                </div>
+                <div class="act-text">
+                  <div class="at-title">{{ item.titulo }}</div>
+                  <div class="at-desc">{{ item.detalle }}</div>
+                  <div class="at-time"><i class="far fa-clock"></i> {{ item.fecha_texto }}</div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="db-empty" style="padding: 60px 20px;">
+                <div style="width:64px; height:64px; border-radius:50%; background:var(--bd-l); display:flex; align-items:center; justify-content:center; margin-bottom:15px;">
+                  <i class="fas fa-clock" style="font-size:1.8rem; color:var(--t3); opacity:.4;"></i>
+                </div>
+                <p style="font-size:.9rem; color:var(--t2); font-weight:600; margin-bottom:10px;">No hay actividad reciente aún.</p>
+                <a href="{{ url_for('vendedor.publicar') }}" style="color:var(--pr); font-weight:700; text-decoration:none; display:flex; align-items:center; gap:6px;">
+                  Publica un vehículo para empezar <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ═══ MODALES LUXURY (Glassmorphism) ═══ -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-pro">
+    <div id="modalIcon" class="modal-pro-ico"><i class="fas fa-brain"></i></div>
+    <h3 id="modalTitle" class="modal-pro-title">Título Modal</h3>
+    <p id="modalDesc" class="modal-pro-desc">Descripción detallada para el usuario.</p>
+    
+    <div id="modalInputContainer" class="modal-input-group" style="display:none;">
+      <i class="fas fa-dollar-sign modal-input-ico"></i>
+      <input type="number" id="modalInput" class="modal-input" placeholder="0.00">
+    </div>
+
+    <div class="modal-btns">
+      <button id="modalBtnCancel" class="db-btn-ghost">Cancelar</button>
+      <button id="modalBtnConfirm" class="db-btn-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="{{ url_for('static', filename='js/vendedor_dashboard.js') }}"></script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

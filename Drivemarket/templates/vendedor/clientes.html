@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Clientes | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'clientes' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <div class="db-page-header">
+      <div>
+        <h1><i class="fas fa-users" style="color:var(--vi);margin-right:10px;font-size:1.3rem;"></i>Clientes</h1>
+        <p>Gestiona tus leads, contactos y compradores</p>
+      </div>
+      <button class="db-btn db-btn-primary"><i class="fas fa-plus"></i> Agregar Cliente</button>
+    </div>
+
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      {% for icon, label, val, sub, color, bg in [
+        ('fa-users','Total Clientes','284','+12 este mes','#8B5CF6','var(--vi-l)'),
+        ('fa-user-check','Clientes activos','178','62.7% del total','#10B981','var(--ok-l)'),
+        ('fa-user-clock','Leads en seguimiento','43','Requieren atención','#F59E0B','var(--am-l)'),
+        ('fa-star','Clientes VIP','23','Mayor recurrencia','#FF6A00','var(--pr-l)')
+      ] %}
+      <div class="db-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">{{label}}</span>
+          <div style="width:34px;height:34px;border-radius:9px;background:{{bg}};color:{{color}};display:flex;align-items:center;justify-content:center;font-size:.9rem;"><i class="fas {{icon}}"></i></div>
+        </div>
+        <div style="font-size:1.8rem;font-weight:800;color:var(--t1);margin-bottom:4px;">{{val}}</div>
+        <div style="font-size:.72rem;color:var(--t3);font-weight:500;">{{sub}}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Charts -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;">
+      <div class="db-card">
+        <div class="db-card-head"><div><h2>Nuevos clientes por mes</h2><p>Últimos 12 meses</p></div></div>
+        <div style="height:240px;"><canvas id="clientChart"></canvas></div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head"><div><h2>Origen de clientes</h2><p>Cómo llegan a ti</p></div></div>
+        <div style="height:190px;display:flex;justify-content:center;"><canvas id="originChart"></canvas></div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+          {% for label, pct, color in [('Búsqueda orgánica','38%','#FF6A00'),('Referidos','28%','#8B5CF6'),('Redes sociales','20%','#3B82F6'),('Directo','14%','#10B981')] %}
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--t2);">
+              <div style="width:9px;height:9px;border-radius:50%;background:{{color}};"></div>{{label}}
+            </div>
+            <span style="font-size:.82rem;font-weight:700;color:var(--t1);">{{pct}}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Clients Table -->
+    <div class="db-card">
+      <div class="db-card-head">
+        <div><h2>Lista de Clientes</h2><p>Todos tus contactos registrados</p></div>
+        <div style="position:relative;">
+          <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);"></i>
+          <input type="text" placeholder="Buscar cliente..." id="clientSearch"
+            style="padding:9px 14px 9px 36px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--t1);font-size:.84rem;outline:none;width:220px;font-family:'Inter',sans-serif;">
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;" id="clientsTable">
+          <thead>
+            <tr>
+              <th style="padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l);text-align:left;">Cliente</th>
+              <th style="padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l);text-align:left;">Contacto</th>
+              <th style="padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l);text-align:left;">Interés</th>
+              <th style="padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l);text-align:left;">Última consulta</th>
+              <th style="padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l);text-align:left;">Tipo</th>
+              <th style="padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l);text-align:left;">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set clients = [
+              ('Carlos Mendoza','carlos@email.com','+57 300 123 4567','Toyota Hilux','Hace 1 día','comprador'),
+              ('Laura García','laura@email.com','+57 301 234 5678','Honda Civic','Hace 2 días','lead'),
+              ('Roberto Silva','rob@email.com','+57 302 345 6789','Mazda CX-5','Hace 3 días','vip'),
+              ('Ana Martínez','ana@email.com','+57 303 456 7890','Ford Ranger','Hace 5 días','comprador'),
+              ('Pedro Rojas','pedro@email.com','+57 304 567 8901','Kia Sportage','Hace 1 sem.','lead'),
+              ('María López','maria@email.com','+57 305 678 9012','Toyota Corolla','Hace 1 sem.','vip'),
+            ] %}
+            {% for name, email, phone, interest, last, tipo in clients %}
+            <tr style="border-bottom:1px solid var(--bd-l);">
+              <td style="padding:14px;">
+                <div style="display:flex;align-items:center;gap:11px;">
+                  <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--pr),var(--pr-d));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0;">
+                    {{name[0]}}
+                  </div>
+                  <div>
+                    <div style="font-weight:700;font-size:.84rem;color:var(--t1);">{{name}}</div>
+                    <div style="font-size:.7rem;color:var(--t3);">{{email}}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:14px;font-size:.82rem;color:var(--t2);">{{phone}}</td>
+              <td style="padding:14px;font-size:.82rem;color:var(--t1);font-weight:600;">{{interest}}</td>
+              <td style="padding:14px;font-size:.78rem;color:var(--t2);">{{last}}</td>
+              <td style="padding:14px;">
+                {% if tipo == 'vip' %}<span class="chip chip-amber"><i class="fas fa-star" style="font-size:.5rem;"></i> VIP</span>
+                {% elif tipo == 'comprador' %}<span class="chip chip-green"><i class="fas fa-check" style="font-size:.5rem;"></i> Comprador</span>
+                {% else %}<span class="chip chip-blue"><i class="fas fa-user" style="font-size:.5rem;"></i> Lead</span>{% endif %}
+              </td>
+              <td style="padding:14px;">
+                <div style="display:flex;gap:5px;">
+                  <button style="width:30px;height:30px;border-radius:7px;border:1px solid var(--bd);background:var(--card);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;" title="Mensaje"><i class="far fa-envelope"></i></button>
+                  <button style="width:30px;height:30px;border-radius:7px;border:1px solid var(--bd);background:var(--card);color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;" title="Ver perfil"><i class="fas fa-eye"></i></button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  new Chart(document.getElementById('clientChart'),{
+    type:'bar',
+    data:{labels:['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+      datasets:[{label:'Nuevos clientes',data:[18,24,20,32,28,35,30,40,36,45,38,48],backgroundColor:'rgba(139,92,246,.7)',borderRadius:7,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#9CA3AF',font:{family:'Inter',size:11}}},y:{grid:{color:'#E5E7EB'},ticks:{color:'#9CA3AF',font:{family:'Inter',size:11}},border:{display:false}}}}
+  });
+  new Chart(document.getElementById('originChart'),{
+    type:'doughnut',
+    data:{labels:['Orgánica','Referidos','Social','Directo'],datasets:[{data:[38,28,20,14],backgroundColor:['#FF6A00','#8B5CF6','#3B82F6','#10B981'],borderWidth:0,hoverOffset:8}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('clientSearch').addEventListener('input', function(){
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#clientsTable tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

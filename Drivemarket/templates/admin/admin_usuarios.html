@@ -1,0 +1,675 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Usuarios{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+    <h3>¿Eliminar usuario?</h3>
+    <p id="modalMsg">Esta acción es <strong>irreversible</strong>.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-confirm" id="modalConfirmBtn">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <span>Usuarios</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema" id="themeToggle">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="btn-export" onclick="openExportModal()">
+          <i class="fas fa-file-export"></i> Exportar Datos
+        </button>
+        <a href="{{ url_for('admin.crear_usuario') }}" class="btn-add">
+          <i class="fas fa-user-plus"></i> Nuevo Usuario
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas fa-users"></i></div>
+        <div>
+          <h1>Gestión de Usuarios</h1>
+          <p class="subtext">Administra roles, permisos y estado de todos los usuarios de la plataforma.</p>
+        </div>
+      </div>
+      <!-- STAT CARDS -->
+      <section class="stat-grid">
+        <div class="stat-card" style="--acc:#6366f1">
+          <span class="stat-icon"><i class="fas fa-users"></i></span>
+          <div>
+            <div class="stat-val" id="statTotal">{{ usuarios|length }}</div>
+            <div class="stat-lbl">Total usuarios</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#10b981">
+          <span class="stat-icon"><i class="fas fa-user-check"></i></span>
+          <div>
+            <div class="stat-val" id="statActivos">{{ usuarios|selectattr('estado','equalto','activo')|list|length }}</div>
+            <div class="stat-lbl">Activos</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#ef4444">
+          <span class="stat-icon"><i class="fas fa-user-lock"></i></span>
+          <div>
+            <div class="stat-val" id="statBloqueados">{{ usuarios|selectattr('estado','equalto','bloqueado')|list|length }}</div>
+            <div class="stat-lbl">Bloqueados</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#f59e0b">
+          <span class="stat-icon"><i class="fas fa-crown"></i></span>
+          <div>
+            <div class="stat-val" id="statAdmins">{{ usuarios|selectattr('rol','equalto','admin')|list|length }}</div>
+            <div class="stat-lbl">Administradores</div>
+          </div>
+        </div>
+      </section>
+      <!-- FLASH MESSAGES -->
+
+      <!-- FILTERS -->
+      <div class="toolbar">
+        <form method="GET" class="toolbar-form" id="filterForm">
+          <div class="search-box-tb">
+            <i class="fas fa-search"></i>
+            <input type="text" name="q" placeholder="Buscar nombre, email o usuario…"
+                   value="{{ request.args.get('q', '') }}" id="searchInput" autocomplete="off">
+            {% if request.args.get('q') %}
+            <button type="button" class="clear-x" onclick="clearField('q')"><i class="fas fa-times"></i></button>
+            {% endif %}
+          </div>
+          <div class="sel-wrap">
+            <select name="rol" onchange="this.form.submit()">
+              <option value="">Todos los roles</option>
+              <option value="admin" {% if request.args.get('rol')=='admin' %}selected{% endif %}>Administrador</option>
+              <option value="user" {% if request.args.get('rol')=='user' %}selected{% endif %}>Usuario</option>
+              <option value="vendedor" {% if request.args.get('rol')=='vendedor' %}selected{% endif %}>Vendedor</option>
+            </select>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <div class="sel-wrap">
+            <select name="estado" onchange="this.form.submit()">
+              <option value="">Todos los estados</option>
+              <option value="activo" {% if request.args.get('estado')=='activo' %}selected{% endif %}>Activo</option>
+              <option value="inactivo" {% if request.args.get('estado')=='inactivo' %}selected{% endif %}>Inactivo</option>
+              <option value="bloqueado" {% if request.args.get('estado')=='bloqueado' %}selected{% endif %}>Bloqueado</option>
+            </select>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+          <button type="submit" class="btn-filter"><i class="fas fa-sliders-h"></i> Filtrar</button>
+          {% if request.args.get('q') or request.args.get('rol') or request.args.get('estado') %}
+          <a href="{{ url_for('admin.admin_usuarios') }}" class="btn-clear"><i class="fas fa-times"></i> Limpiar</a>
+          {% endif %}
+        </form>
+        <div class="bulk-bar" id="bulkBar" style="display:none">
+          <span id="bulkCount">0 seleccionados</span>
+          <button class="bulk-btn bulk-green" onclick="bulkAction('desbloquear')"><i class="fas fa-unlock"></i> Desbloquear</button>
+          <button class="bulk-btn bulk-orange" onclick="bulkAction('bloquear')"><i class="fas fa-ban"></i> Bloquear</button>
+          <button class="bulk-btn bulk-red" onclick="bulkAction('eliminar')"><i class="fas fa-trash-alt"></i> Eliminar</button>
+        </div>
+      </div>
+      <!-- TABLE -->
+      <div class="table-card">
+        <div class="table-wrap" id="tableWrap">
+          <table class="dtable" id="mainTable">
+            <thead>
+              <tr>
+                <th class="col-check">
+                  <input type="checkbox" id="checkAll" onchange="toggleAll(this)">
+                </th>
+                <th onclick="sortTable(1)">ID <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(2)">Usuario <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(3)">Email <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(4)">Username <i class="fas fa-sort sort-ic"></i></th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              {% for u in usuarios %}
+              <tr class="trow {% if u.estado != 'activo' %}row-dim{% endif %}" data-id="{{ u.id }}">
+                <td class="col-check">
+                  <input type="checkbox" class="row-check" value="{{ u.id }}" onchange="updateBulk()">
+                </td>
+                <td><span class="badge-id">#{{ u.id }}</span></td>
+                <td>
+                  <div class="user-cell">
+                    <div class="u-avatar">
+                      {{ u.nombre[0]|upper }}
+                    </div>
+                    <div>
+                      <div class="u-name">{{ u.nombre }}</div>
+                      <div class="u-sub">{{ u.rol }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="u-email">
+                  <i class="fas fa-envelope"></i>
+                  {{ u.email }}
+                </td>
+                <td><span class="badge-user">@{{ u.username }}</span></td>
+                <td>
+                  <span class="badge-role role-{{ u.rol }}">
+                    <i class="fas fa-{{ 'crown' if u.rol == 'superadmin' else ('shield-alt' if u.rol == 'admin' else ('gavel' if u.rol == 'moderador' else ('edit' if u.rol == 'editor' else ('store' if u.rol == 'vendedor' else 'user')))) }}"></i>
+                    {{ u.rol|capitalize }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge-status st-{{ u.estado }}">
+                    <span class="st-dot"></span>
+                    {{ u.estado|capitalize }}
+                  </span>
+                </td>
+                <td class="action-cell">
+                  {% set soy_superadmin = (session.get('rol') == 'superadmin') %}
+                  {% if u.rol != 'superadmin' or soy_superadmin %}
+                    <!-- Ver publicaciones -->
+                    <a href="{{ url_for('admin.admin_vehiculos_usuario', id=u.id) }}"
+                       class="ab ab-cyan" title="Ver publicaciones">
+                      <i class="fas fa-car"></i>
+                    </a>
+                    <!-- Ver detalles -->
+                    <a href="{{ url_for('admin.ver_usuario', id=u.id) }}"
+                       class="ab ab-indigo" title="Ver detalles">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <!-- Editar -->
+                    <a href="{{ url_for('admin.editar_usuario', id=u.id) }}"
+                       class="ab ab-amber" title="Editar">
+                      <i class="fas fa-user-edit"></i>
+                    </a>
+                    <!-- Bloquear / Desbloquear -->
+                    {% if u.estado == "bloqueado" %}
+                    <form method="POST" action="{{ url_for('admin.desbloquear_usuario', id=u.id) }}" class="if">
+                      <button class="ab ab-green" title="Desbloquear"><i class="fas fa-unlock"></i></button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('admin.bloquear_usuario', id=u.id) }}" class="if">
+                      <button class="ab ab-red" title="Bloquear"><i class="fas fa-lock"></i></button>
+                    </form>
+                    {% endif %}
+                    <!-- Eliminar -->
+                    <button class="ab ab-gray" title="Eliminar"
+                      data-url="{{ url_for('admin.borrar_usuario', id=u.id) }}"
+                      data-user="{{ u.username }}"
+                      onclick="confirmDeleteBtn(this)">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  {% else %}
+                    <span class="badge-role" style="background:rgba(0,0,0,0.05); color:var(--text2); border:1px dashed var(--border);">
+                      <i class="fas fa-lock"></i> Protegido
+                    </span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="8" class="empty-row">
+                  <i class="fas fa-users-slash"></i>
+                  <p>No se encontraron usuarios con los filtros aplicados.</p>
+                  <a href="{{ url_for('admin.admin_usuarios') }}">Limpiar filtros</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <!-- TABLE FOOTER -->
+        <div class="table-foot">
+          <span class="tf-info">
+            <i class="fas fa-info-circle"></i>
+            Mostrando <strong id="visibleCount">{{ usuarios|length }}</strong> de <strong>{{ usuarios|length }}</strong> usuarios
+          </span>
+          <div id="pagination" class="pagination"></div>
+        </div>
+      </div>
+    </div><!-- /page-content -->
+  </main>
+</div>
+<!-- EXPORT MODAL -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal-box">
+    <div class="modal-icon" style="background:rgba(16,185,129,.12); color:#10b981;"><i class="fas fa-file-export"></i></div>
+    <h3>Exportar Usuarios</h3>
+    <p>Selecciona el rango de fechas y formato deseado.</p>
+    <form action="{{ url_for('admin.exportar_datos', entidad='usuarios') }}" method="GET">
+      <div style="text-align:left; margin-bottom:1rem;">
+        <label style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.3rem;">Desde Fecha:</label>
+        <input type="date" name="fecha_inicio" style="width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+      </div>
+      <div style="text-align:left; margin-bottom:1.2rem;">
+        <label style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.3rem;">Hasta Fecha:</label>
+        <input type="date" name="fecha_fin" style="width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+      </div>
+      <div style="text-align:left; margin-bottom:1.5rem;">
+        <label style="font-size:.8rem;color:var(--text2);display:block;margin-bottom:.3rem;">Formato:</label>
+        <select name="formato" style="width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+          <option value="csv">Archivo CSV (Excel)</option>
+          <option value="pdf">Vista de Impresión (PDF)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="modal-btn modal-cancel" onclick="closeExportModal()">Cancelar</button>
+        <button type="submit" class="modal-btn" style="background:#10b981;color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.3);">Exportar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-cont" id="toastCont"></div>
+<style>
+/* ── Base ─────────────────────────────────────────── */
+:root {
+  --bg:#f1f5f9; --surface:#fff; --surface2:#f8fafc;
+  --border:#e5e7eb; --text:#0f172a; --text2:#64748b;
+  --primary:#6366f1; --primary2:#a855f7;
+  --shadow:0 4px 24px rgba(0,0,0,.08);
+  --radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"] {
+  --bg:#0f172a; --surface:#1e293b; --surface2:#162032;
+  --border:#334155; --text:#f1f5f9; --text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+/* Layout */
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.8rem;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-export{display:flex;align-items:center;gap:.45rem;padding:.55rem 1rem;background:color-mix(in srgb,#10b981 12%,transparent);color:#10b981;border:1px solid color-mix(in srgb,#10b981 25%,transparent);border-radius:10px;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .25s;}
+.btn-export:hover{background:#10b981;color:#fff;}
+.btn-add{display:flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .25s;box-shadow:0 4px 12px rgba(99,102,241,.3);}
+.btn-add:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(99,102,241,.4);}
+/* Page content */
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.5rem;}
+/* Heading */
+.page-heading{display:flex;align-items:center;gap:1rem;}
+.page-heading h1{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;}
+.page-heading .subtext{color:var(--text2);font-size:.88rem;margin-top:.2rem;}
+.heading-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0;box-shadow:0 6px 16px rgba(99,102,241,.3);}
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,#6366f1);}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.1);}
+.stat-icon{width:44px;height:44px;border-radius:12px;background:color-mix(in srgb,var(--acc,#6366f1) 15%,transparent);color:var(--acc,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.stat-val{font-size:1.7rem;font-weight:800;letter-spacing:-.02em;}
+.stat-lbl{font-size:.75rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+/* Flash */
+.flash{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:600;animation:slideDown .3s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:none;}}
+.flash-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#059669;}
+.flash-danger,.flash-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+.flash-info{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:var(--primary);}
+.flash-close{margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;opacity:.6;font-size:.85rem;}
+.flash-close:hover{opacity:1;}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.toolbar-form{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;flex:1;}
+.search-box-tb{display:flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.5rem .9rem;flex:1;min-width:200px;max-width:320px;transition:border-color .2s,box-shadow .2s;}
+.search-box-tb:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.search-box-tb i{color:var(--text2);font-size:.85rem;flex-shrink:0;}
+.search-box-tb input{background:none;border:none;outline:none;color:var(--text);font-size:.85rem;width:100%;}
+.clear-x{background:none;border:none;color:var(--text2);cursor:pointer;padding:.1rem;font-size:.75rem;}
+.sel-wrap{position:relative;}
+.sel-wrap select{appearance:none;padding:.52rem 2.2rem .52rem .85rem;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-size:.83rem;cursor:pointer;outline:none;transition:border-color .2s;}
+.sel-wrap select:focus{border-color:var(--primary);}
+.sel-wrap .fa-chevron-down{position:absolute;right:.65rem;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--text2);pointer-events:none;}
+.btn-filter{display:flex;align-items:center;gap:.4rem;padding:.52rem 1rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border:none;border-radius:10px;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .25s;}
+.btn-filter:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(99,102,241,.3);}
+.btn-clear{display:flex;align-items:center;gap:.4rem;padding:.52rem .9rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-clear:hover{color:#ef4444;border-color:#ef4444;}
+/* Bulk bar */
+.bulk-bar{display:flex;align-items:center;gap:.7rem;padding:.5rem 1rem;background:color-mix(in srgb,var(--primary) 8%,transparent);border:1px solid color-mix(in srgb,var(--primary) 20%,transparent);border-radius:10px;font-size:.83rem;font-weight:600;color:var(--primary);}
+.bulk-btn{padding:.4rem .85rem;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:all .2s;}
+.bulk-green{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.bulk-green:hover{background:#10b981;color:#fff;}
+.bulk-orange{background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.bulk-orange:hover{background:#f59e0b;color:#fff;}
+.bulk-red{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.bulk-red:hover{background:#ef4444;color:#fff;}
+/* Table card */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.table-wrap{overflow-x:auto;}
+.dtable{width:100%;border-collapse:collapse;}
+.dtable thead{background:var(--surface2);}
+.dtable th{padding:.9rem 1.1rem;text-align:left;font-size:.72rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+.dtable th:hover{color:var(--primary);}
+.sort-ic{font-size:.65rem;margin-left:.2rem;}
+.col-check{width:40px;text-align:center !important;}
+.dtable td{padding:.95rem 1.1rem;border-bottom:1px solid var(--border);font-size:.86rem;color:var(--text);vertical-align:middle;}
+.trow{transition:background .2s;animation:fadeRow .4s ease both;}
+@keyframes fadeRow{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.trow:hover{background:color-mix(in srgb,var(--primary) 4%,transparent);}
+.trow.row-dim{opacity:.55;}
+.trow.selected{background:color-mix(in srgb,var(--primary) 6%,transparent);}
+/* ID badge */
+.badge-id{padding:.25rem .55rem;background:rgba(99,102,241,.1);color:var(--primary);border-radius:6px;font-weight:700;font-size:.78rem;}
+/* User cell */
+.user-cell{display:flex;align-items:center;gap:.75rem;}
+.u-avatar{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;font-weight:700;color:#fff;flex-shrink:0;
+  background:linear-gradient(135deg,#6366f1,#a855f7);
+}
+.u-name{font-weight:700;font-size:.88rem;}
+.u-sub{font-size:.72rem;color:var(--text2);text-transform:capitalize;}
+.u-email{display:flex;align-items:center;gap:.5rem;color:var(--text2);font-size:.82rem;}
+.u-email .fa-envelope{font-size:.78rem;}
+/* Badges */
+.badge-user{padding:.25rem .6rem;background:color-mix(in srgb,#f59e0b 12%,transparent);color:#d97706;border-radius:6px;font-size:.78rem;font-weight:600;border:1px solid color-mix(in srgb,#f59e0b 22%,transparent);}
+.badge-role{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:20px;font-size:.72rem;font-weight:700;}
+.role-admin{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.role-user{background:rgba(99,102,241,.12);color:var(--primary);border:1px solid rgba(99,102,241,.2);}
+.role-vendedor{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.badge-status{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .7rem;border-radius:20px;font-size:.72rem;font-weight:700;}
+.st-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.st-activo{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.st-activo .st-dot{background:#10b981;}
+.st-inactivo{background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.st-inactivo .st-dot{background:#f59e0b;}
+.st-bloqueado{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.st-bloqueado .st-dot{background:#ef4444;}
+/* Action buttons */
+.action-cell{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap;}
+.if{display:inline-flex;}
+.ab{width:34px;height:34px;border-radius:9px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.82rem;color:#fff;text-decoration:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
+.ab:hover{transform:translateY(-3px);}
+.ab-cyan{background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 3px 8px rgba(6,182,212,.3);}
+.ab-indigo{background:linear-gradient(135deg,#6366f1,#4f46e5);box-shadow:0 3px 8px rgba(99,102,241,.3);}
+.ab-amber{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 3px 8px rgba(245,158,11,.3);}
+.ab-red{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 3px 8px rgba(239,68,68,.3);}
+.ab-green{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 3px 8px rgba(16,185,129,.3);}
+.ab-gray{background:linear-gradient(135deg,#6b7280,#4b5563);box-shadow:0 3px 8px rgba(107,114,128,.3);}
+.rol-sel{padding:.3rem .6rem;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:.78rem;font-weight:600;cursor:pointer;outline:none;transition:border-color .2s;}
+.rol-sel:focus{border-color:var(--primary);}
+/* Empty */
+.empty-row{text-align:center;padding:3rem;color:var(--text2);}
+.empty-row i{font-size:2.5rem;display:block;margin-bottom:.6rem;opacity:.4;}
+.empty-row p{font-size:.9rem;margin-bottom:.8rem;}
+.empty-row a{color:var(--primary);text-decoration:none;font-weight:600;}
+/* Table footer */
+.table-foot{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;border-top:1px solid var(--border);background:var(--surface2);gap:1rem;flex-wrap:wrap;}
+.tf-info{font-size:.82rem;color:var(--text2);display:flex;align-items:center;gap:.5rem;}
+.tf-info i{color:var(--primary);}
+.pagination{display:flex;gap:.3rem;}
+.pg-btn{padding:.3rem .65rem;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text);cursor:pointer;font-size:.8rem;transition:all .2s;}
+.pg-btn:hover,.pg-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+/* Modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:20px;padding:2rem;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-icon{width:60px;height:60px;border-radius:16px;background:rgba(239,68,68,.12);color:#ef4444;font-size:1.5rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;}
+.modal-box h3{font-size:1.2rem;font-weight:800;margin-bottom:.5rem;}
+.modal-box p{color:var(--text2);font-size:.88rem;margin-bottom:1.5rem;}
+.modal-actions{display:flex;gap:.7rem;}
+.modal-btn{flex:1;padding:.7rem;border-radius:10px;border:none;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.modal-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.modal-cancel:hover{background:var(--border);}
+.modal-confirm{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 4px 12px rgba(239,68,68,.3);}
+.modal-confirm:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(239,68,68,.4);}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+/* Responsive */
+@media(max-width:1200px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .toolbar-form{flex-direction:column;}
+  .search-box-tb{max-width:100%;}
+  .topbar-right .btn-export{display:none;}
+}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr;}}
+</style>
+<script>
+/* Theme */
+const ROOT = document.getElementById('adminRoot');
+const saved = localStorage.getItem('adminTheme') || 'light';
+if(saved==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  const dark = ROOT.getAttribute('data-theme')==='dark';
+  const next = dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className = dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Avatar colors — assigned via JS to avoid CSS linter issues */
+const colors=['linear-gradient(135deg,#6366f1,#a855f7)','linear-gradient(135deg,#10b981,#059669)','linear-gradient(135deg,#f59e0b,#d97706)','linear-gradient(135deg,#ef4444,#dc2626)','linear-gradient(135deg,#06b6d4,#0891b2)','linear-gradient(135deg,#ec4899,#db2777)'];
+document.querySelectorAll('.u-avatar').forEach(function(el,i){el.style.background=colors[i%colors.length];});
+/* Delete via data attributes (avoids Jinja/JS quote conflict in onclick) */
+function confirmDeleteBtn(btn){
+  var url=btn.getAttribute('data-url');
+  var user=btn.getAttribute('data-user');
+  confirmDelete(url,user);
+}
+/* Checkbox logic */
+function toggleAll(cb){
+  document.querySelectorAll('.row-check').forEach(c=>{c.checked=cb.checked;c.closest('.trow').classList.toggle('selected',cb.checked);});
+  updateBulk();
+}
+function updateBulk(){
+  const sel = [...document.querySelectorAll('.row-check:checked')];
+  const bar = document.getElementById('bulkBar');
+  bar.style.display = sel.length ? 'flex' : 'none';
+  document.getElementById('bulkCount').textContent = sel.length+' seleccionado'+(sel.length>1?'s':'');
+}
+function bulkAction(type){
+  const sel=[...document.querySelectorAll('.row-check:checked')];
+  if(!sel.length)return;
+  
+  const ids = sel.map(cb => cb.value);
+  const actionText = (type === 'eliminar' ? 'ELIMINAR' : 'BLOQUEAR');
+  const alertColor = (type === 'eliminar' ? '#ef4444' : '#f59e0b');
+  
+  if(!confirm(`¿Estás seguro de que deseas ${actionText} a los ${ids.length} usuarios seleccionados?`)) return;
+
+  showToast(`Procesando acción masiva...`, '#6366f1');
+
+  fetch('{{ url_for("admin.usuarios_bulk") }}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids: ids, accion: type })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.success){
+      showToast(data.message, '#10b981');
+      // Actualizar DOM en vez de recargar
+      sel.forEach(cb => {
+        const tr = cb.closest('tr');
+        if (type === 'eliminar') {
+          tr.remove();
+        } else {
+          const stateBadge = tr.querySelector('.badge-status');
+          if (stateBadge) {
+             const nuevoEstado = type === 'bloquear' ? 'bloqueado' : 'activo';
+             stateBadge.className = `badge-status st-${nuevoEstado}`;
+             stateBadge.innerHTML = `<span class="st-dot"></span>${nuevoEstado.charAt(0).toUpperCase() + nuevoEstado.slice(1)}`;
+          }
+          cb.checked = false;
+          tr.classList.remove('selected');
+        }
+      });
+      document.getElementById('checkAll').checked = false;
+      updateBulk();
+      const vc = document.getElementById('visibleCount');
+      if(vc) vc.textContent = document.querySelectorAll('.trow').length;
+      if(typeof updateStatCards === 'function') updateStatCards();
+    } else {
+      showToast(data.message, '#ef4444');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    showToast('Error de conexión con el servidor', '#ef4444');
+  });
+}
+/* Delete modal */
+let pendingDeleteUrl=null;
+function confirmDelete(url,username){
+  pendingDeleteUrl=url;
+  document.getElementById('modalMsg').innerHTML='¿Eliminar a <strong>@'+username+'</strong>? Esta acción es <strong>irreversible</strong>.';
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeModal(){document.getElementById('deleteModal').classList.remove('open');pendingDeleteUrl=null;}
+document.getElementById('modalConfirmBtn').addEventListener('click',function(){
+  if(pendingDeleteUrl){
+    const url = pendingDeleteUrl;
+    const btnNode = document.querySelector(`[data-url="${url}"]`);
+    closeModal();
+    processSingleActionUrl(url, btnNode);
+  }
+});
+document.getElementById('deleteModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+/* Intercept individual forms for async update */
+document.addEventListener('submit', function(e) {
+   if(e.target.matches('form.if') && !e.target.action.includes('bulk')) {
+      e.preventDefault();
+      processSingleActionUrl(e.target.action, e.target);
+   }
+});
+
+async function processSingleActionUrl(actionUrl, sourceNode) {
+   showToast('Procesando...', '#6366f1');
+   const tr = sourceNode.closest('tr');
+   try {
+      const res = await fetch(actionUrl, {method: 'POST'});
+      if(res.ok) {
+         showToast('Operación exitosa', '#10b981');
+         if(actionUrl.includes('borrar') || actionUrl.includes('eliminar')) {
+            tr.remove();
+         } else {
+            const fresh = await fetch(location.href).then(r=>r.text());
+            const doc = new DOMParser().parseFromString(fresh, 'text/html');
+            const newTr = doc.querySelector(`.trow[data-id="${tr.dataset.id}"]`);
+            if(newTr) {
+               tr.innerHTML = newTr.innerHTML;
+               tr.className = newTr.className;
+            }
+         }
+         const vc = document.getElementById('visibleCount');
+         if(vc) vc.textContent = document.querySelectorAll('.trow').length;
+         if(typeof updateStatCards === 'function') updateStatCards();
+      } else {
+         showToast('Error en la operación', '#ef4444');
+      }
+   } catch (e) {
+      showToast('Error de conexión', '#ef4444');
+   }
+}
+
+/* Update Stat Cards dynamically */
+function updateStatCards() {
+  const rows = document.querySelectorAll('#tableBody .trow');
+  const total = rows.length;
+  let activos = 0, bloqueados = 0, admins = 0;
+  rows.forEach(r => {
+    if (r.querySelector('.st-activo')) activos++;
+    if (r.querySelector('.st-bloqueado')) bloqueados++;
+    if (r.querySelector('.role-admin')) admins++;
+  });
+  const elTotal = document.getElementById('statTotal'); if(elTotal) elTotal.textContent = total;
+  const elActivos = document.getElementById('statActivos'); if(elActivos) elActivos.textContent = activos;
+  const elBloqueados = document.getElementById('statBloqueados'); if(elBloqueados) elBloqueados.textContent = bloqueados;
+  const elAdmins = document.getElementById('statAdmins'); if(elAdmins) elAdmins.textContent = admins;
+}
+
+/* Sort */
+let sortDir={};
+function sortTable(col){
+  const tbody=document.getElementById('tableBody');
+  const rows=[...tbody.querySelectorAll('.trow')];
+  const asc=!sortDir[col];sortDir={};sortDir[col]=asc;
+  rows.sort((a,b)=>{
+    const av=a.cells[col]?.textContent.trim()||'';
+    const bv=b.cells[col]?.textContent.trim()||'';
+    const an=parseFloat(av.replace(/[^0-9.]/g,'')),bn=parseFloat(bv.replace(/[^0-9.]/g,''));
+    if(!isNaN(an)&&!isNaN(bn))return asc?an-bn:bn-an;
+    return asc?av.localeCompare(bv,undefined,{sensitivity:'base'}):bv.localeCompare(av,undefined,{sensitivity:'base'});
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+/* Export Modal */
+function openExportModal(){document.getElementById('exportModal').classList.add('open');}
+function closeExportModal(){document.getElementById('exportModal').classList.remove('open');}
+document.getElementById('exportModal').addEventListener('click',function(e){if(e.target===this)closeExportModal();});
+/* Toast */
+function showToast(msg,color='#6366f1'){
+  const t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+/* Clear field helper */
+function clearField(name){
+  const inp=document.querySelector('[name="'+name+'"]');if(inp)inp.value='';
+  document.getElementById('filterForm').submit();
+}
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

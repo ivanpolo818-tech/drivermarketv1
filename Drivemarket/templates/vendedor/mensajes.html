@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% block title %}Mensajes | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+.msg-list { display:flex; flex-direction:column; gap:0; }
+.msg-item { display:flex; align-items:center; gap:14px; padding:14px 16px; border-bottom:1px solid var(--bd-l); cursor:pointer; transition:background .15s; border-radius:0; }
+.msg-item:last-child { border-bottom:none; }
+.msg-item:hover, .msg-item.active { background:var(--pr-l); }
+.msg-item.unread .msg-name { font-weight:800; }
+.msg-item.unread .msg-preview { font-weight:600; color:var(--t1); }
+.msg-avatar { width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;color:#fff; }
+.msg-name { font-size:.84rem; font-weight:600; color:var(--t1); margin-bottom:2px; }
+.msg-preview { font-size:.76rem; color:var(--t2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+.msg-time { font-size:.68rem; color:var(--t3); margin-left:auto; white-space:nowrap; }
+.msg-unread-dot { width:8px;height:8px;border-radius:50%;background:var(--pr);margin-left:8px;flex-shrink:0; }
+.chat-area { display:flex; flex-direction:column; height:100%; }
+.chat-messages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:12px; min-height:380px; max-height:420px; }
+.chat-messages::-webkit-scrollbar { width:4px; }
+.chat-messages::-webkit-scrollbar-thumb { background:var(--bd); border-radius:4px; }
+.bubble { max-width:70%; padding:10px 14px; border-radius:14px; font-size:.84rem; line-height:1.5; }
+.bubble.recv { background:var(--bd-l); color:var(--t1); border-bottom-left-radius:4px; align-self:flex-start; }
+.bubble.sent { background:var(--pr); color:#fff; border-bottom-right-radius:4px; align-self:flex-end; }
+.bubble-time { font-size:.65rem; opacity:.65; margin-top:4px; }
+.chat-input-row { display:flex; gap:10px; padding:16px; border-top:1px solid var(--bd-l); }
+/* Estilos para las acciones de mensaje */
+.msg-item { position: relative; }
+.msg-actions { 
+    position: absolute; 
+    right: 10px; 
+    bottom: 6px; 
+    display: flex; 
+    gap: 5px; 
+    opacity: 1; /* Siempre visibles 100% */
+    z-index: 10;
+}
+.action-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    border: none;
+    background: #FF6A00; /* Naranja Drivemarket */
+    color: #fff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: transform 0.2s;
+}
+.action-btn:hover {
+    transform: scale(1.1);
+}
+.action-btn.delete {
+    background: #EF4444; /* Rojo para borrar */
+}
+/* Clase para organizar la meta-info derecha */
+.msg-meta-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    margin-top: -14px; /* Subimos la hora */
+}
+.chat-input { flex:1; padding:11px 16px; border:1px solid var(--bd); border-radius:12px; background:var(--bg); color:var(--t1); font-size:.84rem; outline:none; font-family:'Inter',sans-serif; transition:border-color .2s; }
+.chat-input:focus { border-color:var(--pr); }
+.chat-send { width:44px;height:44px;border-radius:10px;border:none;background:var(--pr);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .2s;flex-shrink:0; }
+.chat-send:hover { background:var(--pr-d); }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'mensajes' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <div class="db-page-header">
+      <div>
+        <h1><i class="far fa-envelope" style="color:var(--bl);margin-right:10px;font-size:1.3rem;"></i>Mensajes</h1>
+        <p>Bandeja de entrada del vendedor — <strong id="header-unread">{{ mensajes_no_leidos or 0 }} sin leer</strong></p>
+      </div>
+      <button class="db-btn db-btn-primary"><i class="fas fa-pen"></i> Nuevo mensaje</button>
+    </div>
+
+    <!-- Stats strip -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      {% for icon, label, val, color, bg, stat_id in [
+        ('fa-inbox','Sin leer', mensajes_no_leidos|default(0),'#3B82F6','var(--bl-l)', 'stat-unread'),
+        ('fa-comments','Conversaciones activas', conversaciones|length if conversaciones else 0,'#FF6A00','var(--pr-l)', 'stat-active'),
+        ('fa-clock','Tiempo respuesta', tiempo_respuesta or '—','#10B981','var(--ok-l)', 'stat-reply'),
+        ('fa-star','Valoración', rating_promedio or '—','#F59E0B','var(--am-l)', 'stat-rating')
+      ] %}
+      <div class="db-card" style="padding:16px;display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:{{bg}};color:{{color}};display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;"><i class="fas {{icon}}"></i></div>
+        <div>
+          <div id="{{stat_id}}" style="font-size:1.3rem;font-weight:800;color:var(--t1);">{{val}}</div>
+          <div style="font-size:.72rem;color:var(--t2);font-weight:500;">{{label}}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Chat layout -->
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:0;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;background:var(--card);box-shadow:var(--sh);">
+      <!-- Conversation list -->
+      <div style="border-right:1px solid var(--bd);">
+        <div style="padding:14px 16px;border-bottom:1px solid var(--bd-l);">
+          <div style="position:relative;">
+            <i class="fas fa-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.82rem;"></i>
+            <input type="text" placeholder="Buscar conversación..." style="width:100%;padding:8px 12px 8px 32px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--t1);font-size:.8rem;outline:none;font-family:'Inter',sans-serif;">
+          </div>
+        </div>
+        <div class="msg-list">
+          {% if conversaciones %}
+          {% set colors = ['#FF6A00','#3B82F6','#10B981','#8B5CF6','#F59E0B','#EF4444','#06B6D4'] %}
+          {% for c in conversaciones %}
+          {% set ci = loop.index0 % 7 %}
+          <a href="{{ url_for('vendedor.mensajes', conv=c.id) }}" class="msg-item {% if c.no_leidos and c.no_leidos > 0 %}unread{% endif %} {% if id_conv_activa == c.id %}active{% endif %}" style="text-decoration:none;">
+            <div class="msg-avatar" style="background:{{ colors[ci] }}; overflow:hidden;">
+              {% if c.interlocutor_foto %}
+                <img src="{{ url_for('static', filename='uploads/usuarios/' + c.interlocutor_foto) }}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                {{ c.interlocutor_nombre[0]|upper if c.interlocutor_nombre else '?' }}
+              {% endif %}
+            </div>
+            <div style="min-width:0;flex:1;">
+              <div class="msg-name">{{ c.interlocutor_nombre }}</div>
+              <div class="msg-preview">{{ c.marca }} {{ c.modelo }}</div>
+              <div class="msg-preview" style="font-size:.72rem;">{{ c.ultimo_msg[:45] + '...' if c.ultimo_msg and c.ultimo_msg|length > 45 else (c.ultimo_msg or 'Sin mensajes') }}</div>
+            </div>
+            <div class="msg-meta-right">
+              <div class="msg-time">{{ c.ultima_actividad.strftime('%H:%M') if c.ultima_actividad else '' }}</div>
+              {% if c.no_leidos and c.no_leidos > 0 %}<div class="msg-unread-dot" id="dot-{{ c.id }}"></div>{% endif %}
+            </div>
+            
+            <!-- Acciones rápidas -->
+            <div class="msg-actions">
+              <button class="action-btn" title="Marcar como no leído" onclick="event.preventDefault(); event.stopPropagation(); marcarNoLeido({{ c.id }});">
+                <i class='bx bx-envelope'></i>
+              </button>
+              <button class="action-btn delete" title="Eliminar conversación" onclick="event.preventDefault(); event.stopPropagation(); eliminarConv({{ c.id }}, this);">
+                <i class='bx bx-trash'></i>
+              </button>
+            </div>
+          </a>
+          {% endfor %}
+          {% else %}
+          <div style="padding:40px 20px;text-align:center;color:var(--t3);font-size:.84rem;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i>Sin conversaciones</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Chat window -->
+      {% if id_conv_activa %}
+      <div class="chat-area" id="chatWindow">
+        <div style="padding:16px 20px;border-bottom:1px solid var(--bd-l);display:flex;align-items:center;gap:12px;">
+          {% set conv_activa = conversaciones|selectattr('id','eq',id_conv_activa)|first if conversaciones else None %}
+          <div style="width:40px;height:40px;border-radius:50%;background:#FF6A00;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;overflow:hidden;">
+            {% if conv_activa.interlocutor_foto %}
+              <img src="{{ url_for('static', filename='uploads/usuarios/' + conv_activa.interlocutor_foto) }}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">
+            {% else %}
+              {{ conv_activa.interlocutor_nombre[0]|upper if conv_activa and conv_activa.interlocutor_nombre else '?' }}
+            {% endif %}
+          </div>
+          <div>
+            <div style="font-size:.9rem;font-weight:700;color:var(--t1);">{{ conv_activa.interlocutor_nombre if conv_activa else 'Conversación' }}</div>
+            <div style="font-size:.72rem;color:var(--t2);">{{ conv_activa.marca + ' ' + conv_activa.modelo if conv_activa and conv_activa.marca else '' }}</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <a href="{{ url_for('detalle', id=conv_activa.vehiculo_id) if conv_activa else '#' }}" style="width:34px;height:34px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--t2);display:flex;align-items:center;justify-content:center;" title="Ver vehículo"><i class="fas fa-car-side"></i></a>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          {% if mensajes_chat %}
+          {% for m in mensajes_chat %}
+          {% if m.id_remitente == usuario_id %}
+          <div style="align-self:flex-end;text-align:right;">
+            <div class="bubble sent">{{ m.contenido }}</div>
+            <div class="bubble-time" style="font-size:.65rem;color:var(--t3);margin-top:2px;">{{ m.fecha_envio.strftime('%H:%M') if m.fecha_envio else '' }}</div>
+          </div>
+          {% else %}
+          <div>
+            <div class="bubble recv">{{ m.contenido }}</div>
+            <div class="bubble-time" style="font-size:.65rem;color:var(--t3);margin-top:2px;">{{ m.fecha_envio.strftime('%H:%M') if m.fecha_envio else '' }}</div>
+          </div>
+          {% endif %}
+          {% endfor %}
+          {% else %}
+          <div style="margin:auto;text-align:center;color:var(--t3);"><i class="fas fa-comments" style="font-size:2.5rem;display:block;margin-bottom:10px;"></i>Inicia la conversación</div>
+          {% endif %}
+        </div>
+        <form class="chat-input-row" method="POST" action="{{ url_for('vendedor.enviar_mensaje') }}">
+          <input type="hidden" name="id_conversacion" value="{{ id_conv_activa }}">
+          <input class="chat-input" name="contenido" type="text" placeholder="Escribe un mensaje..." autocomplete="off" maxlength="1000">
+          <button type="submit" class="chat-send"><i class="fas fa-paper-plane"></i></button>
+        </form>
+      </div>
+      {% else %}
+      <div class="chat-area" style="align-items:center;justify-content:center;text-align:center;color:var(--t3);">
+        <i class="fas fa-comment-dots" style="font-size:3rem;margin-bottom:12px;"></i>
+        <p>Selecciona una conversación para comenzar</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+<script>
+function sendMsg(){
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  const c = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.style.alignSelf='flex-end'; div.style.textAlign='right';
+  const now = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML = `<div class="bubble sent">${msg}</div><div class="bubble-time" style="font-size:.65rem;color:var(--t3);margin-top:2px;">${now}</div>`;
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+  input.value = '';
+}
+function loadChat(name, color){
+  document.getElementById('chatName').textContent = name;
+  document.getElementById('chatAvatar').textContent = name[0];
+  document.getElementById('chatAvatar').style.background = color;
+  document.querySelectorAll('.msg-item').forEach(i => i.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// Funciones para gestión de mensajes Vendedor
+function updateUnreadCount(delta) {
+    const mainStat = document.getElementById('stat-unread');
+    const headerStat = document.getElementById('header-unread');
+    
+    if(mainStat) {
+        let current = parseInt(mainStat.textContent) || 0;
+        mainStat.textContent = Math.max(0, current + delta);
+    }
+    if(headerStat) {
+        let current = parseInt(headerStat.textContent.replace(/[^\d]/g, '')) || 0;
+        let newVal = Math.max(0, current + delta);
+        headerStat.textContent = `${newVal} sin leer`;
+    }
+}
+
+function updateActiveCount(delta) {
+    const mainStat = document.getElementById('stat-active');
+    if(mainStat) {
+        let current = parseInt(mainStat.textContent) || 0;
+        mainStat.textContent = Math.max(0, current + delta);
+    }
+}
+
+async function marcarNoLeido(cid) {
+    try {
+        const res = await fetch(`/vendedor/mensajes/conversacion/${cid}/marcar-no-leido`, { method: 'POST' });
+        const data = await res.json();
+        if(data.ok) {
+            // Actualizar UI localmente
+            const item = document.querySelector(`.msg-item[href*="conv=${cid}"]`);
+            if(item && !item.classList.contains('unread')) {
+                item.classList.add('unread');
+                // Asegurar que el punto naranja exista
+                if(!document.getElementById(`dot-${cid}`)) {
+                    const metaDiv = item.querySelector('.msg-meta-right');
+                    const dot = document.createElement('div');
+                    dot.className = 'msg-unread-dot';
+                    dot.id = `dot-${cid}`;
+                    metaDiv.appendChild(dot);
+                }
+                // Actualizar contadores globales
+                updateUnreadCount(1);
+            }
+            // Toast opcional para feedback
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'success', title: 'Marcado como no leído',
+                showConfirmButton: false, timer: 1500, timerProgressBar: true
+            });
+        }
+    } catch(e) { console.error(e); }
+}
+
+async function eliminarConv(cid, btn) {
+    const result = await Swal.fire({
+        title: '¿Eliminar conversación?',
+        text: "Se ocultará de tu bandeja de entrada. El comprador no será notificado.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#FF6A00',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        customClass: { popup: 'elite-swal-popup-rounded' }
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`/vendedor/mensajes/conversacion/${cid}/eliminar`, { method: 'POST' });
+            const data = await res.json();
+            if(data.ok) {
+                const item = btn.closest('.msg-item');
+                const wasUnread = item.classList.contains('unread');
+                
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                
+                // Actualizar contadores globales
+                updateActiveCount(-1);
+                if(wasUnread) updateUnreadCount(-1);
+
+                setTimeout(() => {
+                    item.remove();
+                    // Si no quedan conversaciones, mostrar el placeholder
+                    if(document.querySelectorAll('.msg-item').length === 0) {
+                        location.reload(); 
+                    }
+                }, 300);
+            }
+        } catch(e) { console.error(e); }
+    }
+}
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

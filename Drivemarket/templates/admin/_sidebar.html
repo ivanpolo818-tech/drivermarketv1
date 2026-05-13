@@ -1,0 +1,606 @@
+<nav class="adm-nav" id="admNav">
+  <!-- HEADER -->
+  <div class="nav-header">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">
+        <i class="fas fa-car-side"></i>
+      </div>
+      <div class="nav-logo-text">
+        <span class="nav-brand">Drive Market</span>
+        <span class="nav-role"><i class="fas fa-shield-alt"></i> Admin Panel</span>
+      </div>
+    </div>
+    <button class="nav-collapse-btn" id="navCollapseBtn" onclick="toggleNavCollapse()" title="Colapsar menú">
+      <i class="fas fa-chevron-left" id="navCollapseIcon"></i>
+    </button>
+  </div>
+  <!-- SEARCH -->
+  <div class="nav-search">
+    <i class="fas fa-search"></i>
+    <input type="text" placeholder="Buscar sección…" id="navSearch" oninput="filterNav(this.value)">
+  </div>
+  <!-- MAIN MENU -->
+  <div class="nav-section-label">Menú Principal</div>
+  <ul class="nav-menu" id="navMenu">
+    <!-- Dashboard -->
+    <li class="nav-item {{ 'active' if request.endpoint == 'admin.admin_dashboard' else '' }}" data-label="Dashboard">
+      <a href="{{ url_for('admin.admin_dashboard') }}" data-tippy="Dashboard">
+        <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+    </li>
+    <!-- Vehículos (accordion) -->
+    {% if session.get('rol') in ['admin', 'superadmin', 'editor'] %}
+    <li class="nav-item nav-accordion {{ 'active' if request.endpoint == 'admin.admin_vehiculos' else '' }}" data-label="Vehículos">
+      <button class="nav-acc-trigger" onclick="toggleAcc(this)" data-tippy="Vehículos">
+        <span class="nav-icon"><i class="fas fa-car"></i></span>
+        <span class="nav-text">Vehículos</span>
+        <i class="fas fa-chevron-down nav-acc-arrow"></i>
+      </button>
+      <div class="nav-acc-panel">
+        <div class="nav-sub-group">
+          <span class="nav-sub-label">Gestión</span>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_vehiculos') }}">
+            <i class="fas fa-list-ul"></i> Todos los vehículos
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_vehiculos') }}#nuevo">
+            <i class="fas fa-plus-circle"></i> Agregar vehículo
+          </a>
+        </div>
+        <div class="nav-sub-group">
+          <span class="nav-sub-label">Filtros</span>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_vehiculos') }}?estado=activo">
+            <i class="fas fa-check-circle"></i> Activos
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_vehiculos') }}?estado=inactivo">
+            <i class="fas fa-ban"></i> Inactivos
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_vehiculos') }}?sin_imagen=1">
+            <i class="fas fa-image"></i> Sin imagen
+          </a>
+        </div>
+      </div>
+    </li>
+
+     <!-- Usuarios (accordion) -->
+    {% if session.get('rol') in ['admin', 'superadmin', 'moderador'] %}
+    <li class="nav-item nav-accordion {{ 'active' if request.endpoint == 'admin.admin_usuarios' else '' }}" data-label="Usuarios">
+      <button class="nav-acc-trigger" onclick="toggleAcc(this)" data-tippy="Usuarios">
+        <span class="nav-icon"><i class="fas fa-users"></i></span>
+        <span class="nav-text">Usuarios</span>
+        <i class="fas fa-chevron-down nav-acc-arrow"></i>
+      </button>
+      <div class="nav-acc-panel">
+        <div class="nav-sub-group">
+          <span class="nav-sub-label">Gestión</span>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_usuarios') }}">
+            <i class="fas fa-user-friends"></i> Todos los usuarios
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_usuarios') }}?rol=vendedor">
+            <i class="fas fa-store"></i> Vendedores
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.admin_usuarios') }}?rol=comprador">
+            <i class="fas fa-user"></i> Compradores
+          </a>
+        </div>
+        <div class="nav-sub-group">
+          <span class="nav-sub-label">Roles</span>
+          <a class="nav-sub-item" href="{{ url_for('admin.solicitudes_vendedores') }}">
+            <i class="fas fa-user-check"></i> Aprobaciones
+            {% if alertas_globales and alertas_globales.vendedores > 0 %}
+            <span class="nav-badge" style="margin-left:auto;">{{ alertas_globales.vendedores }}</span>
+            {% endif %}
+          </a>
+        </div>
+      </div>
+    </li>
+    
+    {% endif %}
+    <!-- Categorías (ítem simple) -->
+    {% if session.get('rol') in ['admin', 'superadmin', 'editor'] %}
+    <li class="nav-item {{ 'active' if request.endpoint == 'admin.administrar_categorias' else '' }}" data-label="Categorías">
+      <a href="{{ url_for('admin.administrar_categorias') }}" data-tippy="Categorías">
+        <span class="nav-icon"><i class="fas fa-tags"></i></span>
+        <span class="nav-text">Categorías & Marcas</span>
+      </a>
+    </li>
+    {% endif %}
+    
+   
+    {% endif %}
+    <!-- Promociones (ítem simple) -->
+    {% if session.get('rol') in ['admin', 'superadmin', 'editor'] %}
+    <li class="nav-item {{ 'active' if request.endpoint and 'admin.admin_promociones' in request.endpoint else '' }}" data-label="Promociones">
+      <a href="{{ url_for('admin.admin_promociones') }}" data-tippy="Promociones">
+        <span class="nav-icon"><i class="fas fa-bullhorn"></i></span>
+        <span class="nav-text">Promociones</span>
+      </a>
+    </li>
+    {% endif %}
+    
+    <!-- Pagos (ítem simple) -->
+    {% if session.get('rol') in ['admin', 'superadmin'] %}
+    <li class="nav-item {{ 'active' if request.endpoint == 'admin.admin_pagos' else '' }}" data-label="Pagos">
+      <a href="{{ url_for('admin.admin_pagos') }}" data-tippy="Pagos Manuales">
+        <span class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+        <span class="nav-text">Pagos Manuales</span>
+      </a>
+    </li>
+    {% endif %}
+    <!-- Reportes (accordion) -->
+    {% if session.get('rol') in ['admin', 'superadmin', 'moderador'] %}
+    <li class="nav-item nav-accordion {{ 'active' if request.endpoint in ['admin.admin_reportes', 'admin.reportes_usuarios', 'admin.reportes_vehiculos'] else '' }}" data-label="Reportes">
+      <button class="nav-acc-trigger" onclick="toggleAcc(this)" data-tippy="Reportes">
+        <span class="nav-icon"><i class="fas fa-flag"></i></span>
+        <span class="nav-text">Reportes</span>
+        <i class="fas fa-chevron-down nav-acc-arrow"></i>
+      </button>
+      <div class="nav-acc-panel">
+        <div class="nav-sub-group">
+          <span class="nav-sub-label">Gestión</span>
+          <a class="nav-sub-item" href="{{ url_for('admin.reportes_usuarios') }}">
+            <i class="fas fa-list"></i> Todos los reportes
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.reportes_usuarios') }}?tipo=usuarios">
+            <i class="fas fa-user"></i> Usuarios
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.reportes_usuarios') }}?tipo=vehiculos">
+            <i class="fas fa-car"></i> Vehículos
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.reportes_usuarios') }}?tipo=vendedores">
+            <i class="fas fa-store"></i> Vendedores
+          </a>
+        </div>
+      </div>
+    </li>
+    {% endif %}
+    <!-- Logs de Auditoría (ítem simple) -->
+    {% if session.get('rol') in ['admin', 'superadmin'] %}
+    <li class="nav-item {{ 'active' if request.endpoint == 'admin.logs_auditoria' else '' }}" data-label="Logs Auditoría">
+      <a href="{{ url_for('admin.logs_auditoria') }}" data-tippy="Logs de Auditoría">
+        <span class="nav-icon"><i class="fas fa-history"></i></span>
+        <span class="nav-text">Logs de Auditoría</span>
+      </a>
+    </li>
+    {% endif %}
+
+    <!-- IA Analytics -->
+    {% if session.get('rol') in ['admin', 'superadmin'] %}
+    <li class="nav-item {{ 'active' if request.endpoint == 'soporte.ia_analytics' else '' }}" data-label="IA Analytics">
+      <a href="{{ url_for('soporte.ia_analytics') }}" data-tippy="IA Analytics">
+        <span class="nav-icon"><i class="fas fa-robot"></i></span>
+        <span class="nav-text">IA Analytics</span>
+      </a>
+    </li>
+    {% endif %}
+
+    <!-- Aprobaciones (ítem simple) -->
+    {% if session.get('rol') in ['admin', 'superadmin', 'moderador'] %}
+    <li class="nav-item {{ 'active' if request.endpoint == 'admin.solicitudes_vendedores' else '' }}" data-label="Aprobaciones">
+      <a href="{{ url_for('admin.solicitudes_vendedores') }}" data-tippy="Aprobaciones">
+        <span class="nav-icon"><i class="fas fa-user-check"></i></span>
+        <span class="nav-text">Aprobaciones</span>
+        {% if alertas_globales and alertas_globales.vendedores > 0 %}
+        <span class="nav-badge" style="margin-left:auto;">{{ alertas_globales.vendedores }}</span>
+        {% endif %}
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+  <div class="nav-divider"></div>
+  <!-- CONFIG -->
+  <div class="nav-section-label">Configuración</div>
+  <ul class="nav-menu">
+    <li class="nav-item nav-accordion {{ 'active' if request.endpoint == 'admin.ajustes' else '' }}" data-label="Configuración">
+      <button class="nav-acc-trigger" onclick="toggleAcc(this)" data-tippy="Configuración">
+        <span class="nav-icon"><i class="fas fa-cog"></i></span>
+        <span class="nav-text">Configuración</span>
+        <i class="fas fa-chevron-down nav-acc-arrow"></i>
+      </button>
+      <div class="nav-acc-panel">
+        <div class="nav-sub-group">
+          <span class="nav-sub-label">General</span>
+          <a class="nav-sub-item" href="{{ url_for('admin.ajustes') }}">
+            <i class="fas fa-sliders-h"></i> Ajustes generales
+          </a>
+          <a class="nav-sub-item" href="{{ url_for('admin.ajustes') }}#apariencia">
+            <i class="fas fa-palette"></i> Apariencia
+          </a>
+        </div>
+        <div class="nav-sub-group">
+          <span class="nav-sub-label">Sistema</span>
+          <a class="nav-sub-item" href="{{ url_for('admin.ajustes') }}#seguridad">
+            <i class="fas fa-shield-alt"></i> Seguridad
+          </a>
+          {% if session.get('rol') in ['admin', 'superadmin'] %}
+          <a class="nav-sub-item" href="{{ url_for('admin.logs_auditoria') }}">
+            <i class="fas fa-history"></i> Logs de auditoría
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+  </ul>
+  <div class="nav-divider"></div>
+  <!-- ACTIONS -->
+  <div class="nav-section-label">Acciones</div>
+  <ul class="nav-menu">
+    <li class="nav-item nav-item-orange" data-label="Dashboard Vendedor">
+      <a href="{{ url_for('vendedor.dashboard') }}" data-tippy="Mi Dashboard (Vendedor)">
+        <span class="nav-icon"><i class="fas fa-store"></i></span>
+        <span class="nav-text">Mi Dashboard (Venta)</span>
+      </a>
+    </li>
+    <li class="nav-item nav-item-green" data-label="Sitio">
+      <a href="{{ url_for('index') }}" data-tippy="Volver al sitio">
+        <span class="nav-icon"><i class="fas fa-home"></i></span>
+        <span class="nav-text">Volver al sitio</span>
+      </a>
+    </li>
+    <li class="nav-item nav-item-red" data-label="Cerrar sesión">
+      <a href="{{ url_for('logout') }}" data-tippy="Cerrar sesión">
+        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="nav-text">Cerrar sesión</span>
+      </a>
+    </li>
+  </ul>
+  <!-- FOOTER -->
+  <div class="nav-footer">
+    <div class="nav-status">
+      <span class="status-dot-pulse"></span>
+      Sistema Activo
+    </div>
+    <div class="nav-version">v2.0</div>
+  </div>
+</nav>
+<style>
+/* ── Variables ───────────────────────────────────── */
+.adm-nav {
+  --nav-bg: #ffffff;
+  --nav-surface: #f8fafc;
+  --nav-border: #e5e7eb;
+  --nav-text: #374151;
+  --nav-text2: #9ca3af;
+  --nav-accent: #FF6A00;
+  --nav-accent2: #FF4500;
+  --nav-active-shadow: 0 4px 14px rgba(255,106,0,.3);
+  --nav-sub-bg: #f9fafb;
+  --nav-sub-hover: #fff5f2;
+  font-family: 'Inter', sans-serif;
+}
+[data-theme="dark"] .adm-nav {
+  --nav-bg: #1e293b;
+  --nav-surface: #162032;
+  --nav-border: #334155;
+  --nav-text: #e2e8f0;
+  --nav-text2: #64748b;
+  --nav-sub-bg: #1a2840;
+  --nav-sub-hover: #1e3050;
+}
+/* ── Layout ──────────────────────────────────────── */
+.adm-nav {
+  width: 260px;
+  background: var(--nav-bg);
+  border-right: 1px solid var(--nav-border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.4rem 1rem 1rem;
+  gap: .25rem;
+  transition: width .3s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+.adm-nav::-webkit-scrollbar { width: 3px; }
+.adm-nav::-webkit-scrollbar-thumb { background: var(--nav-border); border-radius: 2px; }
+/* Collapsed state */
+.adm-nav.collapsed { width: 70px; }
+.adm-nav.collapsed .nav-text,
+.adm-nav.collapsed .nav-section-label,
+.adm-nav.collapsed .nav-logo-text,
+.adm-nav.collapsed .nav-search,
+.adm-nav.collapsed .nav-badge,
+.adm-nav.collapsed .nav-footer,
+.adm-nav.collapsed .nav-acc-arrow { display: none; }
+.adm-nav.collapsed .nav-logo { justify-content: center; }
+.adm-nav.collapsed .nav-header { justify-content: center; }
+.adm-nav.collapsed .nav-item a,
+.adm-nav.collapsed .nav-acc-trigger { justify-content: center; padding: .75rem; }
+.adm-nav.collapsed .nav-acc-panel { display: none !important; }
+.adm-nav.collapsed #navCollapseIcon { transform: rotate(180deg); }
+.adm-nav.collapsed .nav-item a:hover::after,
+.adm-nav.collapsed .nav-acc-trigger:hover::after {
+  content: attr(data-tippy);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1e293b;
+  color: #fff;
+  padding: .4rem .85rem;
+  border-radius: 8px;
+  font-size: .78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 999;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
+/* ── Header ──────────────────────────────────────── */
+.nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: .5rem;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  overflow: hidden;
+  flex: 1;
+}
+.nav-logo-icon {
+  width: 44px; height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.2rem; flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(255,112,67,.35);
+  animation: logoFloat 3.5s ease-in-out infinite;
+}
+@keyframes logoFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.nav-logo-text { overflow: hidden; }
+.nav-brand {
+  display: block;
+  font-size: 1.1rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  white-space: nowrap; letter-spacing: -.02em;
+}
+.nav-role {
+  display: flex; align-items: center; gap: .3rem;
+  font-size: .7rem; color: var(--nav-text2);
+  font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+}
+.nav-role i { color: var(--nav-accent); }
+.nav-collapse-btn {
+  background: none; border: 1px solid var(--nav-border);
+  border-radius: 8px; padding: .35rem .5rem;
+  color: var(--nav-text2); cursor: pointer; flex-shrink: 0;
+  transition: all .2s; font-size: .8rem;
+}
+.nav-collapse-btn:hover { background: var(--nav-accent); color: #fff; border-color: var(--nav-accent); }
+#navCollapseIcon { transition: transform .3s; }
+/* ── Search ──────────────────────────────────────── */
+.nav-search {
+  display: flex; align-items: center; gap: .5rem;
+  background: var(--nav-surface); border: 1px solid var(--nav-border);
+  border-radius: 10px; padding: .5rem .8rem; margin-bottom: .8rem;
+  transition: all .3s;
+}
+.nav-search:focus-within { border-color: var(--nav-accent); box-shadow: 0 0 0 3px rgba(255,112,67,.12); }
+.nav-search i { color: var(--nav-text2); font-size: .85rem; flex-shrink: 0; }
+.nav-search input { background: none; border: none; outline: none; font-size: .83rem; color: var(--nav-text); width: 100%; }
+/* ── Section Label ───────────────────────────────── */
+.nav-section-label {
+  font-size: .68rem; font-weight: 700;
+  color: var(--nav-text2); text-transform: uppercase;
+  letter-spacing: .08em; padding: .4rem .5rem .25rem;
+}
+/* ── Menu ────────────────────────────────────────── */
+.nav-menu { list-style: none; display: flex; flex-direction: column; gap: .12rem; margin-bottom: .4rem; }
+/* Regular items */
+.nav-item a {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .65rem .85rem; border-radius: 10px;
+  color: var(--nav-text); text-decoration: none;
+  font-size: .875rem; font-weight: 500;
+  transition: all .22s cubic-bezier(.4,0,.2,1);
+  position: relative; overflow: visible;
+}
+.nav-item a::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px; height: 55%;
+  background: linear-gradient(180deg, var(--nav-accent), var(--nav-accent2));
+  border-radius: 0 3px 3px 0; transition: transform .22s;
+}
+.nav-item a:hover::before { transform: translateY(-50%) scaleY(1); }
+.nav-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: var(--nav-surface); border: 1px solid var(--nav-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .9rem; color: var(--nav-text2); flex-shrink: 0;
+  transition: all .22s;
+}
+.nav-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Hover */
+.nav-item a:hover { background: color-mix(in srgb, var(--nav-accent) 7%, transparent); color: var(--nav-accent); transform: translateX(3px); }
+.nav-item a:hover .nav-icon { background: color-mix(in srgb, var(--nav-accent) 14%, transparent); border-color: color-mix(in srgb, var(--nav-accent) 25%, transparent); color: var(--nav-accent); transform: scale(1.08); }
+/* Active regular */
+.nav-item.active > a {
+  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
+  color: #fff; font-weight: 600;
+  box-shadow: var(--nav-active-shadow);
+  transform: none;
+}
+.nav-item.active > a::before { display: none; }
+.nav-item.active > a .nav-icon { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.15); color: #fff; }
+/* ── Accordion trigger ───────────────────────────── */
+.nav-acc-trigger {
+  display: flex; align-items: center; gap: .75rem;
+  width: 100%; padding: .65rem .85rem; border-radius: 10px;
+  background: none; border: none; cursor: pointer;
+  color: var(--nav-text); font-size: .875rem; font-weight: 500;
+  transition: all .22s cubic-bezier(.4,0,.2,1);
+  position: relative; overflow: visible;
+  text-align: left;
+}
+.nav-acc-trigger::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px; height: 55%;
+  background: linear-gradient(180deg, var(--nav-accent), var(--nav-accent2));
+  border-radius: 0 3px 3px 0; transition: transform .22s;
+}
+.nav-acc-trigger:hover::before { transform: translateY(-50%) scaleY(1); }
+.nav-acc-trigger:hover { background: color-mix(in srgb, var(--nav-accent) 7%, transparent); color: var(--nav-accent); transform: translateX(3px); }
+.nav-acc-trigger:hover .nav-icon { background: color-mix(in srgb, var(--nav-accent) 14%, transparent); border-color: color-mix(in srgb, var(--nav-accent) 25%, transparent); color: var(--nav-accent); transform: scale(1.08); }
+/* Active accordion trigger */
+.nav-accordion.active .nav-acc-trigger,
+.nav-accordion.acc-open .nav-acc-trigger {
+  background: linear-gradient(135deg, var(--nav-accent), var(--nav-accent2));
+  color: #fff; font-weight: 600;
+  box-shadow: var(--nav-active-shadow);
+  transform: none;
+}
+.nav-accordion.active .nav-acc-trigger::before,
+.nav-accordion.acc-open .nav-acc-trigger::before { display: none; }
+.nav-accordion.active .nav-acc-trigger .nav-icon,
+.nav-accordion.acc-open .nav-acc-trigger .nav-icon { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.15); color: #fff; }
+.nav-accordion.active .nav-acc-arrow,
+.nav-accordion.acc-open .nav-acc-arrow { color: #fff; }
+/* Arrow */
+.nav-acc-arrow {
+  margin-left: auto; font-size: .7rem;
+  color: var(--nav-text2); transition: transform .3s;
+  flex-shrink: 0;
+}
+.nav-accordion.acc-open .nav-acc-arrow { transform: rotate(180deg); }
+/* ── Accordion panel ─────────────────────────────── */
+.nav-acc-panel {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s;
+  opacity: 0;
+}
+.nav-accordion.acc-open .nav-acc-panel { max-height: 400px; opacity: 1; }
+/* Sub-group */
+.nav-sub-group {
+  margin: .4rem 0 .2rem .5rem;
+  padding: .5rem .6rem .4rem;
+  background: var(--nav-sub-bg);
+  border-radius: 10px;
+  border: 1px solid var(--nav-border);
+}
+/* Sub-group label (like in the image) */
+.nav-sub-label {
+  display: block;
+  font-size: .62rem; font-weight: 700;
+  color: var(--nav-text2); text-transform: uppercase;
+  letter-spacing: .08em; margin-bottom: .3rem;
+  padding: 0 .3rem;
+}
+/* Sub-item links */
+.nav-sub-item {
+  display: flex; align-items: center; gap: .55rem;
+  padding: .45rem .5rem; border-radius: 7px;
+  color: var(--nav-text); text-decoration: none;
+  font-size: .82rem; font-weight: 500;
+  transition: all .18s;
+  position: relative;
+}
+.nav-sub-item i { font-size: .8rem; color: var(--nav-text2); width: 16px; text-align: center; flex-shrink: 0; transition: color .18s; }
+.nav-sub-item:hover { background: var(--nav-sub-hover); color: var(--nav-accent); padding-left: .75rem; }
+.nav-sub-item:hover i { color: var(--nav-accent); }
+.nav-sub-item .nav-badge { margin-left: auto; }
+/* ── Badge ───────────────────────────────────────── */
+.nav-badge {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff; font-size: .65rem; font-weight: 700;
+  padding: .15rem .45rem; border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(239,68,68,.35);
+  animation: badgePulse 2s ease-in-out infinite;
+  white-space: nowrap;
+}
+@keyframes badgePulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.nav-accordion.active .nav-badge { background: #fff; color: var(--nav-accent); }
+/* ── Green / Red / Orange items ───────────────────── */
+.nav-item-orange a:hover { background: rgba(255,112,67,.08); color: #ff7043; }
+.nav-item-orange a:hover .nav-icon { background: rgba(255,112,67,.14); border-color: rgba(255,112,67,.2); color: #ff7043; }
+.nav-item-green a:hover { background: rgba(16,185,129,.08); color: #10b981; }
+.nav-item-green a:hover .nav-icon { background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.2); color: #10b981; }
+.nav-item-red a { color: #ef4444; }
+.nav-item-red .nav-icon { color: #ef4444; border-color: rgba(239,68,68,.2); background: rgba(239,68,68,.06); }
+.nav-item-red a:hover { background: linear-gradient(135deg,#ef4444,#dc2626); color: #fff; box-shadow: 0 4px 12px rgba(239,68,68,.3); transform: none; }
+.nav-item-red a:hover .nav-icon { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.15); color: #fff; }
+.nav-item-red a:hover::before { display: none; }
+/* ── Divider ─────────────────────────────────────── */
+.nav-divider { height: 1px; background: linear-gradient(90deg,transparent,var(--nav-border),transparent); margin: .6rem 0; }
+/* ── Footer ──────────────────────────────────────── */
+.nav-footer {
+  margin-top: auto; padding-top: .9rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--nav-border);
+}
+.nav-status {
+  display: flex; align-items: center; gap: .45rem;
+  background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.15);
+  padding: .3rem .7rem; border-radius: 20px;
+  color: #10b981; font-weight: 600; font-size: .7rem;
+}
+.status-dot-pulse {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #10b981; flex-shrink: 0;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
+  50% { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
+}
+.nav-version {
+  font-size: .7rem; font-weight: 700; color: var(--nav-text2);
+  background: var(--nav-surface); border: 1px solid var(--nav-border);
+  padding: .2rem .5rem; border-radius: 6px;
+}
+/* ── Hidden (search filter) ──────────────────────── */
+.nav-item.nav-hidden { display: none; }
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .adm-nav { width: 260px; }
+  .nav-collapse-btn { display: none; }
+}
+</style>
+<script>
+/* ── Collapse ─────────────────────────────────────── */
+function toggleNavCollapse() {
+  const nav = document.getElementById('admNav');
+  nav.classList.toggle('collapsed');
+  localStorage.setItem('navCollapsed', nav.classList.contains('collapsed') ? '1' : '0');
+}
+(function() {
+  if (localStorage.getItem('navCollapsed') === '1') {
+    const nav = document.getElementById('admNav');
+    if (nav) nav.classList.add('collapsed');
+  }
+})();
+/* ── Accordion ────────────────────────────────────── */
+function toggleAcc(btn) {
+  const item = btn.closest('.nav-accordion');
+  const isOpen = item.classList.contains('acc-open');
+  // Close all
+  document.querySelectorAll('.nav-accordion.acc-open').forEach(el => el.classList.remove('acc-open'));
+  if (!isOpen) item.classList.add('acc-open');
+}
+// Auto-open active accordion on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const activeAcc = document.querySelector('.nav-accordion.active');
+  if (activeAcc) activeAcc.classList.add('acc-open');
+});
+/* ── Search filter ────────────────────────────────── */
+function filterNav(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#navMenu .nav-item[data-label]').forEach(item => {
+    const label = item.getAttribute('data-label').toLowerCase();
+    item.classList.toggle('nav-hidden', q !== '' && !label.includes(q));
+  });
+}
+</script>

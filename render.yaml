@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: drivemarket
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd Drivemarket && gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_SECRET_KEY
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: true
+      - key: CLOUDINARY_URL
+        sync: false

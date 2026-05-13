@@ -1,0 +1,276 @@
+/* ================================================= */
+/* Variables y Estilos Base */
+/* ================================================= */
+:root {
+    --color-primary: #0d47a1;     /* Azul profundo / Drive Market Primary */
+    --color-accent: #ff5722;      /* Naranja / Botones */
+    --color-bg-dark: #123e71;     /* Degradado Oscuro */
+    --color-text-dark: #2c3e50;
+    --color-text-light: #6c757d;
+    --card-bg: #ffffff;
+    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.3);
+    --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+/* ================================================= */
+/* 🌟 SECCIÓN PRINCIPAL */
+/* ================================================= */
+.login-seccion {
+    /* Fondo con imagen de vehículo sutil (mejor que un color plano o degradado simple) */
+    background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-primary) 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    /* Centrado completo del contenido */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 30px;
+    
+    /* Efecto de máscara sutil sobre la imagen si se usa */
+    position: relative;
+    z-index: 1;
+}
+
+/* ================================================= */
+/* 💳 TARJETA DE LOGIN (CARD) */
+/* ================================================= */
+.login-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 420px; /* Un poco más de ancho */
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-heavy); /* Sombra pesada para destacar */
+    transition: all 0.5s ease;
+    /* Para que el card se mueva un poco al hacer hover (sutil) */
+    transform: perspective(1000px) rotateY(0deg); 
+}
+
+/* .login-card:hover {
+    transform: perspective(1000px) rotateY(1deg); 
+} */
+
+.login-card .logo {
+    width: 120px;
+    margin-bottom: 15px;
+}
+
+.card-title {
+    color: var(--color-primary);
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.card-subtitle {
+    color: var(--color-text-light);
+    font-size: 16px;
+    margin-bottom: 30px;
+}
+
+/* ================================================= */
+/* 📝 FORMULARIO E INPUTS */
+/* ================================================= */
+.login-form {
+    margin-bottom: 20px;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 15px 15px 15px 45px; /* Padding a la izquierda para el icono */
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    color: var(--color-text-dark);
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+
+.input-group input:focus {
+    border-color: var(--color-accent);
+    background-color: var(--card-bg);
+    box-shadow: 0 0 8px rgba(255, 87, 34, 0.2);
+    outline: none;
+}
+
+.input-group .icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-light);
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+.input-group input:focus + .icon {
+    color: var(--color-accent);
+}
+
+/* ================================================= */
+/* 🔑 ENLACES Y BOTONES CTA */
+/* ================================================= */
+.olvido-link {
+    display: block;
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 25px;
+    font-size: 14px;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.olvido-link:hover {
+    text-decoration: underline;
+    color: var(--color-accent);
+}
+
+.btn-login {
+    /* Degradado atractivo */
+    background: linear-gradient(90deg, var(--color-primary) 0%, #0093ff 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-weight: 700;
+    font-size: 18px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 5px 15px rgba(0, 71, 161, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-login:hover {
+    background: linear-gradient(90deg, #0093ff 0%, var(--color-primary) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 71, 161, 0.6);
+}
+
+/* 🔹 Separador */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 30px 0;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+.divider-text {
+    padding: 0 15px;
+    font-size: 14px;
+    color: var(--color-text-light);
+    font-weight: 500;
+}
+
+/* 🔹 Botón Google */
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-light);
+    margin-bottom: 30px;
+}
+
+.btn-google img {
+    width: 24px;
+    height: 24px;
+}
+
+.btn-google:hover {
+    background: #f0f0f0;
+    transform: scale(1.01);
+    border-color: #ccc;
+}
+
+/* 🔹 Enlace de Registro */
+.registro-link {
+    font-size: 15px;
+    color: var(--color-text-light);
+}
+
+.registro-link-cta {
+    color: var(--color-accent);
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.registro-link-cta:hover {
+    color: #e64a19;
+    text-decoration: underline;
+}
+
+/* 🔹 Mensajes Flash */
+.flash-message {
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.alert-error {
+    background-color: #fdeaea;
+    color: #e64a19;
+    border-left: 5px solid #e64a19;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #43a047;
+    border-left: 5px solid #43a047;
+}
+
+/* ================================================= */
+/* 📱 Responsive Design */
+/* ================================================= */
+@media (max-width: 500px) {
+    .login-card {
+        padding: 30px 20px;
+        border-radius: 15px;
+    }
+    .card-title {
+        font-size: 24px;
+    }
+    .hero-content {
+        font-size: 14px;
+    }
+    .btn-login {
+        font-size: 16px;
+        padding: 12px;
+    }
+    .btn-google {
+        font-size: 14px;
+    }
+}

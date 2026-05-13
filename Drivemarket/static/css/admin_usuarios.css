@@ -1,0 +1,138 @@
+/* ===== LAYOUT PRINCIPAL ===== */
+.admin-layout {
+    display: flex;
+    gap: 0;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 240px;
+    background: #1e272e;
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #f5f7fa;
+}
+
+/* ===== HEADER ===== */
+.content-header h1 {
+    font-size: 30px;
+    font-weight: 800;
+    margin: 0;
+}
+.content-header p {
+    color: #666;
+    margin-top: 4px;
+}
+
+/* ===== BOTÓN PRINCIPAL ===== */
+.btn-primary {
+    background: #0984e3;
+    padding: 10px 18px;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: .2s;
+}
+.btn-primary:hover {
+    background: #0761a8;
+}
+
+/* ===== CARD ===== */
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.07);
+}
+
+/* ===== TABLA ===== */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    padding: 12px;
+    background: #eef1f5;
+    font-weight: 700;
+    text-align: left;
+}
+
+.table td {
+    padding: 12px;
+    border-bottom: 1px solid #e6e9ee;
+}
+
+.row-inactive {
+    opacity: .6;
+}
+
+/* ===== BADGES ===== */
+.badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: .75rem;
+    font-weight: 700;
+    color: white;
+}
+
+.badge-role { background: #6c5ce7; }
+.badge-activo { background: #00b894; }
+.badge-inactivo { background: #fdcb6e; color: #333; }
+.badge-bloqueado { background: #d63031; }
+
+/* ===== ACCIONES ===== */
+.actions-col {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.action-btn {
+    padding: 6px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    transition: .2s;
+}
+.action-btn:hover {
+    transform: scale(1.12);
+}
+
+.action-btn.blue { background: #0984e3; color: white; }
+.action-btn.green { background: #00b894; color: white; }
+.action-btn.yellow { background: #f1c40f; color: #333; }
+.action-btn.red { background: #e74c3c; color: white; }
+.action-btn.danger { background: #b71540; color: white; }
+
+/* ===== SELECT ROL ===== */
+.select-rol {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #dfe4ea;
+    background: white;
+}
+
+/* ===== FLASH MESSAGES ===== */
+.flash-wrapper { margin-bottom: 15px; }
+
+.flash {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    color: white;
+    font-weight: 600;
+}
+
+.flash-success { background: #00b894; }
+.flash-danger,
+.flash-error { background: #d63031; }

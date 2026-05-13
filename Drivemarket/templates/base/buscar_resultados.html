@@ -1,0 +1,92 @@
+{% for v in vehiculos %}
+<article class="vehicle-card-wrapper {% if v.plan_destacado %}is-featured{% endif %}">
+    <a href="{{ url_for('vehiculo_detalle', slug=v.slug if v.slug else v.id) }}" class="vehicle-card">
+        <div class="card-image-box">
+            <img src="{{ url_for('static', filename=v.imagen) if v.imagen else url_for('static', filename='img/default_car.jpg') }}"
+                 alt="{{ v.marca }} {{ v.modelo }}"
+                 loading="lazy">
+            <div class="card-overlay"></div>
+            {% if v.plan_destacado %}
+            <span class="badge-featured">Destacado</span>
+            {% endif %}
+            <span class="badge-state {{ v.condicion|lower if v.condicion else 'usado' }}">
+                {{ v.condicion|capitalize if v.condicion else 'Usado' }}
+            </span>
+            <button class="btn-fav-float {% if user_fav_ids and v.id in user_fav_ids %}is-active{% endif %}" 
+                    onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(this, {{ v.id }})" 
+                    title="Guardar en favoritos">
+                <i class="{% if user_fav_ids and v.id in user_fav_ids %}fas{% else %}far{% endif %} fa-heart"></i>
+            </button>
+        </div>
+        <div class="card-content">
+            <div class="card-header-info">
+                <h3 class="card-title">{{ v.marca }} {{ v.modelo }}</h3>
+                <span class="card-year">{{ v.anio }}</span>
+            </div>
+            <div class="card-specs">
+                <div class="spec-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>{{ "{:,.0f}".format(v.kilometraje|float) }} km</span>
+                </div>
+                <div class="spec-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ v.ciudad_venta or '—' }}</span>
+                </div>
+            </div>
+            <div class="card-divider"></div>
+            <div class="card-footer">
+                <div class="price-box">
+                    <span class="price-label">Precio</span>
+                    <span class="price-value">${{ "{:,.0f}".format(v.precio|float) }}</span>
+                </div>
+                <object class="contact-obj">
+                    <a href="https://wa.me/57{{ v.telefono if v.telefono else '3000000000' }}?text=Hola,%20vi%20el%20{{ v.marca }}%20{{ v.modelo }}%20en%20DriveMarket..."
+                       target="_blank"
+                       rel="noopener"
+                       class="btn-contact-action"
+                       onclick="trackWhatsApp({{ v.id }})">
+                       <i class="fab fa-whatsapp"></i> Contactar
+                    </a>
+                </object>
+            </div>
+        </div>
+    </a>
+</article>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state__icon">
+        <i class="fas fa-car"></i>
+    </div>
+    <h3>Sin resultados</h3>
+    <p>No encontramos vehículos con esos criterios. Intenta ampliar el rango de búsqueda o consulta al asistente.</p>
+    <div class="empty-state__actions">
+        <a href="{{ url_for('buscar') }}" class="btn-filter-apply" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none;padding:11px 22px;border-radius:10px;">
+            Ver todo el inventario
+        </a>
+        <button class="btn-ai-suggest"
+            onclick="window.openDriveMarketAI ? window.openDriveMarketAI() : window.location.href='/soporte/chat'">
+            <i class="fas fa-robot"></i> Consultar al asistente
+        </button>
+    </div>
+</div>
+{% endfor %}
+
+{% if pagination and pagination.pages > 1 %}
+<div class="pagination-wrapper">
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="#" class="page-link prev" data-page="{{ pagination.prev_num }}">
+            <i class="fas fa-arrow-left"></i> Anterior
+        </a>
+        {% endif %}
+        <span class="pagination-info">
+            Página <strong>{{ pagination.page }}</strong> / {{ pagination.pages }}
+        </span>
+        {% if pagination.has_next %}
+        <a href="#" class="page-link next" data-page="{{ pagination.next_num }}">
+            Siguiente <i class="fas fa-arrow-right"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

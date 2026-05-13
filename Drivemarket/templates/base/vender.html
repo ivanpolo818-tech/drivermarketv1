@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+{% block title %}Publicar Vehículo — Drive Market{% endblock %}
+
+{% block head %}
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vender_premium.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="pv-header">
+        <div class="pv-badge"><i class="fas fa-star" style="color:#F59E0B;"></i> Publicador Premium</div>
+        <h1>Listado de <span>Vehículo</span></h1>
+        <p>Vender tu auto nunca había sido tan elegante. Completa estos 4 sencillos pasos para asegurar que tu vehículo destaque en el mercado.</p>
+    </div>
+
+    <!-- SEO QUALITY METER (NEW) -->
+    <div style="max-width: 900px; margin: 0 auto 30px; padding: 24px; background: var(--surface); border-radius: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--line);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.85rem; font-weight: 800; color: var(--t2); text-transform: uppercase; letter-spacing: 1px;">Calidad del Anuncio</span>
+            <span id="seo-label" style="font-size: 0.75rem; font-weight: 900; padding: 4px 12px; border-radius: 40px; color: #FFF; background: var(--t3);">Pobre</span>
+        </div>
+        <div style="width: 100%; height: 8px; background: var(--bg); border-radius: 20px; overflow: hidden; border: 1px solid var(--line);">
+            <div id="seo-progress" style="width: 10%; height: 100%; background: #ef4444; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+        </div>
+        <p style="margin-top: 12px; font-size: 0.78rem; color: var(--t2);"><i class="fas fa-info-circle"></i> Usa la <strong>Inteligencia Artificial</strong> para crear una descripción excelente.</p>
+    </div>
+    
+    <div class="stepper-container">
+        <div class="step-item active" id="stepIndicator1">
+            <div class="step-circle">1</div>
+            <div class="step-label">Marca</div>
+        </div>
+        <div class="step-line" id="line1"></div>
+        <div class="step-item" id="stepIndicator2">
+            <div class="step-circle">2</div>
+            <div class="step-label">Datos</div>
+        </div>
+        <div class="step-line" id="line2"></div>
+        <div class="step-item" id="stepIndicator3">
+            <div class="step-circle">3</div>
+            <div class="step-label">Mecánica</div>
+        </div>
+        <div class="step-line" id="line3"></div>
+        <div class="step-item" id="stepIndicator4">
+            <div class="step-circle">4</div>
+            <div class="step-label">Extras</div>
+        </div>
+        <div class="step-line" id="line4"></div>
+        <div class="step-item" id="stepIndicator5">
+            <div class="step-circle">5</div>
+            <div class="step-label">Fotos</div>
+        </div>
+    </div>
+    
+    <div class="pv-form-wrapper">
+        <form action="{{ url_for('vender') }}" method="POST" enctype="multipart/form-data" id="venderForm" novalidate>
+            <div class="pv-views">
+                
+                <div class="pv-step-view active" id="step1">
+                    <div class="pv-sec-hd">
+                        <h2><i class="fas fa-car-side"></i> Identidad del Vehículo</h2>
+                        <p>Selecciona los datos base para posicionar tu vehículo en las búsquedas principales.</p>
+                    </div>
+                    
+                    <div class="pv-grid-2">
+                        <div class="pv-group">
+                            <label for="tipo"><i class="fas fa-layer-group"></i> Tipo y Carrocería <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="tipo" id="tipo" class="pv-input" required>
+                                    <option value="" disabled selected>Seleccione el segmento...</option>
+                                    {% for t in tipos %}
+                                    <option value="{{ t.id }}">{{ t.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                        <div class="pv-group">
+                            <label for="marca"><i class="fas fa-copyright"></i> Marca <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="marca" id="marca" class="pv-input" disabled required>
+                                    <option value="" disabled selected>Primero seleccione el segmento de vehículo...</option>
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pv-grid-2" id="contenedor-modelos">
+                        <div class="pv-group">
+                            <label for="modelo"><i class="fas fa-cube"></i> Modelo Literario <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="modelo" id="modelo" class="pv-input" disabled required>
+                                    <option value="" disabled selected>Primero seleccione la marca...</option>
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                        <div class="pv-group">
+                            <label for="version"><i class="fas fa-tag"></i> Edición/Versión <span class="opt">(Opcional)</span></label>
+                            <input type="text" id="version" name="version" class="pv-input" placeholder="Ej. Sport, GT Line, X-Drive...">
+                        </div>
+                    </div>
+
+                    <div class="pv-group" id="div-otro-modelo" style="display: none; margin-top: -8px; margin-bottom: 24px; animation: fadeInView 0.3s ease forwards;">
+                        <label for="otro_modelo" style="color: var(--o);"><i class="fas fa-pen"></i> Escribe tu modelo <span class="req">*</span></label>
+                        <input type="text" id="otro_modelo" name="otro_modelo" class="pv-input" placeholder="Ej: Mazda 3 Touring 2.0" style="border-color: var(--o);">
+                    </div>
+                </div>
+
+                <div class="pv-step-view" id="step2">
+                    <div class="pv-sec-hd">
+                        <h2><i class="fas fa-clipboard-list"></i> Ficha Técnica y Costo</h2>
+                        <p>Los parámetros vitales. Sé preciso, la transparencia vende más rápido.</p>
+                    </div>
+                    <div class="pv-grid-3">
+                        <div class="pv-group">
+                            <label for="anio"><i class="fas fa-calendar-alt"></i> Año del vehiculo <span class="req">*</span></label>
+                            <input type="number" id="anio" name="anio" class="pv-input" placeholder="Ej. 2021" min="1950" max="2025" required>
+                        </div>
+                        <div class="pv-group">
+                            <label for="kilometraje"><i class="fas fa-tachometer-alt"></i> Recorrido (KM) <span class="req">*</span></label>
+                            <input type="number" id="kilometraje" name="kilometraje" class="pv-input" placeholder="Odómetro exacto" required>
+                        </div>
+                        <div class="pv-group">
+                            <label for="color"><i class="fas fa-palette"></i> Color <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="color" id="color" class="pv-input" required>
+                                    <option value="" disabled selected>Exterior...</option>
+                                    {% for c in colores %}
+                                    <option value="{{ c.id }}">{{ c.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pv-grid-2" style="margin-top: 24px;">
+                        <div class="pv-group">
+                            <label for="precio"><i class="fas fa-dollar-sign"></i> Valor de Venta <span class="req">*</span></label>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <span style="position: absolute; left: 14px; font-weight: 800; color: var(--t3);">COP $</span>
+                                <input type="text" id="precio_visual" class="pv-input" placeholder="45.000.000" style="padding-left: 65px;" required>
+                            </div>
+                            <input type="hidden" id="precio" name="precio" required>
+                        </div>
+                        <div class="pv-group">
+                            <label for="negociable"><i class="fas fa-handshake"></i> ¿Ofertas Abiertas?</label>
+                            <div class="pv-select-wrap">
+                                <select name="negociable" id="negociable" class="pv-input">
+                                    <option value="Sí" selected>Fijar como negociable</option>
+                                    <option value="No">Precio fijo o final</option>
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pv-grid-3" style="margin-top: 24px;">
+                        <div class="pv-group">
+                            <label for="placa"><i class="fas fa-id-card"></i> Placa <span class="req">*</span></label>
+                            <input type="text" id="placa" name="placa" class="pv-input" placeholder="XXX-000" required>
+                        </div>
+                        <div class="pv-group">
+                            <label for="ciudad_placa"><i class="fas fa-map-pin"></i> Ciudad Placa <span class="req">*</span></label>
+                            <input type="text" id="ciudad_placa" name="ciudad_placa" class="pv-input" placeholder="Radica en..." required>
+                        </div>
+                        <div class="pv-group">
+                            <label for="ciudad_venta"><i class="fas fa-location-dot"></i> Ubicación Física <span class="req">*</span></label>
+                            <input type="text" id="ciudad_venta" name="ciudad_venta" class="pv-input" placeholder="Ciudad actual" required>
+                        </div>
+                    </div>
+                    <div class="pv-group" style="margin-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label for="descripcion"><i class="fas fa-align-left"></i> Reseña Detallada <span class="opt">(Recomendado)</span></label>
+                            <button type="button" id="btn-generar-ia" class="pv-btn-back" style="padding: 6px 12px; font-size: 0.75rem; border-color: var(--o); color: var(--o); background: #FFF;">
+                                <i class="fas fa-magic"></i> ✨ Generar con IA
+                            </button>
+                        </div>
+                        <textarea id="descripcion" name="descripcion" class="pv-input" rows="5" placeholder="Describe el estado, accesorios o historial del vehículo..." style="min-height: 140px; resize: vertical;"></textarea>
+                    </div>
+                </div>
+
+                <div class="pv-step-view" id="step3">
+                    <div class="pv-sec-hd">
+                        <h2><i class="fas fa-cogs"></i> Ficha Mecánica</h2>
+                        <p>Atributos técnicos del vehículo. Sé preciso para los compradores exigentes.</p>
+                    </div>
+                    <div class="pv-grid-3" style="margin-top: 24px;">
+                        <div class="pv-group">
+                            <label for="transmision"><i class="fas fa-cogs"></i> Transmisión <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="transmision" id="transmision" class="pv-input" required>
+                                    <option value="" disabled selected>Selecciona...</option>
+                                    <option value="Automática">Automática</option>
+                                    <option value="Manual">Manual</option>
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                        <div class="pv-group">
+                            <label for="combustible"><i class="fas fa-gas-pump"></i> Combustible <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="combustible" id="combustible" class="pv-input" required>
+                                    <option value="" disabled selected>Selecciona...</option>
+                                    <option value="Gasolina">Gasolina</option>
+                                    <option value="Diésel">Diésel</option>
+                                    <option value="Híbrido">Híbrido</option>
+                                    <option value="Eléctrico">Eléctrico</option>
+                                    <option value="Gas">Gas Natural</option>
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                        <div class="pv-group">
+                            <label for="motor"><i class="fas fa-dharmachakra"></i> Motor (CC / L) <span class="req">*</span></label>
+                            <input type="text" id="motor" name="motor" class="pv-input" placeholder="Ej: 1600cc, 2.0L" required>
+                        </div>
+                    </div>
+                    
+                    <div class="pv-grid-2" style="margin-top: 24px;">
+                        <div class="pv-group">
+                            <label for="traccion"><i class="fas fa-truck-pickup"></i> Tracción <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="traccion" id="traccion" class="pv-input" required>
+                                    <option value="" disabled selected>Selecciona...</option>
+                                    <option value="4x2">4x2 (FWD/RWD)</option>
+                                    <option value="4x4">4x4 / AWD</option>
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                        <div class="pv-group">
+                            <label for="puertas"><i class="fas fa-door-open"></i> Num. Puertas <span class="req">*</span></label>
+                            <div class="pv-select-wrap">
+                                <select name="puertas" id="puertas" class="pv-input" required>
+                                    <option value="" disabled selected>Selecciona...</option>
+                                    <option value="2">2 Puertas</option>
+                                    <option value="3">3 Puertas</option>
+                                    <option value="4">4 Puertas</option>
+                                    <option value="5">5 Puertas</option>
+                                </select>
+                                <i class="fas fa-chevron-down pv-select-arrow"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pv-step-view" id="step4">
+                    <div class="pv-sec-hd">
+                        <h2><i class="fas fa-star"></i> Perks y Titularidad</h2>
+                        <p>Agrega los detalles de lujo y confirma la visibilidad del propietario.</p>
+                    </div>
+                    <div class="pv-group" style="max-width: 500px; margin-bottom: 40px;">
+                        <label for="dueno"><i class="fas fa-user-circle"></i> Nombre Comercial / Titular <span class="req">*</span></label>
+                        <input type="text" id="dueno" name="dueno" class="pv-input" 
+                                value="{{ vendedor.nombre_empresa if vendedor.nombre_empresa else vendedor.nombre }}" 
+                                placeholder="Como te verán los compradores..." required>
+                    </div>
+                    <div style="margin-bottom: 24px;">
+                        <label style="font-weight: 800; color: var(--t1); font-size: 1.1rem; display:block; margin-bottom: 16px;"><i class="fas fa-microchip" style="color:var(--o);"></i> Opciones y Confort</label>
+                        <div class="pv-check-grid">
+                            {% for c in caracteristicas %}
+                            <label class="pv-check">
+                                <input type="checkbox" name="caracteristicas" value="{{ c.id }}">
+                                <div class="pv-chk-box"><i class="fas fa-check"></i></div>
+                                <span class="pv-chk-txt">{{ c.nombre }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pv-step-view" id="step5">
+                    <div class="pv-sec-hd">
+                        <h2><i class="fas fa-camera"></i> Galería Visual</h2>
+                        <p>Un auto entra por los ojos. Sube hasta 20 imágenes de alta calidad (frontal, lateral, interior).</p>
+                    </div>
+                    <label for="imagenesInput" class="pv-upload-box" id="uploadBox">
+                        <div class="pv-up-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <div>
+                            <p class="pv-up-t1">Haz clic o arrastra los archivos aquí</p>
+                            <p class="pv-up-t2">Soporta JPG y PNG (Máximo 20 archivos)</p> 
+                        </div>
+                        <span style="font-size:0.75rem; color:var(--t3); display:block; margin-top:4px;" id="fileCount">0 archivos seleccionados</span>
+                    </label>
+                    <input type="file" id="imagenesInput" name="imagenes[]" accept="image/*" multiple class="hidden-file" required>
+                    <div class="pv-preview" id="previewArea">
+                        </div>
+                </div>
+            </div>
+            
+            <div class="pv-actions" style="display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="pv-btn-back" id="btnPrev" style="visibility: hidden;"><i class="fas fa-arrow-left"></i> Anterior</button>
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--t3);" id="stepIndicatorText">Paso 1 de 5</div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" class="pv-btn-next" id="btnNext">Siguiente <i class="fas fa-arrow-right"></i></button>
+                    <button type="submit" class="pv-btn-submit" id="btnSubmit"><i class="fas fa-rocket"></i> Publicar Vehículo</button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vender_premium.js') }}"></script>
+<script src="{{ url_for('static', filename='js/listing_tools.js') }}"></script>
+{% endblock %}
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

@@ -1,0 +1,2385 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Manual técnico completo para desarrolladores de la plataforma Drivemarket">
+      
+      
+        <meta name="author" content="Equipo Técnico Drivemarket">
+      
+      
+        <link rel="canonical" href="https://drivemarket-docs.example.com/documentacion/referencia-rapida/">
+      
+      
+        <link rel="prev" href="../diagramas/">
+      
+      
+        <link rel="next" href="../indice/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Referencia rápida - Documentación Técnica</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tabla-de-contenidos" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="Documentación Técnica" class="md-header__button md-logo" aria-label="Documentación Técnica" data-md-component="logo">
+      <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -1px; margin-right: 0.25rem;">
+  <span style="color: currentColor;">DRIVE</span><span style="color: #ea580c;">MARKET</span>
+</span>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Documentación Técnica
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Referencia rápida
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="orange"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="orange"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/drivemarket/drivemarket" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    drivemarket/drivemarket
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../inicio/bienvenida/" class="md-tabs__link">
+          
+  
+  
+  Inicio rápido
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Documentación
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../referencia/resumen/" class="md-tabs__link">
+          
+  
+  
+  Referencias
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Documentación Técnica" class="md-nav__button md-logo" aria-label="Documentación Técnica" data-md-component="logo">
+      <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -1px; margin-right: 0.25rem;">
+  <span style="color: currentColor;">DRIVE</span><span style="color: #ea580c;">MARKET</span>
+</span>
+    </a>
+    Documentación Técnica
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/drivemarket/drivemarket" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    drivemarket/drivemarket
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio rápido
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inicio rápido
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/bienvenida/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bienvenida
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/primeros-pasos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros pasos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/guia-ejecucion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de ejecución
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/LEETE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lectura recomendada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación local
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentación
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice de documentación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../manual-tecnico/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manual técnico
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagramas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagramas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia rápida
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia rápida
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tabla-de-contenidos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📍 TABLA DE CONTENIDOS
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inicio-rapido" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎯 INICIO RÁPIDO
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎯 INICIO RÁPIDO">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup-local-5-minutos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup Local (5 minutos)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#estructura-archivos-clave" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Estructura Archivos Clave
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-frecuentes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚡ COMANDOS FRECUENTES
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="⚡ COMANDOS FRECUENTES">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flask" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flask
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base de Datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#git" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-produccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker (Producción)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#patrones-de-codigo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        💻 PATRONES DE CÓDIGO
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="💻 PATRONES DE CÓDIGO">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#crear-ruta-simple" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Crear Ruta Simple
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#query-a-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Query a Base de Datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#respuesta-json-con-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Respuesta JSON con Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#proteger-ruta-con-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proteger Ruta con Login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#procesar-archivos-upload-imagen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Procesar Archivos (Upload Imagen)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usar-helper-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usar Helper Function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#template-jinja2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template Jinja2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validacion-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validación de Datos
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🐛 DEBUGGING
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🐛 DEBUGGING">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flask-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flask Shell
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#breakpoint-debugger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Breakpoint (Debugger)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ver-variables-de-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ver Variables de Session
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verificar-queries-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verificar Queries SQL
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 DEPLOYMENT
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 DEPLOYMENT">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deploy-a-heroku" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy a Heroku
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-a-aws-ec2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy a AWS EC2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checklist-pre-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist Pre-Deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#urls-importantes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔗 URLs IMPORTANTES
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🔗 URLs IMPORTANTES">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#locales" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locales
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#produccion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Producción
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentación
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#servicios-externos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Servicios Externos
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comandos-sql-rapidos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📊 COMANDOS SQL RÁPIDOS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📊 COMANDOS SQL RÁPIDOS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#info-sistema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Info Sistema
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimizacion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimización
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mantenimiento" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mantenimiento
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metricas-de-monitoreo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📈 MÉTRICAS DE MONITOREO
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📈 MÉTRICAS DE MONITOREO">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#targets-ideales" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Targets Ideales
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comandos-monitoreo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comandos Monitoreo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recursos-de-aprendizaje" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🎓 RECURSOS DE APRENDIZAJE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🎓 RECURSOS DE APRENDIZAJE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentacion_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentación
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejemplos-en-proyecto" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ejemplos en Proyecto
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#comunidad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comunidad
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checklist-pre-commit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ✅ CHECKLIST PRE-COMMIT
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indice/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice maestro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencias
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencias
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/resumen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resumen completo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/estado/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado del proyecto
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación del sitio de docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/documentacion-completada/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación completada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/estructura-carpetas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estructura de carpetas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navegación" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Inicio
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Documentación
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="guia-rapida-de-referencia-drivemarket">🚀 GUÍA RÁPIDA DE REFERENCIA - DRIVEMARKET<a class="headerlink" href="#guia-rapida-de-referencia-drivemarket" title="Permanent link">&para;</a></h1>
+<p><strong>Documento:</strong> Cheat sheet para desarrolladores<br />
+<strong>Última actualización:</strong> Mayo 2026<br />
+<strong>Audiencia:</strong> Equipo técnico Drivemarket</p>
+<hr />
+<h2 id="tabla-de-contenidos">📍 TABLA DE CONTENIDOS<a class="headerlink" href="#tabla-de-contenidos" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#inicio-rápido">Inicio Rápido</a></li>
+<li><a href="#comandos-frecuentes">Comandos Frecuentes</a></li>
+<li><a href="#patrones-de-código">Patrones de Código</a></li>
+<li><a href="#debugging">Debugging</a></li>
+<li><a href="#deployment">Deployment</a></li>
+<li><a href="#urls-importantes">URLs Importantes</a></li>
+</ol>
+<hr />
+<h2 id="inicio-rapido">🎯 INICIO RÁPIDO<a class="headerlink" href="#inicio-rapido" title="Permanent link">&para;</a></h2>
+<h3 id="setup-local-5-minutos">Setup Local (5 minutos)<a class="headerlink" href="#setup-local-5-minutos" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Clonar</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/drivemarket/drivemarket.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>drivemarket
+
+<span class="c1"># 2. Entorno</span>
+python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c1"># 3. Config</span>
+cp<span class="w"> </span>.env.example<span class="w"> </span>.env<span class="w">  </span><span class="c1"># Editar credenciales</span>
+
+<span class="c1"># 4. BD</span>
+createdb<span class="w"> </span>todoen1unos
+psql<span class="w"> </span>todoen1unos<span class="w"> </span>&lt;<span class="w"> </span>todoen1unos_pg.sql
+
+<span class="c1"># 5. Ejecutar</span>
+python<span class="w"> </span>app.py
+<span class="c1"># → http://localhost:5000</span>
+</code></pre></div>
+<h3 id="estructura-archivos-clave">Estructura Archivos Clave<a class="headerlink" href="#estructura-archivos-clave" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>app.py                    # Punto entrada
+models.py                 # Modelos SQLAlchemy
+db_config.py              # Conexión PostgreSQL
+users_bp.py               # Auth
+admin_routes.py           # Admin
+vendedores.py             # Vendedor
+templates/                # HTML
+static/                   # CSS/JS
+helpers/                  # Funciones reutilizables
+</code></pre></div>
+<hr />
+<h2 id="comandos-frecuentes">⚡ COMANDOS FRECUENTES<a class="headerlink" href="#comandos-frecuentes" title="Permanent link">&para;</a></h2>
+<h3 id="flask">Flask<a class="headerlink" href="#flask" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Desarrollo</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">FLASK_APP</span><span class="o">=</span>app.py
+<span class="nb">export</span><span class="w"> </span><span class="nv">FLASK_ENV</span><span class="o">=</span>development
+flask<span class="w"> </span>run<span class="w"> </span>--port<span class="w"> </span><span class="m">5000</span><span class="w"> </span>--debug
+
+<span class="c1"># Crear usuario admin</span>
+flask<span class="w"> </span>shell
+&gt;&gt;&gt;<span class="w"> </span>from<span class="w"> </span>models<span class="w"> </span>import<span class="w"> </span>Usuario,<span class="w"> </span>db
+&gt;&gt;&gt;<span class="w"> </span><span class="nv">admin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Usuario<span class="o">(</span><span class="nv">nombre</span><span class="o">=</span><span class="s2">&quot;Admin&quot;</span>,<span class="w"> </span><span class="nv">email</span><span class="o">=</span><span class="s2">&quot;admin@test.com&quot;</span>,<span class="w"> </span><span class="nv">rol</span><span class="o">=</span><span class="s2">&quot;admin&quot;</span><span class="o">)</span>
+&gt;&gt;&gt;<span class="w"> </span>db.session.add<span class="o">(</span>admin<span class="o">)</span>
+&gt;&gt;&gt;<span class="w"> </span>db.session.commit<span class="o">()</span>
+</code></pre></div>
+<h3 id="base-de-datos">Base de Datos<a class="headerlink" href="#base-de-datos" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Conectar a PostgreSQL</span>
+psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-d<span class="w"> </span>todoen1unos
+
+<span class="c1"># Ver tablas</span>
+<span class="se">\d</span>t
+
+<span class="c1"># Ver esquema tabla</span>
+<span class="se">\d</span><span class="w"> </span>usuarios
+
+<span class="c1"># Ejecutar script</span>
+psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-d<span class="w"> </span>todoen1unos<span class="w"> </span>&lt;<span class="w"> </span>archivo.sql
+
+<span class="c1"># Backup</span>
+pg_dump<span class="w"> </span>todoen1unos<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.sql
+
+<span class="c1"># Restore</span>
+psql<span class="w"> </span>todoen1unos<span class="w"> </span>&lt;<span class="w"> </span>backup_20260506.sql
+</code></pre></div>
+<h3 id="git">Git<a class="headerlink" href="#git" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Crear rama feature</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/nueva-funcionalidad
+
+<span class="c1"># Commit con convención</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat(modulo): descripción cambio&quot;</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;fix(bug): descripción corrección&quot;</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;docs(manual): actualización documentación&quot;</span>
+
+<span class="c1"># Push y Pull Request</span>
+git<span class="w"> </span>push<span class="w"> </span>-u<span class="w"> </span>origin<span class="w"> </span>feature/nueva-funcionalidad
+<span class="c1"># Crear PR en GitHub</span>
+
+<span class="c1"># Actualizar con main</span>
+git<span class="w"> </span>fetch<span class="w"> </span>origin
+git<span class="w"> </span>rebase<span class="w"> </span>origin/main
+
+<span class="c1"># Merge y cleanup</span>
+git<span class="w"> </span>checkout<span class="w"> </span>develop
+git<span class="w"> </span>merge<span class="w"> </span>feature/nueva-funcionalidad
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>develop
+git<span class="w"> </span>branch<span class="w"> </span>-d<span class="w"> </span>feature/nueva-funcionalidad
+</code></pre></div>
+<h3 id="docker-produccion">Docker (Producción)<a class="headerlink" href="#docker-produccion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Build imagen</span>
+docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>drivemarket:latest<span class="w"> </span>.
+
+<span class="c1"># Run contenedor</span>
+docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">5000</span>:5000<span class="w"> </span>--env-file<span class="w"> </span>.env<span class="w"> </span>drivemarket:latest
+
+<span class="c1"># Docker Compose</span>
+docker-compose<span class="w"> </span>up<span class="w"> </span>-d
+docker-compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>app
+docker-compose<span class="w"> </span>down
+</code></pre></div>
+<hr />
+<h2 id="patrones-de-codigo">💻 PATRONES DE CÓDIGO<a class="headerlink" href="#patrones-de-codigo" title="Permanent link">&para;</a></h2>
+<h3 id="crear-ruta-simple">Crear Ruta Simple<a class="headerlink" href="#crear-ruta-simple" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># En users_bp.py</span>
+<span class="nd">@users_bp</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/mi-ruta&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GET&#39;</span><span class="p">,</span> <span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mi_ruta</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;POST&#39;</span><span class="p">:</span>
+        <span class="n">datos</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+        <span class="c1"># Validar</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">datos</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;email&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Email requerido&#39;</span><span class="p">}),</span> <span class="mi">400</span>
+        <span class="c1"># Procesar</span>
+        <span class="c1"># ...</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">resultado</span><span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;mi_template.html&#39;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="query-a-base-de-datos">Query a Base de Datos<a class="headerlink" href="#query-a-base-de-datos" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># SQLAlchemy (ORM)</span>
+<span class="n">usuarios</span> <span class="o">=</span> <span class="n">Usuario</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">estado</span><span class="o">=</span><span class="s1">&#39;activo&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<span class="n">usuario</span> <span class="o">=</span> <span class="n">Usuario</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">usuario_id</span><span class="p">)</span>
+<span class="n">usuario</span> <span class="o">=</span> <span class="n">Usuario</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">filter_by</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+<span class="c1"># Raw SQL</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM usuarios WHERE rol = :rol&quot;</span><span class="p">),</span>
+    <span class="p">{</span><span class="s2">&quot;rol&quot;</span><span class="p">:</span> <span class="s2">&quot;vendedor&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="c1"># Paginación</span>
+<span class="n">pagina</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pagina&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">usuarios</span> <span class="o">=</span> <span class="n">Usuario</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">paginate</span><span class="p">(</span><span class="n">page</span><span class="o">=</span><span class="n">pagina</span><span class="p">,</span> <span class="n">per_page</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="respuesta-json-con-error-handling">Respuesta JSON con Error Handling<a class="headerlink" href="#respuesta-json-con-error-handling" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/api/crear-vehiculo&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">crear_vehiculo</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">datos</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">get_json</span><span class="p">()</span>
+
+        <span class="c1"># Validar</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">datos</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;marca_id&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">datos</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precio&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+                <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Campos requeridos&#39;</span>
+            <span class="p">}),</span> <span class="mi">400</span>
+
+        <span class="c1"># Procesar</span>
+        <span class="n">vehiculo</span> <span class="o">=</span> <span class="n">Vehiculo</span><span class="p">(</span>
+            <span class="n">id_usuario</span><span class="o">=</span><span class="n">session</span><span class="p">[</span><span class="s1">&#39;usuario_id&#39;</span><span class="p">],</span>
+            <span class="n">id_marca</span><span class="o">=</span><span class="n">datos</span><span class="p">[</span><span class="s1">&#39;marca_id&#39;</span><span class="p">],</span>
+            <span class="n">precio</span><span class="o">=</span><span class="n">datos</span><span class="p">[</span><span class="s1">&#39;precio&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vehiculo</span><span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="s1">&#39;Vehículo creado&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;vehiculo_id&#39;</span><span class="p">:</span> <span class="n">vehiculo</span><span class="o">.</span><span class="n">id</span>
+        <span class="p">}),</span> <span class="mi">201</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Error interno servidor&#39;</span>
+        <span class="p">}),</span> <span class="mi">500</span>
+</code></pre></div>
+<h3 id="proteger-ruta-con-login">Proteger Ruta con Login<a class="headerlink" href="#proteger-ruta-con-login" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">login_requerido</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decorated_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;usuario_id&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">flash</span><span class="p">(</span><span class="s1">&#39;Debes iniciar sesión&#39;</span><span class="p">,</span> <span class="s1">&#39;warning&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="n">url_for</span><span class="p">(</span><span class="s1">&#39;login&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">decorated_function</span>
+
+<span class="nd">@users_bp</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/dashboard&#39;</span><span class="p">)</span>
+<span class="nd">@login_requerido</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dashboard</span><span class="p">():</span>
+    <span class="c1"># Solo usuarios autenticados</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s1">&#39;dashboard.html&#39;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="procesar-archivos-upload-imagen">Procesar Archivos (Upload Imagen)<a class="headerlink" href="#procesar-archivos-upload-imagen" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">werkzeug.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">secure_filename</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span>
+
+<span class="nd">@vendedor_bp</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/subir-imagen&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subir_imagen</span><span class="p">():</span>
+    <span class="n">archivo</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;imagen&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">archivo</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">allowed_file</span><span class="p">(</span><span class="n">archivo</span><span class="o">.</span><span class="n">filename</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Archivo no válido&#39;</span><span class="p">}),</span> <span class="mi">400</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Generar nombre único</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">archivo</span><span class="o">.</span><span class="n">filename</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">nombre_unico</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;img_</span><span class="si">{</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">extension</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Guardar</span>
+        <span class="n">ruta</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;static/uploads/vehiculos&#39;</span><span class="p">,</span> <span class="n">nombre_unico</span><span class="p">)</span>
+        <span class="n">archivo</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ruta</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span>
+            <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;/uploads/vehiculos/</span><span class="si">{</span><span class="n">nombre_unico</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">})</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Upload error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="s1">&#39;Error al subir&#39;</span><span class="p">}),</span> <span class="mi">500</span>
+</code></pre></div>
+<h3 id="usar-helper-function">Usar Helper Function<a class="headerlink" href="#usar-helper-function" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># En helpers/notificaciones.py</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">crear_notificacion</span><span class="p">(</span><span class="n">id_usuario</span><span class="p">,</span> <span class="n">tipo</span><span class="p">,</span> <span class="n">titulo</span><span class="p">,</span> <span class="n">mensaje</span><span class="p">,</span> <span class="n">url_accion</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">notif</span> <span class="o">=</span> <span class="n">Notificacion</span><span class="p">(</span>
+        <span class="n">id_usuario</span><span class="o">=</span><span class="n">id_usuario</span><span class="p">,</span>
+        <span class="n">tipo</span><span class="o">=</span><span class="n">tipo</span><span class="p">,</span>
+        <span class="n">titulo</span><span class="o">=</span><span class="n">titulo</span><span class="p">,</span>
+        <span class="n">mensaje</span><span class="o">=</span><span class="n">mensaje</span><span class="p">,</span>
+        <span class="n">url_accion</span><span class="o">=</span><span class="n">url_accion</span>
+    <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">notif</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="c1"># Opcional: enviar email</span>
+    <span class="k">if</span> <span class="n">tipo</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nuevo_mensaje&#39;</span><span class="p">,</span> <span class="s1">&#39;oferta_aceptada&#39;</span><span class="p">]:</span>
+        <span class="n">enviar_email_notificacion</span><span class="p">(</span><span class="n">id_usuario</span><span class="p">,</span> <span class="n">titulo</span><span class="p">)</span>
+
+<span class="c1"># En cualquier blueprint</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">helpers.notificaciones</span><span class="w"> </span><span class="kn">import</span> <span class="n">crear_notificacion</span>
+
+<span class="n">crear_notificacion</span><span class="p">(</span>
+    <span class="n">id_usuario</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">tipo</span><span class="o">=</span><span class="s1">&#39;nuevo_mensaje&#39;</span><span class="p">,</span>
+    <span class="n">titulo</span><span class="o">=</span><span class="s1">&#39;Nuevo mensaje de Juan&#39;</span><span class="p">,</span>
+    <span class="n">mensaje</span><span class="o">=</span><span class="s1">&#39;¿Cuál es tu mejor precio?&#39;</span><span class="p">,</span>
+    <span class="n">url_accion</span><span class="o">=</span><span class="s1">&#39;/mensajes/5&#39;</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="template-jinja2">Template Jinja2<a class="headerlink" href="#template-jinja2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="cm">&lt;!-- templates/usuarios/dashboard.html --&gt;</span>
+{% extends &#39;base.html&#39; %}
+
+{% block titulo %}Dashboard - DriveMarket{% endblock %}
+
+{% block contenido %}
+<span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;container&quot;</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">h1</span><span class="p">&gt;</span>Bienvenido, {{ usuario.nombre }}<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+
+    {% if mensajes_no_leidos &gt; 0 %}
+    <span class="p">&lt;</span><span class="nt">div</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;alert alert-info&quot;</span><span class="p">&gt;</span>
+        Tienes {{ mensajes_no_leidos }} mensajes sin leer
+    <span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+    {% endif %}
+
+    <span class="p">&lt;</span><span class="nt">table</span> <span class="na">class</span><span class="o">=</span><span class="s">&quot;table&quot;</span><span class="p">&gt;</span>
+        {% for vehiculo in mis_vehiculos %}
+        <span class="p">&lt;</span><span class="nt">tr</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">td</span><span class="p">&gt;</span>{{ vehiculo.titulo }}<span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">td</span><span class="p">&gt;</span>${{ vehiculo.precio | format_currency }}<span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">td</span><span class="p">&gt;</span>{{ vehiculo.vistas }} vistas<span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+            <span class="p">&lt;</span><span class="nt">td</span><span class="p">&gt;</span>
+                <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">&quot;/vehiculos/{{ vehiculo.slug }}/editar&quot;</span><span class="p">&gt;</span>Editar<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+            <span class="p">&lt;/</span><span class="nt">td</span><span class="p">&gt;</span>
+        <span class="p">&lt;/</span><span class="nt">tr</span><span class="p">&gt;</span>
+        {% endfor %}
+    <span class="p">&lt;/</span><span class="nt">table</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">div</span><span class="p">&gt;</span>
+{% endblock %}
+</code></pre></div>
+<h3 id="validacion-de-datos">Validación de Datos<a class="headerlink" href="#validacion-de-datos" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Crear validador personalizado</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ValidadorVehiculo</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validar</span><span class="p">(</span><span class="n">datos</span><span class="p">):</span>
+        <span class="n">errores</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Validar precio</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">precio</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">datos</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precio&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">precio</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">errores</span><span class="p">[</span><span class="s1">&#39;precio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Debe ser positivo&#39;</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">errores</span><span class="p">[</span><span class="s1">&#39;precio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Debe ser número&#39;</span>
+
+        <span class="c1"># Validar año</span>
+        <span class="n">anio</span> <span class="o">=</span> <span class="n">datos</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;anio&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">anio</span> <span class="ow">and</span> <span class="p">(</span><span class="n">anio</span> <span class="o">&lt;</span> <span class="mi">1900</span> <span class="ow">or</span> <span class="n">anio</span> <span class="o">&gt;</span> <span class="mi">2026</span><span class="p">):</span>
+            <span class="n">errores</span><span class="p">[</span><span class="s1">&#39;anio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Año inválido&#39;</span>
+
+        <span class="c1"># Validar descripción</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">datos</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;descripcion&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">errores</span><span class="p">[</span><span class="s1">&#39;descripcion&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Mínimo 10 caracteres&#39;</span>
+
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">errores</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">errores</span>
+
+<span class="c1"># Usar</span>
+<span class="n">valido</span><span class="p">,</span> <span class="n">errores</span> <span class="o">=</span> <span class="n">ValidadorVehiculo</span><span class="o">.</span><span class="n">validar</span><span class="p">(</span><span class="n">datos</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">valido</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;errors&#39;</span><span class="p">:</span> <span class="n">errores</span><span class="p">}),</span> <span class="mi">400</span>
+</code></pre></div>
+<hr />
+<h2 id="debugging">🐛 DEBUGGING<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h2>
+<h3 id="logs">Logs<a class="headerlink" href="#logs" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Diferentes niveles</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Mensaje debug&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Información&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Advertencia&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error ocurrió&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Crítico!&quot;</span><span class="p">)</span>
+
+<span class="c1"># Con traza de stack</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># código</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="flask-shell">Flask Shell<a class="headerlink" href="#flask-shell" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Abrir shell interactivo</span>
+flask<span class="w"> </span>shell
+
+<span class="c1"># Dentro del shell</span>
+&gt;&gt;&gt;<span class="w"> </span>from<span class="w"> </span>models<span class="w"> </span>import<span class="w"> </span>Usuario,<span class="w"> </span>db
+&gt;&gt;&gt;<span class="w"> </span><span class="nv">usuarios</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>Usuario.query.all<span class="o">()</span>
+&gt;&gt;&gt;<span class="w"> </span><span class="k">for</span><span class="w"> </span>u<span class="w"> </span><span class="k">in</span><span class="w"> </span>usuarios:
+...<span class="w">     </span>print<span class="o">(</span>u.email,<span class="w"> </span>u.rol<span class="o">)</span>
+&gt;&gt;&gt;<span class="w"> </span>db.session.query<span class="o">(</span>Vehiculo<span class="o">)</span>.filter_by<span class="o">(</span><span class="nv">estado</span><span class="o">=</span><span class="s1">&#39;activo&#39;</span><span class="o">)</span>.count<span class="o">()</span>
+&gt;&gt;&gt;<span class="w"> </span>exit<span class="o">()</span>
+</code></pre></div>
+<h3 id="breakpoint-debugger">Breakpoint (Debugger)<a class="headerlink" href="#breakpoint-debugger" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pausar ejecución</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pdb</span><span class="p">;</span> <span class="n">pdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span>
+
+<span class="c1"># En VS Code: Agregar breakpoint con interfaz gráfica</span>
+<span class="c1"># Y ejecutar: python -m pdb app.py</span>
+</code></pre></div>
+<h3 id="ver-variables-de-session">Ver Variables de Session<a class="headerlink" href="#ver-variables-de-session" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">before_request</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">debug_session</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">current_app</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=== SESSION ===&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">session</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;===============&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="verificar-queries-sql">Verificar Queries SQL<a class="headerlink" href="#verificar-queries-sql" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">flask_sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_debug_queries</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">after_request</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">log_queries</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">query</span> <span class="ow">in</span> <span class="n">get_debug_queries</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">query</span><span class="o">.</span><span class="n">duration</span> <span class="o">&gt;=</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SLOW QUERY: </span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">statement</span><span class="si">}</span><span class="se">\n</span><span class="s2">Time: </span><span class="si">{</span><span class="n">query</span><span class="o">.</span><span class="n">duration</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span>
+</code></pre></div>
+<hr />
+<h2 id="deployment">🚀 DEPLOYMENT<a class="headerlink" href="#deployment" title="Permanent link">&para;</a></h2>
+<h3 id="deploy-a-heroku">Deploy a Heroku<a class="headerlink" href="#deploy-a-heroku" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Login</span>
+heroku<span class="w"> </span>login
+
+<span class="c1"># Crear app</span>
+heroku<span class="w"> </span>create<span class="w"> </span>drivemarket-prod
+
+<span class="c1"># Config vars</span>
+heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://...
+heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">APP_SECRET_KEY</span><span class="o">=</span>xxx
+
+<span class="c1"># Procfile necesario</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;web: gunicorn app:app&quot;</span><span class="w"> </span>&gt;<span class="w"> </span>Procfile
+
+<span class="c1"># Deploy</span>
+git<span class="w"> </span>push<span class="w"> </span>heroku<span class="w"> </span>main
+
+<span class="c1"># Ver logs</span>
+heroku<span class="w"> </span>logs<span class="w"> </span>--tail
+</code></pre></div>
+<h3 id="deploy-a-aws-ec2">Deploy a AWS EC2<a class="headerlink" href="#deploy-a-aws-ec2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Conexión SSH</span>
+ssh<span class="w"> </span>-i<span class="w"> </span>clave.pem<span class="w"> </span>ubuntu@ip-instancia
+
+<span class="c1"># Instalar dependencias</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>update
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>python3-pip<span class="w"> </span>postgresql<span class="w"> </span>nginx<span class="w"> </span>gunicorn
+
+<span class="c1"># Clonar código</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/drivemarket/drivemarket.git
+<span class="nb">cd</span><span class="w"> </span>drivemarket
+
+<span class="c1"># Setup venv</span>
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c1"># Configurar nginx</span>
+sudo<span class="w"> </span>cp<span class="w"> </span>nginx.conf<span class="w"> </span>/etc/nginx/sites-available/drivemarket
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>nginx
+
+<span class="c1"># Ejecutar con gunicorn</span>
+gunicorn<span class="w"> </span>-w<span class="w"> </span><span class="m">4</span><span class="w"> </span>-b<span class="w"> </span><span class="m">127</span>.0.0.1:5000<span class="w"> </span>app:app
+
+<span class="c1"># Con systemd (auto-restart)</span>
+sudo<span class="w"> </span>cp<span class="w"> </span>drivemarket.service<span class="w"> </span>/etc/systemd/system/
+sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>drivemarket
+sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>drivemarket
+</code></pre></div>
+<h3 id="checklist-pre-deploy">Checklist Pre-Deploy<a class="headerlink" href="#checklist-pre-deploy" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>✅ Todos los tests pasan
+✅ Variables de entorno configuradas
+✅ Base de datos migrada
+✅ Certificado SSL válido
+✅ Backups automáticos configurados
+✅ Logs centralizados
+✅ Monitoreo activado
+✅ Alertas configuradas
+✅ Documentación actualizada
+✅ Equipo notificado
+</code></pre></div>
+<hr />
+<h2 id="urls-importantes">🔗 URLs IMPORTANTES<a class="headerlink" href="#urls-importantes" title="Permanent link">&para;</a></h2>
+<h3 id="locales">Locales<a class="headerlink" href="#locales" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>http://localhost:5000/              → Inicio
+http://localhost:5000/login         → Login
+http://localhost:5000/admin         → Panel admin
+http://localhost:5000/vendedor      → Dashboard vendedor
+</code></pre></div>
+<h3 id="produccion">Producción<a class="headerlink" href="#produccion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>https://drivemarket.com/            → Inicio
+https://api.drivemarket.com/        → API endpoints
+https://admin.drivemarket.com/      → Admin panel
+</code></pre></div>
+<h3 id="documentacion">Documentación<a class="headerlink" href="#documentacion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>/docs/api                           → Swagger API docs
+/docs/manual-tecnico                → Este manual
+/docs/arquitectura                  → Diagramas
+</code></pre></div>
+<h3 id="servicios-externos">Servicios Externos<a class="headerlink" href="#servicios-externos" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>https://console.openai.com/         → OpenAI API
+https://www.postgresql.org/docs/    → PostgreSQL docs
+https://flask.palletsprojects.com/  → Flask docs
+https://github.com/drivemarket      → GitHub repo
+</code></pre></div>
+<hr />
+<h2 id="comandos-sql-rapidos">📊 COMANDOS SQL RÁPIDOS<a class="headerlink" href="#comandos-sql-rapidos" title="Permanent link">&para;</a></h2>
+<h3 id="info-sistema">Info Sistema<a class="headerlink" href="#info-sistema" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Tamaño BD</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">pg_size_pretty</span><span class="p">(</span><span class="n">pg_database_size</span><span class="p">(</span><span class="s1">&#39;todoen1unos&#39;</span><span class="p">));</span>
+
+<span class="c1">-- Tablas grandes</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">relname</span><span class="p">,</span><span class="w"> </span><span class="n">pg_size_pretty</span><span class="p">(</span><span class="n">pg_total_relation_size</span><span class="p">(</span><span class="n">relid</span><span class="p">))</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_user_tables</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">pg_total_relation_size</span><span class="p">(</span><span class="n">relid</span><span class="p">)</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+
+<span class="c1">-- Índices</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_indexes</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">tablename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;vehiculos&#39;</span><span class="p">;</span>
+
+<span class="c1">-- Conexiones activas</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="n">datname</span><span class="p">,</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_activity</span><span class="w"> </span><span class="k">GROUP</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">datname</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="optimizacion">Optimización<a class="headerlink" href="#optimizacion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Analizar tabla</span>
+<span class="k">ANALYZE</span><span class="w"> </span><span class="n">vehiculos</span><span class="p">;</span>
+
+<span class="c1">-- Reindex</span>
+<span class="k">REINDEX</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">CONCURRENTLY</span><span class="w"> </span><span class="n">vehiculos</span><span class="p">;</span>
+
+<span class="c1">-- Vacuum (limpiar)</span>
+<span class="k">VACUUM</span><span class="w"> </span><span class="k">ANALYZE</span><span class="w"> </span><span class="n">usuarios</span><span class="p">;</span>
+
+<span class="c1">-- Ver query plan</span>
+<span class="k">EXPLAIN</span><span class="w"> </span><span class="k">ANALYZE</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">vehiculos</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">precio</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">1000000</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="mantenimiento">Mantenimiento<a class="headerlink" href="#mantenimiento" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Backup rápido</span>
+<span class="n">pg_dump</span><span class="w"> </span><span class="n">todoen1unos</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">gzip</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">backup</span><span class="p">.</span><span class="k">sql</span><span class="p">.</span><span class="n">gz</span>
+
+<span class="c1">-- Estadísticas</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">usuarios</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">vehiculos</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">estado</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activo&#39;</span><span class="p">;</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">AVG</span><span class="p">(</span><span class="n">precio</span><span class="p">)</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">vehiculos</span><span class="p">;</span>
+</code></pre></div>
+<hr />
+<h2 id="metricas-de-monitoreo">📈 MÉTRICAS DE MONITOREO<a class="headerlink" href="#metricas-de-monitoreo" title="Permanent link">&para;</a></h2>
+<h3 id="targets-ideales">Targets Ideales<a class="headerlink" href="#targets-ideales" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Target</th>
+<th>Alerta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>&lt; 60%</td>
+<td>&gt; 80%</td>
+</tr>
+<tr>
+<td>Memoria</td>
+<td>&lt; 70%</td>
+<td>&gt; 85%</td>
+</tr>
+<tr>
+<td>Conexiones DB</td>
+<td>&lt; 50</td>
+<td>&gt; 80</td>
+</tr>
+<tr>
+<td>Response Time</td>
+<td>&lt; 200ms</td>
+<td>&gt; 500ms</td>
+</tr>
+<tr>
+<td>Error Rate</td>
+<td>&lt; 0.5%</td>
+<td>&gt; 1%</td>
+</tr>
+<tr>
+<td>Uptime</td>
+<td>99.9%</td>
+<td>&lt; 99%</td>
+</tr>
+</tbody>
+</table>
+<h3 id="comandos-monitoreo">Comandos Monitoreo<a class="headerlink" href="#comandos-monitoreo" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># CPU y memoria</span>
+top
+
+<span class="c1"># Conexiones BD</span>
+psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT count(*) FROM pg_stat_activity;&quot;</span>
+
+<span class="c1"># Espacio disco</span>
+df<span class="w"> </span>-h
+
+<span class="c1"># Logs de error</span>
+tail<span class="w"> </span>-n<span class="w"> </span><span class="m">100</span><span class="w"> </span>/var/log/drivemarket.log<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>ERROR
+
+<span class="c1"># Monitoreo en tiempo real</span>
+watch<span class="w"> </span>-n<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="s1">&#39;psql -U postgres -c &quot;SELECT count(*) FROM pg_stat_activity&quot;&#39;</span>
+</code></pre></div>
+<hr />
+<h2 id="recursos-de-aprendizaje">🎓 RECURSOS DE APRENDIZAJE<a class="headerlink" href="#recursos-de-aprendizaje" title="Permanent link">&para;</a></h2>
+<h3 id="documentacion_1">Documentación<a class="headerlink" href="#documentacion_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><a href="https://flask.palletsprojects.com/">Flask Official Docs</a></li>
+<li><a href="https://docs.sqlalchemy.org/">SQLAlchemy ORM</a></li>
+<li><a href="https://www.postgresql.org/docs/">PostgreSQL Manual</a></li>
+<li><a href="https://werkzeug.palletsprojects.com/security/">Werkzeug Security</a></li>
+</ul>
+<h3 id="ejemplos-en-proyecto">Ejemplos en Proyecto<a class="headerlink" href="#ejemplos-en-proyecto" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>users_bp.py</code> → Autenticación</li>
+<li><code>vendedores.py</code> → Uploads de archivos</li>
+<li><code>helpers/asistente_ia.py</code> → Integración IA</li>
+<li><code>helpers/email_templates.py</code> → Generación HTML emails</li>
+</ul>
+<h3 id="comunidad">Comunidad<a class="headerlink" href="#comunidad" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Issues en GitHub</li>
+<li>Slack #development</li>
+<li>Email: <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#116;&#101;&#99;&#104;&#64;&#100;&#114;&#105;&#118;&#101;&#109;&#97;&#114;&#107;&#101;&#116;&#46;&#99;&#111;&#109;">&#116;&#101;&#99;&#104;&#64;&#100;&#114;&#105;&#118;&#101;&#109;&#97;&#114;&#107;&#101;&#116;&#46;&#99;&#111;&#109;</a></li>
+</ul>
+<hr />
+<h2 id="checklist-pre-commit">✅ CHECKLIST PRE-COMMIT<a class="headerlink" href="#checklist-pre-commit" title="Permanent link">&para;</a></h2>
+<p>Antes de hacer <code>git push</code>:</p>
+<div class="highlight"><pre><span></span><code>☐ Código funciona localmente
+☐ Tests pasan: pytest .
+☐ Linting OK: pylint app.py
+☐ Sin credentials en código
+☐ Mensajes de commit claros
+☐ Rama actualizada con develop
+☐ No hay conflictos de merge
+☐ Documentación actualizada
+☐ Cambios relacionados con el objetivo
+</code></pre></div>
+<hr />
+<p><strong>Última actualización:</strong> 6 de Mayo 2026<br />
+<strong>Autor:</strong> Equipo Técnico Drivemarket<br />
+<strong>Versión:</strong> 2.0.0</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Drivemarket. Todos los derechos reservados.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/drivemarket/drivemarket" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:tech@drivemarket.com" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "toc.integrate", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

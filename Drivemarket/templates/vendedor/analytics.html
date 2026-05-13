@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+{% block title %}Analytics Pro | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* ── Extra overrides for analytics page ── */
+.perf-table { width:100%; border-collapse:collapse; font-size:.83rem; }
+.perf-table thead th {
+  padding:10px 14px; text-align:left; font-size:.72rem; font-weight:700;
+  color:var(--t3); text-transform:uppercase; letter-spacing:.5px;
+  border-bottom:2px solid var(--bd); background:var(--bd-l);
+}
+.perf-table tbody tr { border-bottom:1px solid var(--bd-l); transition:background .15s; }
+.perf-table tbody tr:hover { background:var(--bd-l); }
+.perf-table tbody td { padding:12px 14px; }
+.perf-table tbody tr:last-child { border-bottom:none; }
+
+.stat-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 10px; border-radius:20px; font-size:.73rem; font-weight:700;
+}
+.stat-pill.up   { background:rgba(16,185,129,.12); color:#059669; }
+.stat-pill.down { background:rgba(239,68,68,.12); color:#dc2626; }
+.stat-pill.neu  { background:rgba(107,114,128,.1); color:var(--t3); }
+
+.kpi-delta { font-size:.73rem; font-weight:700; display:flex; align-items:center; gap:4px; margin-top:4px; }
+.kpi-delta.up   { color:var(--ok); }
+.kpi-delta.down { color:var(--er); }
+
+.whatsapp-bar { 
+  display:inline-block; height:6px; border-radius:3px; 
+  background:linear-gradient(90deg,#25D366,#128C7E); 
+}
+.view-bar {
+  display:inline-block; height:6px; border-radius:3px;
+  background:linear-gradient(90deg,#3B82F6,#2563EB);
+}
+
+.vehicle-link { 
+  text-decoration:none; color:var(--t1); font-weight:600; font-size:.86rem;
+  transition:color .2s;
+}
+.vehicle-link:hover { color:var(--pr); }
+
+/* Comparison badge */
+.cmp-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:700;
+}
+.cmp-badge.cheaper { background:rgba(16,185,129,.12); color:#059669; }
+.cmp-badge.pricier  { background:rgba(239,68,68,.1); color:#dc2626; }
+.cmp-badge.fair    { background:rgba(59,130,246,.1); color:#2563EB; }
+.cmp-badge.nodata  { background:var(--bd-l); color:var(--t3); }
+
+/* Responsive table */
+@media(max-width:768px) {
+  .hide-mob { display:none !important; }
+  .perf-table td, .perf-table th { padding:10px 8px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'analytics' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <!-- Page header -->
+    <div class="db-page-header">
+      <div>
+        <h1><i class="fas fa-chart-line" style="color:var(--bl);margin-right:10px;font-size:1.3rem;"></i>Analytics Pro</h1>
+        <p>Rendimiento real de tu negocio en Drive Market</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a href=" url_for('soporte.chat_page') }}" class="db-btn db-btn-ghost" style="font-size:.82rem;">
+          <i class="fas fa-robot" style="color:var(--pr);"></i> Consultar a la IA
+        </a>
+      </div>
+    </div>
+
+    <!-- ── KPI Cards ── -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      <!-- Vistas totales -->
+      <div class="db-card" style="border-top:3px solid #3B82F6;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">Vistas Totales</span>
+          <div style="width:34px;height:34px;border-radius:9px;background:#DBEAFE;color:#3B82F6;display:flex;align-items:center;justify-content:center;font-size:.9rem;">
+            <i class="fas fa-eye"></i>
+          </div>
+        </div>
+        <div style="font-size:2rem;font-weight:900;color:var(--t1);letter-spacing:-1px;">{{ vistas_mes or 0 }}</div>
+        <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> Vistas acumuladas</div>
+      </div>
+
+      <!-- WhatsApp Clicks -->
+      <div class="db-card" style="border-top:3px solid #25D366;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">WhatsApp Este Mes</span>
+          <div style="width:34px;height:34px;border-radius:9px;background:rgba(37,211,102,.12);color:#25D366;display:flex;align-items:center;justify-content:center;font-size:.9rem;">
+            <i class="fab fa-whatsapp"></i>
+          </div>
+        </div>
+        <div style="font-size:2rem;font-weight:900;color:var(--t1);letter-spacing:-1px;">{{ total_whatsapp or 0 }}</div>
+        <div class="kpi-delta {% if (total_whatsapp or 0) > 0 %}up{% else %}neu{% endif %}">
+          <i class="fas fa-{% if (total_whatsapp or 0) > 0 %}arrow-trend-up{% else %}minus{% endif %}"></i>
+          Contactos directos
+        </div>
+      </div>
+
+      <!-- Favoritos -->
+      <div class="db-card" style="border-top:3px solid #8B5CF6;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">Favoritos Recibidos</span>
+          <div style="width:34px;height:34px;border-radius:9px;background:#EDE9FE;color:#8B5CF6;display:flex;align-items:center;justify-content:center;font-size:.9rem;">
+            <i class="fas fa-heart"></i>
+          </div>
+        </div>
+        <div style="font-size:2rem;font-weight:900;color:var(--t1);letter-spacing:-1px;">{{ total_favoritos or 0 }}</div>
+        <div class="kpi-delta {% if (total_favoritos or 0) > 0 %}up{% else %}neu{% endif %}">
+          <i class="fas fa-heart" style="font-size:.65rem;"></i> Guardados por compradores
+        </div>
+      </div>
+
+      <!-- Consultas recibidas -->
+      <div class="db-card" style="border-top:3px solid #F59E0B;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">Consultas Recibidas</span>
+          <div style="width:34px;height:34px;border-radius:9px;background:#FEF3C7;color:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:.9rem;">
+            <i class="fas fa-comments"></i>
+          </div>
+        </div>
+        <div style="font-size:2rem;font-weight:900;color:var(--t1);letter-spacing:-1px;">{{ total_consultas or 0 }}</div>
+        <div class="kpi-delta {% if (total_consultas or 0) > 0 %}up{% else %}neu{% endif %}">
+          <i class="fas fa-message" style="font-size:.65rem;"></i> Mensajes de compradores
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Charts Row ── -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+      <!-- Line chart vistas -->
+      <div class="db-card">
+        <div class="db-card-head">
+          <div>
+            <h2>Vistas por Publicación</h2>
+            <p>Distribución de vistas acumuladas entre tus anuncios</p>
+          </div>
+        </div>
+        <div style="height:280px;"><canvas id="viewsChart"></canvas></div>
+      </div>
+
+      <!-- Top vehiculos -->
+      <div class="db-card">
+        <div class="db-card-head">
+          <div><h2>Top Vehículos</h2><p>Más vistos de tu catálogo</p></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:4px;">
+          {% if top_vehiculos %}
+          {% set max_vistas = (top_vehiculos[0].vistas or 1) if top_vehiculos[0].vistas else 1 %}
+          {% for v in top_vehiculos %}
+          {% set colors = ['#FF6A00','#3B82F6','#10B981','#8B5CF6','#F59E0B'] %}
+          {% set pct = ((v.vistas or 0) / max_vistas * 100)|int %}
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:20px;height:20px;border-radius:6px;background:{{ colors[loop.index0 % 5] }}22;color:{{ colors[loop.index0 % 5] }};font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;">{{ loop.index }}</span>
+                <span style="font-size:.82rem;font-weight:600;color:var(--t1);">{{ v.marca }} {{ v.modelo }} {{ v.anio }}</span>
+              </div>
+              <span style="font-size:.78rem;font-weight:700;color:var(--t2);">{{ v.vistas or 0 }} vis.</span>
+            </div>
+            <div style="height:5px;background:var(--bd-l);border-radius:3px;overflow:hidden;">
+              <div style="height:100%;width:{{ pct }}%;background:{{ colors[loop.index0 % 5] }};border-radius:3px;transition:width .8s ease;"></div>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div style="padding:20px;text-align:center;color:var(--t3);font-size:.84rem;">
+            <i class="fas fa-car-side" style="display:block;font-size:2rem;margin-bottom:8px;"></i>
+            Sin vehículos publicados aún
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tabla de rendimiento por vehículo ── -->
+    <div class="db-card">
+      <div class="db-card-head">
+        <div>
+          <h2><i class="fas fa-table" style="color:var(--pr);margin-right:8px;"></i>Rendimiento por Vehículo</h2>
+          <p>Análisis detallado de cada anuncio — vistas, contactos y comparativa de precio</p>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-size:.74rem;color:var(--t3);background:var(--bd-l);padding:4px 10px;border-radius:20px;font-weight:600;">
+            {{ (tabla_vehiculos|length) if tabla_vehiculos else 0 }} anuncios
+          </span>
+        </div>
+      </div>
+
+      {% if tabla_vehiculos %}
+      <div style="overflow-x:auto;">
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>Vehículo</th>
+              <th>Estado</th>
+              <th class="hide-mob">Vistas</th>
+              <th>WhatsApp</th>
+              <th class="hide-mob">Favoritos</th>
+              <th>Precio</th>
+              <th>vs. Mercado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in tabla_vehiculos %}
+            {% set precio_v = (v.precio|float) if v.precio else 0 %}
+            {% set precio_m = (v.precio_mercado|float) if v.precio_mercado else 0 %}
+            {% if precio_m > 0 and precio_v > 0 %}
+              {% set diff_pct = (((precio_v - precio_m) / precio_m) * 100)|round(1) %}
+            {% else %}
+              {% set diff_pct = 0 %}
+            {% endif %}
+            <tr>
+              <!-- Vehículo -->
+              <td>
+                <a href="{{ url_for('detalle', slug=v.slug) if v.slug else '#' }}" class="vehicle-link">
+                  {{ v.marca or '' }} {{ v.modelo or '' }}
+                  <span style="color:var(--t3);font-weight:400;font-size:.78rem;"> &nbsp;{{ v.anio or '' }}</span>
+                </a>
+              </td>
+              <!-- Estado -->
+              <td>
+                {% if v.estado == 'activo' or v.estado == 'disponible' %}
+                <span class="stat-pill up"><i class="fas fa-circle" style="font-size:.5rem;"></i> Activo</span>
+                {% elif v.estado == 'vendido' %}
+                <span class="stat-pill neu"><i class="fas fa-check" style="font-size:.7rem;"></i> Vendido</span>
+                {% elif v.estado == 'pausado' %}
+                <span class="stat-pill down"><i class="fas fa-pause" style="font-size:.7rem;"></i> Pausado</span>
+                {% else %}
+                <span class="stat-pill neu">{{ v.estado or 'N/A' }}</span>
+                {% endif %}
+              </td>
+              <!-- Vistas -->
+              <td class="hide-mob">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-weight:700;color:var(--t1);">{{ v.vistas or 0 }}</span>
+                  {% if (v.vistas or 0) > 0 %}
+                  <span class="view-bar" style="width:{{ [[((v.vistas or 0) / ((top_vehiculos[0].vistas or 1) if top_vehiculos else 1) * 60)|int, 4]|max, 60]|min }}px;"></span>
+                  {% endif %}
+                </div>
+              </td>
+              <!-- WhatsApp -->
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-weight:700;color:{{ '#25D366' if (v.whatsapp_count or 0) > 0 else 'var(--t3)' }};">{{ v.whatsapp_count or 0 }}</span>
+                  {% if (v.whatsapp_count or 0) > 0 %}
+                  <i class="fab fa-whatsapp" style="color:#25D366;font-size:.85rem;"></i>
+                  {% endif %}
+                </div>
+              </td>
+              <!-- Favoritos -->
+              <td class="hide-mob">
+                <span style="font-weight:700;color:{{ '#8B5CF6' if (v.favoritos_count or 0) > 0 else 'var(--t3)' }};">
+                  {% if (v.favoritos_count or 0) > 0 %}<i class="fas fa-heart" style="font-size:.7rem;margin-right:3px;color:#8B5CF6;"></i>{% endif %}
+                  {{ v.favoritos_count or 0 }}
+                </span>
+              </td>
+              <!-- Precio -->
+              <td>
+                {% if precio_v > 0 %}
+                <span style="font-weight:700;color:var(--t1);">
+                  ${{ "{:,.0f}".format(precio_v).replace(',', '.') }}
+                </span>
+                {% else %}
+                <span style="color:var(--t3);">A consultar</span>
+                {% endif %}
+              </td>
+              <!-- vs. Mercado -->
+              <td>
+                {% if precio_m > 0 and precio_v > 0 %}
+                  {% if diff_pct < -5 %}
+                    <span class="cmp-badge cheaper"><i class="fas fa-arrow-down" style="font-size:.6rem;"></i> {{ diff_pct|abs }}% bajo</span>
+                  {% elif diff_pct > 10 %}
+                    <span class="cmp-badge pricier"><i class="fas fa-arrow-up" style="font-size:.6rem;"></i> {{ diff_pct }}% alto</span>
+                  {% else %}
+                    <span class="cmp-badge fair"><i class="fas fa-equals" style="font-size:.6rem;"></i> precio justo</span>
+                  {% endif %}
+                {% else %}
+                  <span class="cmp-badge nodata"><i class="fas fa-minus" style="font-size:.6rem;"></i> sin datos</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:40px;color:var(--t3);">
+        <i class="fas fa-car-side" style="font-size:2.5rem;display:block;margin-bottom:12px;opacity:.4;"></i>
+        <div style="font-size:.9rem;font-weight:600;">No tienes vehículos publicados aún</div>
+        <a href="{{ url_for('vendedor.publicar') }}" class="db-btn db-btn-primary" style="margin-top:16px;display:inline-flex;">
+          <i class="fas fa-plus"></i> Publicar mi primer vehículo
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ── Sugerencia de IA ── -->
+    <div class="db-card" style="border:2px dashed rgba(255,106,0,.3);background:linear-gradient(135deg,rgba(255,106,0,.04),rgba(255,87,34,.02));text-align:center;padding:28px;">
+      <div style="width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#FF7043,#FF5722);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 6px 20px rgba(255,112,67,.3);">
+        <i class="fas fa-robot" style="color:#fff;font-size:1.3rem;"></i>
+      </div>
+      <h3 style="font-size:1rem;font-weight:800;color:var(--t1);margin:0 0 8px;">¿Quieres mejorar tus ventas?</h3>
+      <p style="font-size:.84rem;color:var(--t2);margin:0 0 16px;max-width:460px;margin-left:auto;margin-right:auto;">
+        Nuestro asistente de IA puede ayudarte a optimizar el precio de tus vehículos, 
+        mejorar las descripciones y sugerir estrategias para aumentar tus vistas.
+      </p>
+      <button onclick="window.openDriveMarketAI ? window.openDriveMarketAI() : window.location.href='/soporte/chat'" 
+              class="db-btn db-btn-primary" style="margin:0 auto;">
+        <i class="fas fa-stars"></i> Consultar al Asistente IA
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const gridC = '#E5E7EB'; const textC = '#9CA3AF';
+  
+  // Gráfico de vistas por publicación (barras)
+  const vpd = {{ vistas_por_dia | tojson | safe if vistas_por_dia else '[]' }};
+  const labels = vpd.length 
+    ? vpd.map(d => d.dia ? d.dia.toString().slice(5) : '') 
+    : ['Sin datos'];
+  const data = vpd.length ? vpd.map(d => d.total || 0) : [0];
+  
+  new Chart(document.getElementById('viewsChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Vistas',
+        data,
+        borderColor: '#3B82F6',
+        borderWidth: 2.5,
+        backgroundColor: 'rgba(59,130,246,.08)',
+        fill: true,
+        tension: .4,
+        pointRadius: data.length <= 10 ? 4 : 0,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: '#3B82F6',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(17,24,39,.9)',
+          cornerRadius: 10,
+          padding: 10,
+          callbacks: {
+            label: ctx => ` ${ctx.raw} vistas`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textC, font: { family: 'Inter', size: 10 } } },
+        y: { 
+          grid: { color: gridC }, 
+          ticks: { color: textC, font: { family: 'Inter', size: 10 }, stepSize: 1 },
+          border: { display: false },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte/chat" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

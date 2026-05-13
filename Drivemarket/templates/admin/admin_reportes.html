@@ -1,0 +1,617 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Reportes de Usuarios{% endblock %}
+
+{% block content %}
+<div class="rp-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">{% include 'admin/_sidebar.html' %}</aside>
+
+  <!-- MAIN -->
+  <main class="rp-main">
+
+    <!-- ── Page Header ── -->
+    <header class="rp-page-header">
+      <div class="rp-header-left">
+        <div class="rp-header-icon"><i class="fas fa-flag"></i></div>
+        <div>
+          <h1 class="rp-title">
+            {% if request.args.get('tipo') == 'vehiculos' %}Reportes de Vehículos
+            {% elif request.args.get('tipo') == 'usuarios' %}Reportes de Compradores
+            {% elif request.args.get('tipo') == 'vendedores' %}Reportes de Vendedores
+            {% else %}Todos los Reportes{% endif %}
+          </h1>
+          <p class="rp-subtitle">Gestión de denuncias · Toma acciones rápidas</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Flash Messages ── -->
+
+
+    <!-- ── Metric Cards ── -->
+    <section class="rp-metrics">
+      <div class="rp-metric-card rp-metric-total">
+        <div class="rp-metric-icon"><i class="fas fa-list-alt"></i></div>
+        <div class="rp-metric-body">
+          <span class="rp-metric-num">{{ total }}</span>
+          <span class="rp-metric-label">Total Reportes</span>
+        </div>
+      </div>
+      <div class="rp-metric-card rp-metric-pending">
+        <div class="rp-metric-icon"><i class="fas fa-clock"></i></div>
+        <div class="rp-metric-body">
+          <span class="rp-metric-num">{{ pendientes }}</span>
+          <span class="rp-metric-label">Pendientes</span>
+        </div>
+      </div>
+      <div class="rp-metric-card rp-metric-reviewed">
+        <div class="rp-metric-icon"><i class="fas fa-check-double"></i></div>
+        <div class="rp-metric-body">
+          <span class="rp-metric-num">{{ revisados }}</span>
+          <span class="rp-metric-label">Revisados</span>
+        </div>
+      </div>
+      <div class="rp-metric-card rp-metric-closed">
+        <div class="rp-metric-icon"><i class="fas fa-lock"></i></div>
+        <div class="rp-metric-body">
+          <span class="rp-metric-num">{{ cerrados }}</span>
+          <span class="rp-metric-label">Cerrados</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Filters ── -->
+    <section class="rp-filters-bar">
+      <form method="GET" class="rp-filters-form">
+        <div class="rp-filter-group">
+          <i class="fas fa-filter"></i>
+          <select name="estado" onchange="this.form.submit()">
+            <option value="" {% if not estado_filter %}selected{% endif %}>Todos los estados</option>
+            <option value="pendiente" {% if estado_filter == 'pendiente' %}selected{% endif %}>🕐 Pendiente</option>
+            <option value="revisado"  {% if estado_filter == 'revisado'  %}selected{% endif %}>✅ Revisado</option>
+            <option value="cerrado"   {% if estado_filter == 'cerrado'   %}selected{% endif %}>🔒 Cerrado</option>
+          </select>
+        </div>
+        <div class="rp-filter-search">
+          <i class="fas fa-search"></i>
+          <input type="text" name="motivo" placeholder="Buscar por motivo…" value="{{ motivo_filter }}">
+          <button type="submit" class="rp-btn-search">Buscar</button>
+        </div>
+        {% if estado_filter or motivo_filter %}
+          <a href="{{ url_for('admin.reportes_usuarios') }}" class="rp-btn-clear"><i class="fas fa-times"></i> Limpiar</a>
+        {% endif %}
+        <button type="button" onclick="openExportModal()" style="margin-left:auto; background:rgba(16,185,129,.1); color:#10b981; border:1px solid rgba(16,185,129,.2); border-radius:8px; padding:.45rem .9rem; font-size:.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:.4rem; transition:all .2s;" onmouseover="this.style.background='#10b981';this.style.color='#fff';" onmouseout="this.style.background='rgba(16,185,129,.1)';this.style.color='#10b981';">
+          <i class="fas fa-file-export"></i> Exportar
+        </button>
+      </form>
+      <span class="rp-filter-count">{{ reportes|length }} resultado(s)</span>
+    </section>
+
+    <!-- ── Table ── -->
+    <section class="rp-card">
+      <div class="rp-table-wrap">
+        <table class="rp-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Reportador</th>
+              <th>Reportado</th>
+              <th>Motivo</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in reportes %}
+            <tr class="rp-row">
+              <td class="rp-id">#{{ r.id }}</td>
+              <td>
+                <div class="rp-user-cell">
+                  <div class="rp-avatar rp-avatar-blue">{{ r.nombre_reportador[0]|upper if r.nombre_reportador else '?' }}</div>
+                  <div>
+                    <span class="rp-user-name">{{ r.nombre_reportador|default('Desconocido') }}</span>
+                    <span class="rp-user-email">{{ r.email_reportador|default('') }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if r.id_vehiculo %}
+                <div class="rp-user-cell">
+                  <div class="rp-avatar" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;"><i class="fas fa-car-side"></i></div>
+                  <div>
+                    <span class="rp-user-name">Vehículo #{{r.id_vehiculo}}</span>
+                    <span class="rp-user-email">{{ r.marca }} {{ r.modelo }}</span>
+                  </div>
+                </div>
+                {% else %}
+                <div class="rp-user-cell">
+                  <div class="rp-avatar" style="background: linear-gradient(135deg, {% if r.rol_reportado == 'vendedor' %}#8b5cf6, #7c3aed{% else %}#f59e0b, #d97706{% endif %});">{{ r.nombre_reportado[0]|upper if r.nombre_reportado else '?' }}</div>
+                  <div>
+                    <span class="rp-user-name">{{ r.nombre_reportado|default('Desconocido') }}</span>
+                    <span class="rp-user-email">{{ r.rol_reportado|default('N/A')|capitalize }} | {{ r.email_reportado|default('') }}</span>
+                  </div>
+                </div>
+                {% endif %}
+              </td>
+              <td><span class="rp-motivo">{{ r.motivo }}</span></td>
+              <td>
+                <span class="rp-badge rp-badge-{{ r.estado }}">
+                  {% if r.estado == 'pendiente' %}🕐 Pendiente
+                  {% elif r.estado == 'revisado' %}✅ Revisado
+                  {% else %}🔒 Cerrado{% endif %}
+                </span>
+              </td>
+              <td class="rp-date">{{ r.fecha.strftime('%d/%m/%Y %H:%M') if r.fecha else 'N/A' }}</td>
+              <td class="rp-actions-cell" data-no-href>
+                <!-- Ver detalle -->
+                <button class="rp-btn rp-btn-view"
+                        onclick="openModal({{ r.id }}, '{{ r.nombre_reportador|default('?')|replace("'","") }}', '{{ r.email_reportador|default('')|replace("'","") }}', '{{ r.nombre_reportado|default('?')|replace("'","") }}', '{{ r.email_reportado|default('')|replace("'","") }}', '{{ r.motivo|replace("'","") }}', '{{ r.descripcion|default('')|replace("'","")|replace('\n',' ') }}', '{{ r.estado }}', '{{ r.accion_tomada|default('')|replace("'","") }}')">
+                  <i class="fas fa-eye"></i> Ver
+                </button>
+                <!-- Eliminar -->
+                <form method="POST" action="{{ url_for('admin.eliminar_reporte_usuario', id=r.id) }}" style="display:inline"
+                      onsubmit="return confirm('¿Eliminar este reporte permanentemente?')">
+                  <button class="rp-btn rp-btn-delete"><i class="fas fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="rp-empty">
+                <i class="fas fa-inbox"></i>
+                <span>No hay reportes que mostrar.</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!--  MODAL DE DETALLE + ACCIÓN        -->
+<!-- ══════════════════════════════════ -->
+<div id="rpModal" class="rp-modal-overlay" onclick="closeModalOutside(event)">
+  <div class="rp-modal">
+    <button class="rp-modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+
+    <div class="rp-modal-header">
+      <i class="fas fa-flag"></i>
+      <span>Detalle del Reporte <strong id="mId"></strong></span>
+    </div>
+
+    <div class="rp-modal-body">
+      <!-- Partes -->
+      <div class="rp-modal-parties">
+        <div class="rp-party">
+          <span class="rp-party-label"><i class="fas fa-user-edit"></i> Reportador</span>
+          <span class="rp-party-name" id="mReporter"></span>
+          <span class="rp-party-email" id="mReporterEmail"></span>
+        </div>
+        <div class="rp-party-arrow"><i class="fas fa-long-arrow-alt-right"></i></div>
+        <div class="rp-party rp-party-reported">
+          <span class="rp-party-label"><i class="fas fa-user-shield"></i> Reportado</span>
+          <span class="rp-party-name" id="mReported"></span>
+          <span class="rp-party-email" id="mReportedEmail"></span>
+        </div>
+      </div>
+
+      <div class="rp-modal-info-grid">
+        <div class="rp-info-block">
+          <span class="rp-info-label">Motivo</span>
+          <span class="rp-info-val" id="mMotivo"></span>
+        </div>
+        <div class="rp-info-block">
+          <span class="rp-info-label">Estado actual</span>
+          <span class="rp-info-val" id="mEstado"></span>
+        </div>
+        <div class="rp-info-block rp-info-full">
+          <span class="rp-info-label">Descripción</span>
+          <span class="rp-info-val" id="mDescripcion"></span>
+        </div>
+        <div class="rp-info-block rp-info-full" id="mAccionBlock">
+          <span class="rp-info-label">Acción tomada</span>
+          <span class="rp-info-val" id="mAccion"></span>
+        </div>
+      </div>
+
+      <!-- Formulario de acción -->
+      <form id="mForm" method="POST" class="rp-modal-action-form">
+        <div class="rp-action-row">
+          <select name="accion" class="rp-action-select" required>
+            <option value="">-- Selecciona una acción --</option>
+            <option value="ban">🚫 Banear al reportado</option>
+            <option value="advertencia">⚠️ Enviar advertencia</option>
+            <option value="cerrar">🔒 Cerrar sin acción</option>
+          </select>
+          <button type="submit" class="rp-btn rp-btn-action">Ejecutar</button>
+        </div>
+        <textarea name="nota" class="rp-action-note" placeholder="Nota interna (opcional)…" rows="2"></textarea>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ -->
+<!--  MODAL DE EXPORTACIÓN (CSV/PDF)   -->
+<!-- ══════════════════════════════════ -->
+<div class="rp-modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
+  <div class="rp-modal" style="width:400px; padding:0;">
+    <button class="rp-modal-close" style="top:1rem;right:1rem;" onclick="closeExportModal()"><i class="fas fa-times"></i></button>
+    <div class="rp-modal-header" style="border-bottom:none; padding-bottom:0;">
+      <div style="width:48px;height:48px;border-radius:12px;background:rgba(16,185,129,.12);color:#10b981;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto 1rem;"><i class="fas fa-file-export"></i></div>
+    </div>
+    <div style="text-align:center; padding:0 2rem;">
+      <h3 style="margin:0 0 .5rem; font-size:1.2rem; color:#1f2937;">Exportar Reportes</h3>
+      <p style="color:#6b7280; font-size:.85rem; margin-bottom:1.5rem;">Filtra por fecha y elige el formato.</p>
+    </div>
+    <form action="{{ url_for('admin.exportar_datos', entidad='reportes') }}" method="GET" style="padding:0 2rem 2rem;">
+      <div style="margin-bottom:1rem; text-align:left;">
+        <label style="font-size:.75rem; font-weight:700; color:#9ca3af; text-transform:uppercase; display:block; margin-bottom:.3rem;">Desde Fecha</label>
+        <input type="date" name="fecha_inicio" style="width:100%; padding:.6rem; border:1px solid #e5e7eb; border-radius:8px; outline:none; font-family:inherit;">
+      </div>
+      <div style="margin-bottom:1rem; text-align:left;">
+        <label style="font-size:.75rem; font-weight:700; color:#9ca3af; text-transform:uppercase; display:block; margin-bottom:.3rem;">Hasta Fecha</label>
+        <input type="date" name="fecha_fin" style="width:100%; padding:.6rem; border:1px solid #e5e7eb; border-radius:8px; outline:none; font-family:inherit;">
+      </div>
+      <div style="margin-bottom:1.5rem; text-align:left;">
+        <label style="font-size:.75rem; font-weight:700; color:#9ca3af; text-transform:uppercase; display:block; margin-bottom:.3rem;">Formato</label>
+        <select name="formato" style="width:100%; padding:.6rem; border:1px solid #e5e7eb; border-radius:8px; outline:none; cursor:pointer;">
+          <option value="csv">Archivo CSV (Excel)</option>
+          <option value="pdf">Vista de Impresión (PDF)</option>
+        </select>
+      </div>
+      <button type="submit" style="width:100%; background:linear-gradient(135deg,#10b981,#059669); color:#fff; padding:.75rem; border:none; border-radius:10px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(16,185,129,.3);">Descargar Reporte</button>
+    </form>
+  </div>
+</div>
+
+<style>
+/* ─── Layout ──────────────────────────────────────── */
+.rp-layout { display: flex; min-height: 100vh; font-family: 'Inter', sans-serif; }
+.rp-main  { flex: 1; padding: 2rem 2.5rem; background: #f3f4f6; overflow-x: hidden; }
+
+/* ─── Page Header ─────────────────────────────────── */
+.rp-page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.8rem;
+}
+.rp-header-left { display: flex; align-items: center; gap: 1rem; }
+.rp-header-icon {
+  width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+  background: linear-gradient(135deg, #ff7043, #e8520a);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.4rem;
+  box-shadow: 0 8px 20px rgba(255,112,67,.35);
+}
+.rp-title  { font-size: 1.6rem; font-weight: 800; color: #1f2937; margin: 0; letter-spacing: -.02em; }
+.rp-subtitle { color: #6b7280; font-size: .9rem; margin: .15rem 0 0; }
+
+/* ─── Flash ───────────────────────────────────────── */
+.rp-flashes { margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: .5rem; }
+.rp-flash {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .85rem 1.2rem; border-radius: 10px;
+  font-weight: 600; font-size: .9rem;
+}
+.rp-flash i { font-size: 1rem; }
+.rp-flash-success { background: #d1fae5; color: #065f46; }
+.rp-flash-warning { background: #fef3c7; color: #92400e; }
+.rp-flash-danger, .rp-flash-error { background: #fee2e2; color: #991b1b; }
+.rp-flash-info  { background: #dbeafe; color: #1e40af; }
+
+/* ─── Metric Cards ────────────────────────────────── */
+.rp-metrics {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.rp-metric-card {
+  background: #fff; border-radius: 14px;
+  padding: 1.2rem 1.4rem; display: flex; align-items: center; gap: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  border-left: 4px solid transparent;
+  transition: transform .2s, box-shadow .2s;
+}
+.rp-metric-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+.rp-metric-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: #fff; flex-shrink: 0;
+}
+.rp-metric-num   { display: block; font-size: 1.8rem; font-weight: 800; line-height: 1; color: #1f2937; }
+.rp-metric-label { display: block; font-size: .75rem; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: .25rem; }
+
+.rp-metric-total   { border-left-color: #6366f1; }
+.rp-metric-total .rp-metric-icon   { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+.rp-metric-pending { border-left-color: #f59e0b; }
+.rp-metric-pending .rp-metric-icon { background: linear-gradient(135deg,#f59e0b,#d97706); }
+.rp-metric-reviewed{ border-left-color: #10b981; }
+.rp-metric-reviewed .rp-metric-icon{ background: linear-gradient(135deg,#10b981,#059669); }
+.rp-metric-closed  { border-left-color: #6b7280; }
+.rp-metric-closed .rp-metric-icon  { background: linear-gradient(135deg,#6b7280,#4b5563); }
+
+/* ─── Filters Bar ─────────────────────────────────── */
+.rp-filters-bar {
+  background: #fff; border-radius: 12px;
+  padding: 1rem 1.4rem; display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  flex-wrap: wrap;
+}
+.rp-filters-form { display: flex; align-items: center; gap: .8rem; flex: 1; flex-wrap: wrap; }
+.rp-filter-group {
+  display: flex; align-items: center; gap: .5rem;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 9px; padding: .45rem .8rem;
+}
+.rp-filter-group i { color: #9ca3af; font-size: .85rem; }
+.rp-filter-group select { border: none; background: none; outline: none; font-size: .875rem; color: #374151; cursor: pointer; }
+.rp-filter-search {
+  display: flex; align-items: center; gap: .5rem; flex: 1;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 9px; padding: .45rem .8rem;
+  min-width: 200px;
+}
+.rp-filter-search:focus-within { border-color: #ff7043; box-shadow: 0 0 0 3px rgba(255,112,67,.1); }
+.rp-filter-search i { color: #9ca3af; font-size: .85rem; }
+.rp-filter-search input { border: none; background: none; outline: none; font-size: .875rem; color: #374151; flex: 1; }
+.rp-btn-search {
+  background: linear-gradient(135deg,#ff7043,#e8520a); color: #fff;
+  border: none; border-radius: 7px; padding: .3rem .8rem;
+  font-size: .8rem; font-weight: 600; cursor: pointer; transition: opacity .2s;
+}
+.rp-btn-search:hover { opacity: .9; }
+.rp-btn-clear {
+  background: #fee2e2; color: #ef4444; border-radius: 8px;
+  padding: .45rem .9rem; font-size: .82rem; font-weight: 600;
+  text-decoration: none; transition: all .2s; white-space: nowrap;
+}
+.rp-btn-clear:hover { background: #ef4444; color: #fff; }
+.rp-filter-count { margin-left: auto; font-size: .82rem; color: #9ca3af; font-weight: 600; white-space: nowrap; }
+
+/* ─── Card ────────────────────────────────────────── */
+.rp-card {
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow: hidden;
+}
+.rp-table-wrap { overflow-x: auto; }
+.rp-table { width: 100%; border-collapse: collapse; }
+.rp-table thead { background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
+.rp-table th {
+  padding: 1rem 1.1rem; text-align: left;
+  font-size: .72rem; font-weight: 700; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+}
+.rp-table tbody tr { transition: background .15s; border-bottom: 1px solid #f3f4f6; }
+.rp-table tbody tr:hover { background: #fffbf9; }
+.rp-table td { padding: .9rem 1.1rem; font-size: .875rem; color: #374151; vertical-align: middle; }
+.rp-id { font-weight: 700; color: #ff7043; font-size: .9rem; }
+
+/* User cell */
+.rp-user-cell { display: flex; align-items: center; gap: .7rem; }
+.rp-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .9rem; color: #fff; flex-shrink: 0;
+}
+.rp-avatar-blue   { background: linear-gradient(135deg,#3b82f6,#2563eb); }
+.rp-avatar-orange { background: linear-gradient(135deg,#ff7043,#e8520a); }
+.rp-user-name  { display: block; font-weight: 600; font-size: .875rem; color: #1f2937; }
+.rp-user-email { display: block; font-size: .75rem; color: #9ca3af; }
+.rp-motivo { font-style: italic; color: #6b7280; }
+
+/* Badges */
+.rp-badge {
+  display: inline-block; padding: .3rem .75rem; border-radius: 20px;
+  font-size: .75rem; font-weight: 700; white-space: nowrap;
+}
+.rp-badge-pendiente { background: #fef3c7; color: #92400e; }
+.rp-badge-revisado  { background: #d1fae5; color: #065f46; }
+.rp-badge-cerrado   { background: #f3f4f6; color: #6b7280; }
+
+.rp-date { color: #9ca3af; font-size: .8rem; white-space: nowrap; }
+
+/* Action buttons */
+.rp-actions-cell { white-space: nowrap; }
+.rp-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .42rem .85rem; border-radius: 8px; border: none;
+  font-size: .8rem; font-weight: 600; cursor: pointer;
+  transition: all .2s; text-decoration: none; margin: 2px;
+}
+.rp-btn-view   { background: #eff6ff; color: #3b82f6; }
+.rp-btn-view:hover { background: #3b82f6; color: #fff; }
+.rp-btn-delete { background: #fee2e2; color: #ef4444; }
+.rp-btn-delete:hover { background: #ef4444; color: #fff; }
+.rp-btn-action { background: linear-gradient(135deg,#ff7043,#e8520a); color: #fff; }
+.rp-btn-action:hover { opacity: .9; transform: translateY(-1px); }
+
+/* Empty */
+.rp-empty { text-align: center; padding: 3rem; color: #9ca3af; }
+.rp-empty i { display: block; font-size: 2.5rem; margin-bottom: .75rem; opacity: .4; }
+
+/* ─── Modal ───────────────────────────────────────── */
+.rp-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
+  z-index: 9999; align-items: center; justify-content: center;
+}
+.rp-modal-overlay.open { display: flex; animation: fadeInOverlay .2s ease; }
+@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+.rp-modal {
+  background: #fff; border-radius: 18px;
+  width: 620px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 25px 60px rgba(0,0,0,.25);
+  animation: slideUp .25s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.rp-modal-close {
+  position: absolute; top: 1rem; right: 1rem;
+  background: #f3f4f6; border: none; border-radius: 50%;
+  width: 34px; height: 34px; cursor: pointer; font-size: .9rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; color: #6b7280;
+}
+.rp-modal-close:hover { background: #ef4444; color: #fff; }
+
+.rp-modal-header {
+  display: flex; align-items: center; gap: .75rem;
+  padding: 1.4rem 1.6rem 1rem;
+  font-size: 1.05rem; font-weight: 700; color: #1f2937;
+  border-bottom: 1px solid #f3f4f6;
+}
+.rp-modal-header i { color: #ff7043; font-size: 1.1rem; }
+
+.rp-modal-body { padding: 1.4rem 1.6rem 1.6rem; }
+
+.rp-modal-parties {
+  display: flex; align-items: center; gap: .75rem;
+  background: #f9fafb; border-radius: 12px; padding: 1rem 1.2rem;
+  margin-bottom: 1.2rem;
+}
+.rp-party { display: flex; flex-direction: column; gap: .2rem; flex: 1; }
+.rp-party-reported { text-align: right; }
+.rp-party-label { font-size: .7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .06em; }
+.rp-party-name  { font-weight: 700; color: #1f2937; font-size: .95rem; }
+.rp-party-email { font-size: .78rem; color: #9ca3af; }
+.rp-party-arrow { font-size: 1.4rem; color: #ff7043; flex-shrink: 0; }
+
+.rp-modal-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.2rem; }
+.rp-info-block {
+  background: #f9fafb; border-radius: 10px; padding: .8rem 1rem;
+  border: 1px solid #e5e7eb;
+}
+.rp-info-full  { grid-column: 1 / -1; }
+.rp-info-label { display: block; font-size: .7rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
+.rp-info-val   { font-size: .875rem; color: #374151; word-break: break-word; }
+
+.rp-modal-action-form { border-top: 1px solid #f3f4f6; padding-top: 1rem; }
+.rp-action-row { display: flex; gap: .75rem; margin-bottom: .75rem; }
+.rp-action-select {
+  flex: 1; background: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 9px; padding: .6rem .9rem;
+  font-size: .875rem; color: #374151; outline: none; cursor: pointer;
+  transition: border-color .2s;
+}
+.rp-action-select:focus { border-color: #ff7043; box-shadow: 0 0 0 3px rgba(255,112,67,.1); }
+.rp-action-note {
+  width: 100%; background: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 9px; padding: .65rem .9rem; font-size: .875rem;
+  color: #374151; resize: vertical; outline: none; transition: border-color .2s;
+  font-family: inherit; box-sizing: border-box;
+}
+.rp-action-note:focus { border-color: #ff7043; box-shadow: 0 0 0 3px rgba(255,112,67,.1); }
+
+/* ─── Responsive ──────────────────────────────────── */
+@media (max-width: 900px) { .rp-metrics { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) {
+  .rp-main { padding: 1rem; }
+  .rp-metrics { grid-template-columns: 1fr; }
+  .rp-modal-parties { flex-direction: column; }
+  .rp-party-reported { text-align: left; }
+}
+</style>
+
+<!-- EXPORT MODAL -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal-box" style="text-align:center;">
+    <div class="modal-icon" style="width:56px;height:56px;border-radius:14px;background:rgba(16,185,129,.1);color:#10b981;font-size:1.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;">
+      <i class="fas fa-file-export"></i>
+    </div>
+    <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:.4rem;">Exportar Reportes</h3>
+    <p style="color:#64748b;font-size:.83rem;margin-bottom:1.3rem;">Selecciona el rango de fechas y formato deseado.</p>
+    <form action="{{ url_for('admin.exportar_datos', entidad='reportes') }}" method="GET">
+      <div style="text-align:left; margin-bottom:1rem;">
+        <label style="font-size:.8rem;color:#64748b;display:block;margin-bottom:.3rem;">Desde Fecha:</label>
+        <input type="date" name="fecha_inicio" style="width:100%;padding:.6rem;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#1f2937;">
+      </div>
+      <div style="text-align:left; margin-bottom:1.2rem;">
+        <label style="font-size:.8rem;color:#64748b;display:block;margin-bottom:.3rem;">Hasta Fecha:</label>
+        <input type="date" name="fecha_fin" style="width:100%;padding:.6rem;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#1f2937;">
+      </div>
+      <div style="text-align:left; margin-bottom:1.5rem;">
+        <label style="font-size:.8rem;color:#64748b;display:block;margin-bottom:.3rem;">Formato:</label>
+        <select name="formato" style="width:100%;padding:.6rem;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#1f2937;">
+          <option value="csv">Archivo CSV (Excel)</option>
+          <option value="pdf">Vista de Impresión (PDF)</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:.65rem;">
+        <button type="button" class="modal-btn modal-cancel" onclick="closeExportModal()" style="flex:1;padding:.6rem;border-radius:9px;border:1px solid #e5e7eb;background:#f9fafb;color:#1f2937;font-size:.83rem;font-weight:700;cursor:pointer;">Cancelar</button>
+        <button type="submit" class="modal-btn" style="flex:1;padding:.6rem;border-radius:9px;border:none;font-size:.83rem;font-weight:700;cursor:pointer;background:#10b981;color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.3);">Exportar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let currentReportId = null;
+
+function openModal(id, reporter, reporterEmail, reported, reportedEmail, motivo, descripcion, estado, accion) {
+  currentReportId = id;
+  document.getElementById('mId').textContent = '#' + id;
+  document.getElementById('mReporter').textContent = reporter;
+  document.getElementById('mReporterEmail').textContent = reporterEmail;
+  document.getElementById('mReported').textContent = reported;
+  document.getElementById('mReportedEmail').textContent = reportedEmail;
+  document.getElementById('mMotivo').textContent = motivo;
+  document.getElementById('mDescripcion').textContent = descripcion || 'Sin descripción';
+
+  const badges = { pendiente: '🕐 Pendiente', revisado: '✅ Revisado', cerrado: '🔒 Cerrado' };
+  document.getElementById('mEstado').textContent = badges[estado] || estado;
+
+  const accionBlock = document.getElementById('mAccionBlock');
+  if (accion) {
+    document.getElementById('mAccion').textContent = accion;
+    accionBlock.style.display = 'block';
+  } else {
+    accionBlock.style.display = 'none';
+  }
+
+  document.getElementById('mForm').action = '/admin/reportes-usuarios/' + id + '/accion';
+  document.getElementById('rpModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('rpModal').classList.remove('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('rpModal')) closeModal();
+}
+
+document.addEventListener('keydown', e => { 
+  if (e.key === 'Escape') { closeModal(); closeExportModal(); } 
+});
+
+function openExportModal() { document.getElementById('exportModal').classList.add('open'); }
+function closeExportModal() { document.getElementById('exportModal').classList.remove('open'); }
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

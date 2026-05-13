@@ -1,0 +1,663 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Configuración{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- DELETE ACCOUNT MODAL -->
+<div class="modal-backdrop" id="delAccModal">
+  <div class="modal-box">
+    <div class="modal-icon modal-icon-danger"><i class="fas fa-skull-crossbones"></i></div>
+    <h3>¿Eliminar cuenta?</h3>
+    <p>Esta acción es <strong>permanente e irreversible</strong>. Todos los datos del administrador serán eliminados.</p>
+    <div class="confirm-type-wrap">
+      <label style="font-size:.78rem;font-weight:600;color:var(--text2);">Escribí <strong>ELIMINAR</strong> para confirmar</label>
+      <input type="text" id="delConfirmInput" placeholder="ELIMINAR" oninput="checkDelInput()" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeDelModal()">Cancelar</button>
+      <button class="modal-btn modal-danger-confirm" id="delAccConfirmBtn" disabled>Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <span>Configuración</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="unsaved-pill" id="unsavedPill" style="display:none">
+          <i class="fas fa-circle"></i> Cambios sin guardar
+        </div>
+        <button class="icon-btn" onclick="toggleTheme()" title="Cambiar tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <a href="{{ url_for('index') }}" class="btn-site">
+          <i class="fas fa-home"></i> Ver sitio
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas fa-cog"></i></div>
+        <div>
+          <h1>Configuración de Cuenta</h1>
+          <p class="subtext">Gestioná tus datos personales, contraseña y preferencias de seguridad.</p>
+        </div>
+      </div>
+      <!-- 2-column layout -->
+      <div class="settings-layout">
+        <!-- RIGHT: Forms -->
+        <div class="settings-right">
+          <!-- PERSONAL DATA -->
+          <div class="panel-card">
+            <div class="panel-hd">
+              <i class="fas fa-user-edit"></i>
+              <h3>Datos Personales</h3>
+              <span class="panel-badge blue">Perfil</span>
+            </div>
+            <div class="panel-body">
+              <form action="{{ url_for('admin.ajustes') }}" method="POST" id="formDatos" novalidate>
+                <input type="hidden" name="accion" value="actualizar_datos">
+                <div class="fgrid cols2">
+                  <div class="fg">
+                    <label for="nombre">Nombre Completo <span class="req">*</span></label>
+                    <div class="iw">
+                      <i class="fas fa-user iw-ic"></i>
+                      <input type="text" id="nombre" name="nombre"
+                             value="{{ usuario.nombre }}" required
+                             placeholder="Tu nombre completo"
+                             oninput="markDirty();syncAvatar();updateCompletion()">
+                    </div>
+                  </div>
+                  <div class="fg">
+                    <label for="username">Nombre de Usuario <span class="req">*</span></label>
+                    <div class="iw">
+                      <i class="fas fa-at iw-ic"></i>
+                      <input type="text" id="username" name="username"
+                             value="{{ usuario.username }}" required
+                             placeholder="@usuario"
+                             oninput="markDirty();updateCompletion()">
+                    </div>
+                  </div>
+                </div>
+                <div class="fg" style="margin-top:.9rem;">
+                  <label for="email">Correo Electrónico <span class="req">*</span></label>
+                  <div class="iw">
+                    <i class="fas fa-envelope iw-ic"></i>
+                    <input type="email" id="email" name="email"
+                           value="{{ usuario.email }}" required
+                           placeholder="correo@ejemplo.com"
+                           oninput="markDirty();updateCompletion()">
+                  </div>
+                </div>
+                <div class="fg" style="margin-top:.9rem;">
+                  <label for="telefono">Teléfono <span class="opt-tag">Opcional</span></label>
+                  <div class="iw">
+                    <i class="fas fa-phone iw-ic"></i>
+                    <input type="tel" id="telefono" name="telefono"
+                           value="{{ usuario.telefono if usuario.telefono else '' }}"
+                           placeholder="+54 9 11 0000-0000"
+                           oninput="markDirty();updateCompletion()">
+                  </div>
+                </div>
+                <div class="form-foot-right">
+                  <button type="submit" class="btn-save">
+                    <i class="fas fa-save"></i> Guardar Datos
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <!-- PASSWORD -->
+          <div class="panel-card">
+            <div class="panel-hd">
+              <i class="fas fa-shield-alt"></i>
+              <h3>Seguridad y Contraseña</h3>
+              <span class="panel-badge red">Seguridad</span>
+            </div>
+            <div class="panel-body">
+              <form action="{{ url_for('admin.ajustes') }}" method="POST" id="formPass" novalidate>
+                <input type="hidden" name="accion" value="cambiar_password">
+                <div class="fg">
+                  <label for="pass_actual">Contraseña Actual <span class="req">*</span></label>
+                  <div class="iw iw-pw">
+                    <i class="fas fa-lock iw-ic"></i>
+                    <input type="password" id="pass_actual" name="pass_actual" required
+                           placeholder="Tu contraseña actual">
+                    <button type="button" class="pw-eye" onclick="togglePw('pass_actual','eye1')">
+                      <i class="fas fa-eye" id="eye1"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="fgrid cols2" style="margin-top:.9rem;">
+                  <div class="fg">
+                    <label for="pass_nuevo">Nueva Contraseña <span class="req">*</span></label>
+                    <div class="iw iw-pw">
+                      <i class="fas fa-key iw-ic"></i>
+                      <input type="password" id="pass_nuevo" name="pass_nuevo" required
+                             placeholder="Mín. 8 caracteres"
+                             oninput="checkStrength();checkMatch()">
+                      <button type="button" class="pw-eye" onclick="togglePw('pass_nuevo','eye2')">
+                        <i class="fas fa-eye" id="eye2"></i>
+                      </button>
+                    </div>
+                    <!-- Strength meter -->
+                    <div class="strength-wrap" id="strengthWrap" style="display:none">
+                      <div class="strength-bar-bg">
+                        <div class="strength-bar-fill" id="strengthFill"></div>
+                      </div>
+                      <span class="strength-label" id="strengthLabel"></span>
+                    </div>
+                    <ul class="pw-rules" id="pwRules">
+                      <li id="rule-len"><i class="fas fa-circle rule-dot"></i> Mínimo 8 caracteres</li>
+                      <li id="rule-upper"><i class="fas fa-circle rule-dot"></i> Al menos 1 mayúscula</li>
+                      <li id="rule-num"><i class="fas fa-circle rule-dot"></i> Al menos 1 número</li>
+                      <li id="rule-sym"><i class="fas fa-circle rule-dot"></i> Al menos 1 símbolo</li>
+                    </ul>
+                  </div>
+                  <div class="fg">
+                    <label for="pass_confirmar">Confirmar Nueva <span class="req">*</span></label>
+                    <div class="iw iw-pw">
+                      <i class="fas fa-key iw-ic"></i>
+                      <input type="password" id="pass_confirmar" name="pass_confirmar" required
+                             placeholder="Repetí la nueva contraseña"
+                             oninput="checkMatch()">
+                      <button type="button" class="pw-eye" onclick="togglePw('pass_confirmar','eye3')">
+                        <i class="fas fa-eye" id="eye3"></i>
+                      </button>
+                    </div>
+                    <div class="match-msg" id="matchMsg" style="display:none"></div>
+                  </div>
+                </div>
+                <div class="security-tip">
+                  <i class="fas fa-lightbulb"></i>
+                  Usá una contraseña única con letras, números y símbolos. No reutilices contraseñas de otras cuentas.
+                </div>
+                <div class="form-foot-right">
+                  <button type="submit" class="btn-save btn-red" id="btnCambiarPass">
+                    <i class="fas fa-sync-alt"></i> Actualizar Contraseña
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <!-- DANGER ZONE -->
+          <div class="panel-card panel-danger">
+            <div class="panel-hd">
+              <i class="fas fa-exclamation-triangle" style="color:#ef4444"></i>
+              <h3 style="color:#ef4444">Zona de Peligro</h3>
+            </div>
+            <div class="panel-body">
+              <div class="danger-row">
+                <div>
+                  <div class="danger-title">Cerrar todas las sesiones activas</div>
+                  <div class="danger-desc">Desconectá todos los dispositivos donde hayas iniciado sesión.</div>
+                </div>
+                <form method="POST" action="{{ url_for('admin.ajustes') }}">
+                  <input type="hidden" name="accion" value="cerrar_sesiones">
+                  <button type="submit" class="btn-danger-action">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar sesiones
+                  </button>
+                </form>
+              </div>
+              <div class="danger-sep"></div>
+              <div class="danger-row">
+                <div>
+                  <div class="danger-title" style="color:#ef4444">Eliminar esta cuenta</div>
+                  <div class="danger-desc">Esta acción eliminará permanentemente todos los datos de tu cuenta de administrador.</div>
+                </div>
+                <button class="btn-danger-action btn-danger-delete"
+                        onclick="document.getElementById('delAccModal').classList.add('open')">
+                  <i class="fas fa-trash-alt"></i> Eliminar cuenta
+                </button>
+              </div>
+            </div>
+          </div>
+        </div><!-- /settings-right -->
+        <!-- LEFT: Sidebar cards -->
+        <div class="settings-left">
+          <!-- Avatar / Profile card -->
+          <div class="profile-card">
+            <div class="avatar-wrap">
+              <div class="avatar-ring">
+                <div class="avatar-circle" id="avatarCircle">
+                  {{ usuario.nombre[0]|upper if usuario.nombre else 'A' }}
+                </div>
+              </div>
+              <div class="avatar-role-badge">
+                <i class="fas fa-shield-alt"></i> Admin
+              </div>
+            </div>
+            <div class="pcard-name" id="pcardName">{{ usuario.nombre }}</div>
+            <div class="pcard-user">@{{ usuario.username }}</div>
+            <div class="pcard-email"><i class="fas fa-envelope"></i> {{ usuario.email }}</div>
+            <div class="pcard-sep"></div>
+            <div class="pcard-stat-row">
+              <div class="pcard-stat">
+                <div class="ps-val">{{ usuario.rol|upper if usuario.rol else 'ADMIN' }}</div>
+                <div class="ps-lbl">Rol</div>
+              </div>
+              <div class="pcard-stat">
+                <div class="ps-val">{{ usuario.fecha_registro.strftime('%b %Y') if usuario.fecha_registro else '—' }}</div>
+                <div class="ps-lbl">Desde</div>
+              </div>
+            </div>
+          </div>
+          <!-- Profile completion -->
+          <div class="panel-card">
+            <div class="panel-hd">
+              <i class="fas fa-tasks"></i>
+              <h3>Perfil completo</h3>
+            </div>
+            <div class="panel-body">
+              <div class="comp-wrap">
+                <div class="comp-bar-bg">
+                  <div class="comp-bar-fill" id="compFill"></div>
+                </div>
+                <span class="comp-pct" id="compPct">0%</span>
+              </div>
+              <ul class="comp-steps" id="compSteps">
+                <li class="cs-item" id="cs-nombre"><i class="fas fa-circle cs-dot"></i> Nombre completo</li>
+                <li class="cs-item" id="cs-username"><i class="fas fa-circle cs-dot"></i> Nombre de usuario</li>
+                <li class="cs-item" id="cs-email"><i class="fas fa-circle cs-dot"></i> Correo electrónico</li>
+                <li class="cs-item" id="cs-telefono"><i class="fas fa-circle cs-dot"></i> Teléfono</li>
+              </ul>
+            </div>
+          </div>
+          <!-- Security checklist -->
+          <div class="panel-card">
+            <div class="panel-hd">
+              <i class="fas fa-shield-alt"></i>
+              <h3>Seguridad de la cuenta</h3>
+            </div>
+            <div class="panel-body">
+              <ul class="sec-list">
+                <li class="sec-item sec-ok">
+                  <i class="fas fa-check-circle"></i>
+                  <div>
+                    <div class="sec-title">Correo verificado</div>
+                    <div class="sec-sub">Tu email de acceso está confirmado</div>
+                  </div>
+                </li>
+                <li class="sec-item sec-ok">
+                  <i class="fas fa-check-circle"></i>
+                  <div>
+                    <div class="sec-title">Sesión segura (HTTPS)</div>
+                    <div class="sec-sub">Conexión encriptada activa</div>
+                  </div>
+                </li>
+                <li class="sec-item sec-warn">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <div>
+                    <div class="sec-title">2FA no activado</div>
+                    <div class="sec-sub">Recomendamos activar autenticación en dos pasos</div>
+                  </div>
+                </li>
+                <li class="sec-item sec-warn">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <div>
+                    <div class="sec-title">Contraseña no cambiada recientemente</div>
+                    <div class="sec-sub">Actualizala al menos cada 90 días</div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <!-- Quick links -->
+          <div class="panel-card">
+            <div class="panel-hd">
+              <i class="fas fa-bolt"></i>
+              <h3>Accesos rápidos</h3>
+            </div>
+            <div class="panel-body" style="padding:.6rem .9rem;">
+              <a class="quick-link" href="{{ url_for('admin.admin_dashboard') }}">
+                <i class="fas fa-chart-line"></i> Dashboard
+              </a>
+              <a class="quick-link" href="{{ url_for('admin.admin_usuarios') }}">
+                <i class="fas fa-users"></i> Gestión de usuarios
+              </a>
+              <a class="quick-link" href="{{ url_for('admin.admin_vehiculos') }}">
+                <i class="fas fa-car"></i> Gestión de vehículos
+              </a>
+              <a class="quick-link" href="{{ url_for('logout') }}" style="color:#ef4444">
+                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+              </a>
+            </div>
+          </div>
+        </div><!-- /settings-left -->
+      </div><!-- /settings-layout -->
+    </div><!-- /page-content -->
+  </main>
+</div>
+<div class="toast-cont" id="toastCont"></div>
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e5e7eb;--text:#0f172a;--text2:#64748b;
+  --primary:#6366f1;--primary2:#a855f7;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#162032;
+  --border:#334155;--text:#f1f5f9;--text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.unsaved-pill{display:flex;align-items:center;gap:.35rem;padding:.3rem .8rem;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:8px;color:#d97706;font-size:.75rem;font-weight:700;animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.5;}}
+.unsaved-pill i{font-size:.5rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-site{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-site:hover{border-color:var(--primary);color:var(--primary);}
+/* Page */
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.4rem;}
+.page-heading{display:flex;align-items:center;gap:1rem;}
+.page-heading h1{font-size:1.45rem;font-weight:800;letter-spacing:-.02em;}
+.subtext{color:var(--text2);font-size:.85rem;margin-top:.2rem;}
+.heading-icon{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;flex-shrink:0;box-shadow:0 5px 14px rgba(99,102,241,.3);}
+.heading-icon i{animation:spin 8s linear infinite;}
+@keyframes spin{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+.flash{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:600;}
+.flash-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#059669;}
+.flash-danger,.flash-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+.flash-close{margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;opacity:.6;}
+/* Layout */
+.settings-layout{display:grid;grid-template-columns:1fr 290px;gap:1.3rem;align-items:start;}
+.settings-left{display:flex;flex-direction:column;gap:1.1rem;position:sticky;top:5.5rem;}
+.settings-right{display:flex;flex-direction:column;gap:1.3rem;}
+/* Panels */
+.panel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.panel-card.panel-danger{border:1.5px solid rgba(239,68,68,.25);}
+.panel-hd{display:flex;align-items:center;gap:.65rem;padding:1rem 1.3rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+.panel-hd i{color:var(--primary);font-size:.95rem;}
+.panel-hd h3{font-size:.88rem;font-weight:700;flex:1;}
+.panel-badge{font-size:.65rem;font-weight:700;padding:.22rem .6rem;border-radius:6px;margin-left:auto;}
+.panel-badge.blue{background:rgba(99,102,241,.1);color:var(--primary);}
+.panel-badge.red{background:rgba(239,68,68,.1);color:#ef4444;}
+.panel-body{padding:1.3rem;}
+/* Form fields */
+.fgrid{display:grid;gap:.9rem;}
+.fgrid.cols2{grid-template-columns:1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:.35rem;}
+.req{color:#ef4444;}
+.opt-tag{font-size:.65rem;font-weight:600;padding:.1rem .4rem;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text2);font-style:normal;}
+.iw{position:relative;display:flex;align-items:center;}
+.iw-pw{position:relative;}
+.iw-ic{position:absolute;left:.85rem;color:var(--text2);font-size:.8rem;pointer-events:none;z-index:1;}
+.iw input{width:100%;padding:.63rem .85rem .63rem 2.4rem;border:1.5px solid var(--border);border-radius:10px;font-size:.86rem;color:var(--text);background:var(--surface);transition:all .2s;outline:none;}
+.iw-pw input{padding-right:2.8rem;}
+.iw input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.08);}
+.iw input:valid:not(:placeholder-shown){border-color:#10b981;}
+.pw-eye{position:absolute;right:.75rem;background:none;border:none;cursor:pointer;color:var(--text2);font-size:.82rem;padding:.2rem;transition:color .2s;}
+.pw-eye:hover{color:var(--primary);}
+/* Password strength */
+.strength-wrap{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;}
+.strength-bar-bg{flex:1;height:5px;border-radius:3px;background:var(--border);overflow:hidden;}
+.strength-bar-fill{height:100%;border-radius:3px;transition:width .4s,background .4s;}
+.strength-label{font-size:.72rem;font-weight:700;white-space:nowrap;}
+.pw-rules{list-style:none;display:flex;flex-direction:column;gap:.25rem;margin-top:.5rem;}
+.pw-rules li{font-size:.73rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;transition:color .3s;}
+.pw-rules li.ok{color:#059669;}
+.pw-rules li.ok .rule-dot{color:#10b981;}
+.rule-dot{font-size:.45rem;flex-shrink:0;}
+.match-msg{font-size:.75rem;font-weight:600;margin-top:.35rem;padding:.4rem .7rem;border-radius:7px;}
+.match-ok{background:rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.match-err{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2);}
+.security-tip{display:flex;align-items:flex-start;gap:.5rem;margin-top:1rem;padding:.75rem .9rem;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.12);border-radius:10px;font-size:.78rem;color:var(--text2);line-height:1.5;}
+.security-tip i{color:var(--primary);flex-shrink:0;margin-top:.1rem;}
+.form-foot-right{display:flex;justify-content:flex-end;margin-top:1.1rem;}
+.btn-save{display:flex;align-items:center;gap:.5rem;padding:.65rem 1.6rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(99,102,241,.3);transition:all .25s cubic-bezier(.34,1.56,.64,1);}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(99,102,241,.4);}
+.btn-save.btn-red{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 3px 12px rgba(239,68,68,.3);}
+.btn-save.btn-red:hover{box-shadow:0 6px 18px rgba(239,68,68,.4);}
+/* Danger zone */
+.danger-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.danger-title{font-size:.85rem;font-weight:700;}
+.danger-desc{font-size:.76rem;color:var(--text2);margin-top:.2rem;}
+.danger-sep{height:1px;background:rgba(239,68,68,.15);margin:1rem 0;}
+.btn-danger-action{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.25);color:#ef4444;border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-danger-action:hover{background:#ef4444;color:#fff;}
+.btn-danger-delete{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.3);color:#dc2626;}
+.btn-danger-delete:hover{background:#dc2626;color:#fff;}
+/* Profile card */
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.6rem;text-align:center;}
+.avatar-wrap{position:relative;display:inline-block;margin-bottom:.8rem;}
+.avatar-ring{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));padding:3px;margin:0 auto;}
+.avatar-circle{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#fff;background:var(--surface);}
+.avatar-role-badge{position:absolute;bottom:-4px;right:-4px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:.62rem;font-weight:700;padding:.18rem .5rem;border-radius:20px;display:flex;align-items:center;gap:.25rem;border:2px solid var(--surface);}
+.pcard-name{font-size:1rem;font-weight:800;margin-bottom:.15rem;}
+.pcard-user{font-size:.78rem;color:var(--primary);font-weight:600;margin-bottom:.3rem;}
+.pcard-email{font-size:.74rem;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:.3rem;}
+.pcard-sep{height:1px;background:var(--border);margin:1rem 0;}
+.pcard-stat-row{display:flex;justify-content:center;gap:1.5rem;}
+.pcard-stat{text-align:center;}
+.ps-val{font-size:.85rem;font-weight:800;color:var(--primary);}
+.ps-lbl{font-size:.68rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+/* Profile completion */
+.comp-wrap{display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem;}
+.comp-bar-bg{flex:1;height:8px;border-radius:4px;background:color-mix(in srgb,var(--primary) 10%,transparent);overflow:hidden;}
+.comp-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));border-radius:4px;transition:width .5s ease;}
+.comp-pct{font-size:.78rem;font-weight:800;color:var(--primary);}
+.comp-steps{list-style:none;display:flex;flex-direction:column;gap:.4rem;}
+.cs-item{font-size:.76rem;color:var(--text2);display:flex;align-items:center;gap:.45rem;transition:color .3s;}
+.cs-item.done{color:#059669;}
+.cs-item.done .cs-dot{color:#059669;}
+.cs-dot{font-size:.4rem;flex-shrink:0;}
+/* Security checklist */
+.sec-list{list-style:none;display:flex;flex-direction:column;gap:.7rem;}
+.sec-item{display:flex;align-items:flex-start;gap:.6rem;}
+.sec-item i{font-size:.95rem;flex-shrink:0;margin-top:.1rem;}
+.sec-ok i{color:#10b981;}
+.sec-warn i{color:#f59e0b;}
+.sec-title{font-size:.78rem;font-weight:700;}
+.sec-sub{font-size:.7rem;color:var(--text2);margin-top:.1rem;}
+/* Quick links */
+.quick-link{display:flex;align-items:center;gap:.6rem;padding:.6rem .7rem;border-radius:9px;color:var(--text2);font-size:.8rem;font-weight:600;text-decoration:none;transition:all .18s;}
+.quick-link i{font-size:.8rem;color:var(--primary);width:16px;text-align:center;}
+.quick-link:hover{background:color-mix(in srgb,var(--primary) 7%,transparent);color:var(--text);}
+/* Modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:20px;padding:2rem;width:370px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-icon{width:56px;height:56px;border-radius:14px;font-size:1.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;}
+.modal-icon-danger{background:rgba(239,68,68,.12);color:#ef4444;}
+.modal-box h3{font-size:1.1rem;font-weight:800;margin-bottom:.4rem;}
+.modal-box p{color:var(--text2);font-size:.83rem;margin-bottom:1rem;}
+.confirm-type-wrap{text-align:left;margin-bottom:1.1rem;}
+.confirm-type-wrap label{display:block;margin-bottom:.35rem;}
+.confirm-type-wrap input{width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:9px;font-size:.86rem;color:var(--text);background:var(--surface);outline:none;}
+.confirm-type-wrap input:focus{border-color:#ef4444;}
+.modal-actions{display:flex;gap:.65rem;}
+.modal-btn{flex:1;padding:.6rem;border-radius:9px;border:none;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.modal-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.modal-cancel:hover{background:var(--border);}
+.modal-danger-confirm{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;}
+.modal-danger-confirm:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.modal-danger-confirm:not(:disabled):hover{transform:translateY(-1px);}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@media(max-width:1100px){.settings-layout{grid-template-columns:1fr;}.settings-left{position:static;}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .fgrid.cols2{grid-template-columns:1fr;}
+}
+</style>
+<script>
+/* Theme */
+var ROOT=document.getElementById('adminRoot');
+var saved=localStorage.getItem('adminTheme')||'light';
+if(saved==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  var dark=ROOT.getAttribute('data-theme')==='dark';var next=dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Dirty state */
+var isDirty=false;
+function markDirty(){if(!isDirty){isDirty=true;document.getElementById('unsavedPill').style.display='flex';}}
+window.addEventListener('beforeunload',function(e){if(isDirty){e.preventDefault();e.returnValue='';}});
+['formDatos','formPass'].forEach(function(id){
+  var f=document.getElementById(id);if(f)f.addEventListener('submit',function(){isDirty=false;});
+});
+/* Avatar sync */
+function syncAvatar(){
+  var v=document.getElementById('nombre').value;
+  document.getElementById('avatarCircle').textContent=v?v[0].toUpperCase():'A';
+  document.getElementById('pcardName').textContent=v||'—';
+}
+/* Profile completion */
+function updateCompletion(){
+  var fields=[
+    {id:'cs-nombre',val:document.getElementById('nombre').value.trim()},
+    {id:'cs-username',val:document.getElementById('username').value.trim()},
+    {id:'cs-email',val:document.getElementById('email').value.trim()},
+    {id:'cs-telefono',val:document.getElementById('telefono').value.trim()}
+  ];
+  var done=0;
+  fields.forEach(function(f){
+    var el=document.getElementById(f.id);
+    if(f.val){el.classList.add('done');done++;}else{el.classList.remove('done');}
+  });
+  var pct=Math.round((done/fields.length)*100);
+  document.getElementById('compFill').style.width=pct+'%';
+  document.getElementById('compPct').textContent=pct+'%';
+}
+/* Password show/hide */
+function togglePw(inputId,iconId){
+  var inp=document.getElementById(inputId);
+  var ic=document.getElementById(iconId);
+  if(inp.type==='password'){inp.type='text';ic.className='fas fa-eye-slash';}
+  else{inp.type='password';ic.className='fas fa-eye';}
+}
+/* Password strength */
+function checkStrength(){
+  var pw=document.getElementById('pass_nuevo').value;
+  var wrap=document.getElementById('strengthWrap');
+  var fill=document.getElementById('strengthFill');
+  var label=document.getElementById('strengthLabel');
+  if(!pw){wrap.style.display='none';return;}
+  wrap.style.display='flex';
+  var score=0;
+  var rLen=pw.length>=8;
+  var rUpper=/[A-Z]/.test(pw);
+  var rNum=/[0-9]/.test(pw);
+  var rSym=/[^A-Za-z0-9]/.test(pw);
+  if(rLen)score++;if(rUpper)score++;if(rNum)score++;if(rSym)score++;
+  // Update rules
+  setRule('rule-len',rLen);setRule('rule-upper',rUpper);setRule('rule-num',rNum);setRule('rule-sym',rSym);
+  var levels=[
+    {w:'15%',bg:'#ef4444',lbl:'Muy débil',lc:'#ef4444'},
+    {w:'40%',bg:'#f97316',lbl:'Débil',lc:'#f97316'},
+    {w:'65%',bg:'#f59e0b',lbl:'Regular',lc:'#d97706'},
+    {w:'85%',bg:'#10b981',lbl:'Fuerte',lc:'#059669'},
+    {w:'100%',bg:'#059669',lbl:'Muy fuerte',lc:'#059669'}
+  ];
+  var lv=levels[Math.min(score,4)];
+  fill.style.width=lv.w;fill.style.background=lv.bg;
+  label.textContent=lv.lbl;label.style.color=lv.lc;
+}
+function setRule(id,ok){
+  var el=document.getElementById(id);
+  if(ok){el.classList.add('ok');}else{el.classList.remove('ok');}
+}
+/* Password match */
+function checkMatch(){
+  var p1=document.getElementById('pass_nuevo').value;
+  var p2=document.getElementById('pass_confirmar').value;
+  var msg=document.getElementById('matchMsg');
+  if(!p2){msg.style.display='none';return;}
+  msg.style.display='flex';
+  if(p1===p2){
+    msg.className='match-msg match-ok';
+    msg.innerHTML='<i class="fas fa-check"></i>&nbsp; Las contraseñas coinciden';
+  } else {
+    msg.className='match-msg match-err';
+    msg.innerHTML='<i class="fas fa-times"></i>&nbsp; Las contraseñas no coinciden';
+  }
+}
+/* Delete account modal */
+function closeDelModal(){
+  document.getElementById('delAccModal').classList.remove('open');
+  document.getElementById('delConfirmInput').value='';
+  document.getElementById('delAccConfirmBtn').disabled=true;
+}
+function checkDelInput(){
+  var v=document.getElementById('delConfirmInput').value;
+  document.getElementById('delAccConfirmBtn').disabled=(v!=='ELIMINAR');
+}
+document.getElementById('delAccModal').addEventListener('click',function(e){if(e.target===this)closeDelModal();});
+document.getElementById('delAccConfirmBtn').addEventListener('click',function(){
+  closeDelModal();
+  showToast('Funcionalidad de eliminación — conectar al backend','#ef4444');
+});
+/* Toast */
+function showToast(msg,color){
+  color=color||'#6366f1';
+  var t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(function(){t.remove();},3800);
+}
+/* Init */
+updateCompletion();
+syncAvatar();
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

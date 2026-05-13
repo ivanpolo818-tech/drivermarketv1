@@ -1,0 +1,416 @@
+/* ================================================= */
+/* 💎 ESTILO PREMIUM: SOLICITUDES (KYC) */
+/* ================================================= */
+:root {
+    --bg-body: #f8fafc;
+    --card-bg: #ffffff;
+    --primary-blue: #2563eb;
+    --text-dark: #1e293b;
+    --text-gray: #64748b;
+    --border-light: #e2e8f0;
+    --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05);
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.08);
+    
+    --success-green: #10b981;
+    --danger-red: #ef4444;
+    --warning-amber: #f59e0b;
+}
+
+.admin-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* --- HEADER --- */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+}
+
+.page-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 0;
+}
+.page-subtitle {
+    color: var(--text-gray);
+    margin: 5px 0 0 0;
+}
+
+.header-badge {
+    background-color: #eff6ff;
+    padding: 10px 20px;
+    border-radius: 50px;
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+.count-badge {
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    margin-right: 5px;
+}
+
+/* --- GRID DE TARJETAS --- */
+.requests-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 30px;
+}
+
+.request-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.request-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+/* HEADER TARJETA */
+.card-header-status {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fcfcfc;
+}
+
+.shop-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.shop-icon {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, var(--primary-blue), #1d4ed8);
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.shop-name {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-dark);
+}
+
+.user-meta {
+    font-size: 0.9rem;
+    color: var(--text-gray);
+}
+
+.status-pill {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.status-pill.pending {
+    background-color: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
+/* CUERPO TARJETA */
+.card-body-grid {
+    padding: 25px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+.column-title {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--border-light);
+    padding-bottom: 8px;
+    width: fit-content;
+}
+
+/* Lista de Datos */
+.data-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.data-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.data-list li i {
+    color: var(--primary-blue);
+    background: #eff6ff;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.data-list .label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-gray);
+    font-weight: 600;
+}
+.data-list .value {
+    font-size: 1rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+.data-list .link { color: var(--primary-blue); text-decoration: none; }
+.data-list .link:hover { text-decoration: underline; }
+
+/* Galería de Fotos (KYC) */
+.kyc-gallery {
+    display: flex;
+    gap: 20px;
+}
+
+.kyc-item {
+    flex: 1;
+}
+
+.kyc-label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.kyc-preview {
+    display: block;
+    height: 120px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border: 2px solid var(--border-light);
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+}
+
+.kyc-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.kyc-preview .overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.kyc-preview:hover .overlay { opacity: 1; }
+.kyc-preview:hover img { transform: scale(1.1); }
+
+/* FOOTER & ACCIONES */
+.card-footer-actions {
+    padding: 20px 25px;
+    background: #f8fafc;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.description-box {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text-gray);
+    border-left: 3px solid var(--border-light);
+    padding-left: 15px;
+}
+.description-box .label { font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 3px; }
+.description-box p { margin: 0; font-style: italic; }
+
+.actions-row {
+    display: flex;
+    gap: 15px;
+}
+
+.action-form { margin: 0; }
+
+button {
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-reject {
+    background: #fef2f2;
+    color: var(--danger-red);
+    border: 1px solid #fecaca;
+}
+.btn-reject:hover { background: #fee2e2; }
+
+.btn-approve {
+    background: var(--success-green);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+.btn-approve:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+/* EMPTY STATE */
+.empty-state-container {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+}
+.empty-icon-bg {
+    width: 80px; height: 80px;
+    background: #f0fdf4;
+    color: var(--success-green);
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+}
+.btn-back {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 25px;
+    background: var(--primary-blue);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-body-grid { grid-template-columns: 1fr; gap: 20px; }
+    .card-footer-actions { flex-direction: column; align-items: stretch; }
+    .actions-row { flex-direction: column; }
+    .btn-approve, .btn-reject { justify-content: center; width: 100%; }
+}
+
+
+/* ================================================= */
+/* 🛑 CORRECCIÓN: ENCABEZADO ESTÁTICO (NO FLOTANTE) */
+/* ================================================= */
+
+.panel-header-flex,
+.panel-header {
+    /* 1. Anclaje total: Elimina cualquier comportamiento sticky o fixed */
+    position: static !important;
+    transform: none !important;
+    z-index: 0 !important;
+
+    /* 2. Eliminar estilo de "tarjeta flotante" */
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    
+    /* 3. Ajustes de ubicación */
+    top: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    margin-bottom: 30px !important;
+    padding: 0 !important;
+    
+    /* 4. Línea separadora elegante (Igual que en Favoritos) */
+    border-bottom: 2px solid #e2e8f0 !important;
+    padding-bottom: 15px !important;
+}
+
+/* Ajuste para que el título no tenga márgenes extraños */
+.panel-title {
+    margin-top: 0 !important;
+    line-height: 1.2;
+}
+
+
+
+/* ================================================= */
+/* 🛑 SOLUCIÓN DEFINITIVA: HEADER ESTÁTICO (NO TOCAR) */
+/* ================================================= */
+
+/* Apuntamos a la etiqueta header y a la clase específica */
+header.panel-header-flex,
+.panel-header-flex,
+.panel-header {
+    /* 1. DESACTIVAR MOVIMIENTO */
+    position: static !important; /* Esto mata el 'sticky' o 'fixed' */
+    transform: none !important;  /* Elimina transformaciones 3D */
+    z-index: 0 !important;       /* Lo baja de nivel */
+    
+    /* 2. ELIMINAR DISEÑO DE TARJETA FLOTANTE */
+    background: transparent !important;      /* Sin fondo blanco */
+    background-color: transparent !important;
+    box-shadow: none !important;             /* Sin sombras */
+    border: none !important;                 /* Sin bordes de caja */
+    
+    /* 3. AJUSTAR ESPACIADO PARA QUE SE VEA LIMPIO */
+    width: 100% !important;
+    margin: 0 0 30px 0 !important;
+    padding: 0 0 20px 0 !important; /* Solo padding abajo */
+    
+    /* 4. LÍNEA DECORATIVA (Igual a Favoritos) */
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+
+/* Asegurar que el título H1 no empuje hacia abajo */
+.panel-header-flex h1,
+.panel-title {
+    margin-top: 0 !important;
+}

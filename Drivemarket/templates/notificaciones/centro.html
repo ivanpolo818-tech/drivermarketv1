@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Notificaciones | DriveMarket Elite{% endblock %}
+
+{% block head %}
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/notificaciones_elite.css') }}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<div class="elite-dashboard-wrapper">
+
+    <!-- ── SIDEBAR (DASHBOARD) ── -->
+    <aside class="elite-sidebar">
+        <div class="sidebar-profile">
+            <div class="profile-avatar">
+                {% if usuario and usuario.foto %}
+                    <img src="{{ url_for('static', filename='uploads/usuarios/' + usuario.foto) }}" alt="Avatar">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/default_user.png') }}" alt="Avatar Default">
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <span class="profile-role">Gestión de Cuenta</span>
+                <span class="profile-name">{{ usuario.nombre if usuario else session.get('nombre', 'Usuario') }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Mi Cuenta</div>
+            <a href="{{ url_for('users.perfil') }}" class="menu-item">
+                <i class='bx bx-id-card'></i> Información Personal
+            </a>
+            <a href="{{ url_for('users.mis_vehiculos') }}" class="menu-item">
+                <i class='bx bx-car'></i> Mis Vehículos
+            </a>
+            <a href="{{ url_for('users.favoritos') }}" class="menu-item">
+                <i class='bx bx-heart'></i> Guardados
+            </a>
+            {% if session.get('rol') == 'vendedor' %}
+            <a href="{{ url_for('vendedor.dashboard') }}" class="menu-item">
+                <i class='bx bx-store-alt'></i> Dashboard Vendedor
+            </a>
+            {% endif %}
+            
+            <a href="{{ url_for('mensajes.centro_mensajes') }}" class="menu-item">
+                <i class='bx bx-message-square-dots'></i> Bandeja de Entrada
+                {% if mensajes_no_leidos and mensajes_no_leidos > 0 %}
+                    <span class="badge-pulse" style="margin-left: auto;">{{ mensajes_no_leidos }}</span>
+                {% endif %}
+            </a>
+
+            <a href="{{ url_for('notificaciones.centro_notificaciones') }}" class="menu-item active">
+                <i class='bx bx-bell'></i> Notificaciones
+                {% if total_no_leidas and total_no_leidas > 0 %}
+                    <span class="badge-pulse" style="margin-left: auto;">{{ total_no_leidas }}</span>
+                {% endif %}
+            </a>
+            
+            <div class="menu-divider" style="height:1px; background:var(--c-border); margin:16px 12px;"></div>
+            <a href="{{ url_for('users.ajustes') }}" class="menu-item">
+                <i class='bx bx-cog'></i> Ajustes
+            </a>
+            <a href="{{ url_for('logout') }}" class="menu-item danger">
+                <i class='bx bx-log-out-circle'></i> Cerrar Sesión
+            </a>
+        </nav>
+    </aside>
+
+    <!-- ── CONTENIDO PRINCIPAL ── -->
+    <main class="elite-main-content">
+        
+        <header style="margin-bottom: 24px;">
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--c-text); letter-spacing: -0.02em; display: flex; align-items: center; gap: 12px;">
+                <i class='bx bx-bell' style="color: var(--c-brand); background: #fff7ed; width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center;"></i>
+                Centro de Notificaciones
+            </h1>
+            <p style="color: var(--c-text-muted); font-size: 0.88rem; font-weight: 600; margin-top: 4px;">Mantente al día con tu actividad, mensajes y ofertas en DriveMarket.</p>
+        </header>
+
+        <!-- ── FILA DE MÉTRICAS (Forced 4 columns for parity) ── -->
+        <div class="metric-row">
+            <div class="metric-card">
+                <div class="m-icon orange">
+                    <i class='bx bx-bell-off'></i>
+                </div>
+                <div class="m-data">
+                    <h3 id="countNoLeidas">{{ total_no_leidas }}</h3>
+                    <p>Sin leer</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="m-icon blue">
+                    <i class='bx bx-notification'></i>
+                </div>
+                <div class="m-data">
+                    <h3>{{ total_notificaciones }}</h3>
+                    <p>Total notif.</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="m-icon green">
+                    <i class='bx bx-envelope'></i>
+                </div>
+                <div class="m-data">
+                    <h3>{{ mensajes_no_leidos }}</h3>
+                    <p>Mjes. no leídos</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="m-icon purple">
+                    <i class='bx bx-question-circle'></i>
+                </div>
+                <div class="m-data">
+                    <h3>{{ consultas_pendientes }}</h3>
+                    <p>Consultas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── BARRA DE FILTROS ── -->
+        <div class="filter-bar">
+            <span class="filter-label">Filtrar:</span>
+            <button class="filter-btn active" data-filter="all">Todas</button>
+            <button class="filter-btn" data-filter="mensaje_nuevo">Mensajes</button>
+            <button class="filter-btn" data-filter="consulta">Consultas</button>
+            <button class="filter-btn" data-filter="sistema">Sistema</button>
+            
+            <div style="margin-left: auto; display: flex; gap: 8px;">
+                <button class="nc-btn" id="markAllRead" title="Marcar todas como leídas"><i class='bx bx-check-double'></i></button>
+                <button class="nc-btn danger" id="deleteAllBtn" title="Eliminar todas"><i class='bx bx-trash'></i></button>
+            </div>
+        </div>
+
+        <!-- ── FEED DE NOTIFICACIONES ── -->
+        <div class="notif-feed" id="notifList">
+            {% if notificaciones %}
+                {% for notif in notificaciones %}
+                    {% set color = tipos_notificaciones[notif.tipo].color if notif.tipo in tipos_notificaciones else 'secondary' %}
+                    {% set icon  = tipos_notificaciones[notif.tipo].icono if notif.tipo in tipos_notificaciones else 'bx-bell' %}
+                    {% set nombre= tipos_notificaciones[notif.tipo].nombre if notif.tipo in tipos_notificaciones else notif.tipo %}
+                    
+                    <!-- FontAwesome to BoxIcons map for Elite Style -->
+                    {% set bx_icon = 'bx-tag' if icon == 'fa-tag' else 
+                                   'bx-envelope' if icon == 'fa-envelope' else 
+                                   'bx-heart' if icon == 'fa-heart' else 
+                                   'bx-car' if icon == 'fa-car' else 
+                                   'bx-cog' if icon == 'fa-cog' else 
+                                   'bx-question-circle' if icon == 'fa-question-circle' else 'bx-bell' %}
+
+                    <div class="notif-card {% if not notif.leida %}unread{% endif %}" 
+                         data-id="{{ notif.id }}" 
+                         data-tipo="{{ notif.tipo }}">
+                        
+                        <div class="nc-icon {{ color }}">
+                            <i class='bx {{ bx_icon }}'></i>
+                        </div>
+                        
+                        <div class="nc-content">
+                            <div class="nc-header">
+                                <div class="nc-title">{{ notif.titulo }}</div>
+                                <div class="nc-time"><i class='bx bx-time-five'></i> {{ notif.tiempo_transcurrido }}</div>
+                            </div>
+                            <p class="nc-message">{{ notif.mensaje }}</p>
+                            <div class="nc-footer">
+                                <span class="nc-tag">{{ nombre }}</span>
+                                {% if notif.url_accion %}
+                                <a href="{{ notif.url_accion }}" class="nc-action">
+                                    Ver detalle <i class='bx bx-right-arrow-alt'></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Acciones Rápidas -->
+                        <div class="nc-hover-actions">
+                            {% if not notif.leida %}
+                            <button class="nc-btn mark-read btn-mark-read" title="Marcar como leída">
+                                <i class='bx bx-check'></i>
+                            </button>
+                            {% endif %}
+                            <button class="nc-btn danger btn-delete-notification" title="Eliminar">
+                                <i class='bx bx-trash'></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align:center; padding: 60px 20px; background:#fff; border-radius:24px; border:1px solid var(--c-border);">
+                    <div style="font-size: 4rem; color: #e2e8f0; margin-bottom: 20px;"><i class='bx bx-notification-off'></i></div>
+                    <h3 style="font-weight: 800; color: var(--c-text);">Bandeja impecable</h3>
+                    <p style="color: var(--c-text-muted);">No tienes notificaciones pendientes. Todo está bajo control.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </main>
+</div>
+
+<!-- ── SCRIPTS ── -->
+<script>
+// Click individual: Marcar como leída
+document.addEventListener('click', (e) => {
+    const markReadBtn = e.target.closest('.btn-mark-read');
+    if (markReadBtn) {
+        const card = markReadBtn.closest('.notif-card');
+        const id = card.dataset.id;
+        fetch(`/notificaciones/marcar-leida/${id}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    card.classList.remove('unread');
+                    markReadBtn.remove();
+                    const count = document.getElementById('countNoLeidas');
+                    if(count) count.innerText = Math.max(0, parseInt(count.innerText) - 1);
+                }
+            });
+    }
+
+    const deleteBtn = e.target.closest('.btn-delete-notification');
+    if (deleteBtn) {
+        if(!confirm('¿Eliminar esta notificación?')) return;
+        const card = deleteBtn.closest('.notif-card');
+        const id = card.dataset.id;
+        fetch(`/notificaciones/eliminar/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateX(20px)';
+                    setTimeout(() => card.remove(), 300);
+                }
+            });
+    }
+});
+
+// Acciones Masivas
+document.getElementById('markAllRead')?.addEventListener('click', () => {
+    if(!confirm('¿Marcar todas como leídas?')) return;
+    fetch('/notificaciones/marcar-todas-leidas', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) location.reload();
+        });
+});
+
+document.getElementById('deleteAllBtn')?.addEventListener('click', () => {
+    if(!confirm('¿Estás seguro de que deseas eliminar TODO el historial de notificaciones?')) return;
+    fetch('/notificaciones/eliminar-todas', { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) location.reload();
+        });
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const filter = btn.dataset.filter;
+        
+        document.querySelectorAll('.notif-card').forEach(card => {
+            if(filter === 'all' || card.dataset.tipo === filter) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    if(mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.elite-sidebar');
+            if(sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const chevron = document.getElementById('toggleChevron');
+                if(sidebar.classList.contains('show-mobile')) {
+                    chevron.style.transform = 'rotate(180deg)';
+                    mobileToggle.style.borderColor = 'var(--c-brand)';
+                } else {
+                    chevron.style.transform = 'rotate(0deg)';
+                    mobileToggle.style.borderColor = 'var(--c-border)';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    if(mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.elite-sidebar');
+            if(sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const chevron = document.getElementById('toggleChevron');
+                if(sidebar.classList.contains('show-mobile')) {
+                    chevron.style.transform = 'rotate(180deg)';
+                    mobileToggle.style.borderColor = 'var(--c-brand)';
+                } else {
+                    chevron.style.transform = 'rotate(0deg)';
+                    mobileToggle.style.borderColor = 'var(--c-border)';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

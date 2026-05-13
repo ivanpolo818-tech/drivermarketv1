@@ -1,0 +1,1992 @@
+{% extends "base.html" %}
+{% block title %}Drive Market — Compra y Venta de Vehículos{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/inicio.css') }}">
+
+  <!-- BANNER CAROUSEL COMPACTO -->
+  <section class="banner-carousel" id="bannerCarousel">
+    <div class="banner-slides">
+      
+      <!-- Slide 1: Promo Nissan Qashqai o similar -->
+      <div class="banner-slide active" style="cursor: pointer;" onclick="window.location.href='{{ url_for('buscar') }}?q='">
+        <div class="banner-bg">
+          <img src="{{ url_for('static', filename='img/publicidades/driver.png') }}" alt="Nueva Promo">
+          <div class="banner-overlay left-grad"></div>
+        </div>
+        <div class="banner-content left-align">
+          <p class="banner-eyebrow">ESTO ES DRIVE MARKET</p>
+          <h2 class="banner-title">ENCUENTRA TU<br><em>CARRO IDEAL Y</em><br>LLEGA A DONDE QUIERAS</h2>
+          <div class="banner-features">
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Garantía</span>
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> Revisión Express</span>
+            <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Compra Segura</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: Promo Vender -->
+      <div class="banner-slide" style="cursor: pointer;" onclick="window.location.href='{{ url_for('vender') }}'">
+        <div class="banner-bg">
+          <img src="https://images.pexels.com/photos/36730206/pexels-photo-36730206.jpeg?_gl=1*grktc3*_ga*ODYxNTAyMzI0LjE3NzU1NDQxMzY.*_ga_8JE65Q40S6*czE3NzU1NDQxMzUkbzEkZzEkdDE3NzU1NDQyOTUkajU5JGwwJGgw=80&w=2000" alt="Vende tu auto">
+          <div class="banner-overlay right-grad"></div>
+        </div>
+        <div class="banner-content right-align">
+          <p class="banner-eyebrow">OFERTA EXCLUSIVA</p>
+          <h2 class="banner-title">VENDE TU AUTO<br><em>SIN COMISIÓN</em><br>SOLO ESTE MES</h2>
+          <div class="btn-wrap">
+             <span class="btn-primary mt-4">Publicar ahora gratis</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: Colección Premium -->
+      <div class="banner-slide" style="cursor: pointer;" onclick="window.location.href='{{ url_for('perfil_publico', id=12) }}'">
+        <div class="banner-bg">
+          <img src="https://images.unsplash.com/photo-1643142315009-1e1dcd05a49b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Premium">
+          <div class="banner-overlay center-grad"></div>
+        </div>
+        <div class="banner-content center-align">
+          <p class="banner-eyebrow">COLECCIÓN ÉLITE</p>
+          <h2 class="banner-title">EL PODER DE LO<br><em>EXCLUSIVO</em></h2>
+          <div class="btn-wrap"><span class="btn-outline white mt-4">Ver Catálogo Premium</span></div>
+        </div>
+      </div>
+
+      <!-- Slide 4: IA Assist -->
+      <div class="banner-slide" id="ai-banner-trigger" data-trigger="ai-chat" style="cursor: pointer; z-index: 10;">
+        <div class="banner-bg">
+          <img src="https://images.unsplash.com/photo-1770233621425-5d9ee7a0a700?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="AI Search">
+          <div class="banner-overlay left-grad"></div>
+        </div>
+        <div class="banner-content left-align">
+          <p class="banner-eyebrow">INNOVACIÓN DRIVE MARKET</p>
+          <h2 class="banner-title">TU ASISTENTE CON<br><em>INTELIGENCIA ARTIFICIAL</em><br>BUSCA POR TI</h2>
+          <div class="btn-wrap">
+             <span class="btn-primary mt-4" data-trigger="ai-chat">Probar el asistente inteligente</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Indicadores Banner -->
+    <div class="banner-dots">
+      <button class="b-dot active" data-index="0"></button>
+      <button class="b-dot" data-index="1"></button>
+      <button class="b-dot" data-index="2"></button>
+      <button class="b-dot" data-index="3"></button>
+    </div>
+  </section>
+
+  <!-- NUEVO HUB DE ACCIÓN (COMPRA / VENDE) -->
+  <section class="action-hub-section reveal-fade-up" style="overflow: visible !important; z-index: 50; position: relative;">
+    <div class="action-hub-inner glass-panel" style="overflow: visible !important; position: relative;">
+      <div class="ah-panel" style="overflow: visible !important;">
+        
+        <!-- Zona Comprar -->
+        <div class="ah-buy">
+          <div class="ah-header">
+            <h3><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg> Encuentra tu vehículo</h3>
+            <p>Miles de opciones verificadas a tu disposición.</p>
+          </div>
+          <style>
+            /* --- Custom Dropdown Unified Style --- */
+            .dm-dropdown-container { position: relative; user-select: none; z-index: 10; flex: 1; min-width: 154px; }
+            .dm-dropdown-container.active-z { z-index: 1001; }
+            
+            .dm-dropdown-btn { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px 16px; cursor: pointer; color: var(--text); font-size: 15px; transition: all 0.2s; height: 50px; position: relative; z-index: 1; }
+            .dm-dropdown-btn:hover { border-color: var(--acc); }
+            .dm-dropdown-btn.active { border-color: var(--acc); box-shadow: 0 0 10px var(--acc-glow); }
+            .dm-dropdown-btn.disabled { opacity: 0.6; cursor: not-allowed; background: #f8fafc; }
+            
+            .dm-dropdown-menu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #fff; border-radius: 14px; box-shadow: 0 15px 40px rgba(0,0,0,0.18); border: 1px solid var(--bd); z-index: 1000; display: none; flex-direction: column; overflow: hidden; opacity: 0; transform: translateY(-10px); transition: all 0.2s var(--ease-out); min-width: 260px; }
+            .dm-dropdown-menu.show { display: flex; opacity: 1; transform: translateY(0); }
+            
+            .dm-search-area { padding: 14px; border-bottom: 1px solid #f1f5f9; position: relative; background: #fff; z-index: 2; }
+            .dm-search-area i { position: absolute; left: 28px; top: 50%; transform: translateY(-50%); color: var(--txt3); font-size: 14px; pointer-events: none; }
+            .dm-search-area input { width: 100%; padding: 10px 10px 10px 44px; border: 1px solid #e2e8f0; border-radius: 50px; font-size: 14px; outline: none; transition: 0.2s; background: #f8fafc; }
+            .dm-search-area input:focus { border-color: #007bff; background: #fff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.08); }
+            
+            .dm-list { list-style: none; margin: 0; padding: 8px 0; max-height: 320px; overflow-y: auto; position: relative; z-index: 1; }
+            .dm-list::-webkit-scrollbar { width: 6px; }
+            .dm-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+            .dm-list li { padding: 12px 20px; font-size: 15px; color: var(--txt); cursor: pointer; transition: 0.15s; font-weight: 400; display: flex; align-items: center; gap: 14px; border-left: 3px solid transparent; }
+            .dm-list li:hover { background: #f1f5f9; color: #007bff; border-left-color: #007bff; }
+            .dm-list li.selected { background: #eff6ff; color: #007bff; font-weight: 600; border-left-color: #007bff; }
+            
+            .dm-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 15px; flex-shrink: 0; }
+            .dm-logo { width: 26px; height: 26px; object-fit: contain; }
+            .dm-logo-placeholder { width: 26px; height: 26px; background: #e2e8f0; color: #475569; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; border-radius: 6px; flex-shrink: 0; }
+            
+            .ah-field label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 700; color: var(--txt3); text-transform: uppercase; letter-spacing: 0.8px; }
+          </style>
+
+          <form class="ah-form" action="{{ url_for('buscar') }}" method="GET" style="overflow: visible !important;">
+            <div class="ah-row" style="overflow: visible !important;">
+              
+              <!-- TIPO -->
+              <div class="ah-field dm-dropdown-container" data-field="tipo">
+                <label>Tipo</label>
+                <input type="hidden" name="tipo" value="">
+                <div class="dm-dropdown-btn">
+                  <span class="selected-text">Cualquier tipo</span>
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dm-dropdown-menu">
+                  <ul class="dm-list">
+                    <li data-value="" class="selected"><div class="dm-icon"><i class="fas fa-th-large"></i></div> <span class="opt-name">Cualquier tipo</span></li>
+                    <li data-value="1"><div class="dm-icon"><i class="fas fa-car-side"></i></div> <span class="opt-name">Carros</span></li>
+                    <li data-value="2"><div class="dm-icon"><i class="fas fa-motorcycle"></i></div> <span class="opt-name">Motos</span></li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- MARCA -->
+              <div class="ah-field dm-dropdown-container" data-field="marca">
+                <label>Marca</label>
+                <input type="hidden" name="marca" value="">
+                <div class="dm-dropdown-btn">
+                  <span class="selected-text">Todas las marcas</span>
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dm-dropdown-menu">
+                  <div class="dm-search-area">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar marca">
+                  </div>
+                  <ul class="dm-list">
+                    <li data-value="" class="selected">Todas las marcas</li>
+                    {% for m in todas_las_marcas %}
+                    <li data-value="{{ m.nombre }}" data-id="{{ m.id }}">
+                      {% if m.logo %}
+                        <img src="{{ url_for('static', filename='img/logos/' ~ m.logo) }}" alt="{{ m.nombre }}" class="dm-logo" onerror="this.onerror=null; this.parentElement.insertAdjacentHTML('afterbegin', '<span class=\'dm-logo-placeholder\'>{{ m.nombre[0] }}</span>'); this.remove();">
+                      {% else %}
+                        <span class="dm-logo-placeholder">{{ m.nombre[0] }}</span>
+                      {% endif %}
+                      <span class="opt-name">{{ m.nombre }}</span>
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="ah-row" style="overflow: visible !important;">
+              <!-- MODELO -->
+              <div class="ah-field dm-dropdown-container" data-field="modelo">
+                <label>Línea / Modelo</label>
+                <input type="hidden" name="modelo" value="">
+                <div class="dm-dropdown-btn disabled">
+                  <span class="selected-text">Primero elige marca</span>
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dm-dropdown-menu">
+                  <div class="dm-search-area">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar modelo">
+                  </div>
+                  <ul class="dm-list">
+                    <li data-value="" class="selected">Cualquier modelo</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- AÑO -->
+              <div class="ah-field dm-dropdown-container" data-field="anio">
+                <label>Año Mínimo</label>
+                <input type="hidden" name="anio" value="">
+                <div class="dm-dropdown-btn">
+                  <span class="selected-text">Todos los años</span>
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="dm-dropdown-menu">
+                  <div class="dm-search-area">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Buscar año">
+                  </div>
+                  <ul class="dm-list">
+                    <li data-value="" class="selected"><div class="dm-icon"><i class="fas fa-calendar-check"></i></div> <span class="opt-name">Todos los años</span></li>
+                    {% for y in range(2025, 2010, -1) %}
+                    <li data-value="{{ y }}"><div class="dm-icon"><i class="far fa-calendar"></i></div> <span class="opt-name">{{ y }}</span></li>
+                    {% endfor %}
+                    <li data-value="2010"><div class="dm-icon"><i class="fas fa-history"></i></div> <span class="opt-name">2010 - 2014</span></li>
+                    <li data-value="1900"><div class="dm-icon"><i class="fas fa-hourglass-start"></i></div> <span class="opt-name">Antes de 2010</span></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="ah-btn-search">
+              Buscar Ofertas <i class="fas fa-search" style="margin-left: 10px;"></i>
+            </button>
+          </form>
+
+          <script>
+            document.addEventListener('DOMContentLoaded', () => {
+              
+              // --- GENERIC DROPDOWN HANDLER ---
+              function setupDropdown(container) {
+                const fieldName = container.getAttribute('data-field');
+                const btn = container.querySelector('.dm-dropdown-btn');
+                const menu = container.querySelector('.dm-dropdown-menu');
+                const list = container.querySelector('.dm-list');
+                const hiddenInput = container.querySelector('input[type="hidden"]');
+                const selectedText = container.querySelector('.selected-text');
+                const searchInput = container.querySelector('.dm-search-area input');
+
+                if(!btn || !menu) return;
+
+                // Open/Close
+                btn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  if(btn.classList.contains('disabled')) return;
+                  
+                  const isShowing = menu.classList.contains('show');
+                  
+                  // Reset all others
+                  document.querySelectorAll('.dm-dropdown-menu').forEach(m => m.classList.remove('show'));
+                  document.querySelectorAll('.dm-dropdown-btn').forEach(b => b.classList.remove('active'));
+                  document.querySelectorAll('.dm-dropdown-container').forEach(c => c.classList.remove('active-z'));
+                  
+                  if(!isShowing) {
+                    menu.classList.add('show');
+                    btn.classList.add('active');
+                    container.classList.add('active-z');
+                    if(searchInput) searchInput.focus();
+                  }
+                });
+
+                // Selection
+                list.addEventListener('click', (e) => {
+                  const li = e.target.closest('li');
+                  if(!li) return;
+
+                  list.querySelectorAll('li').forEach(i => i.classList.remove('selected'));
+                  li.classList.add('selected');
+
+                  const val = li.getAttribute('data-value');
+                  const name = li.querySelector('.opt-name')?.textContent || li.textContent;
+                  const id = li.getAttribute('data-id');
+
+                  hiddenInput.value = val;
+                  selectedText.textContent = name;
+                  menu.classList.remove('show');
+                  btn.classList.remove('active');
+
+                  // Cascading Logic: Tipo -> Marcas
+                  if(fieldName === 'tipo') {
+                    updateBrands(val);
+                  }
+                  // Cascading Logic: Marca -> Modelos
+                  if(fieldName === 'marca') {
+                    updateModels(id);
+                  }
+                });
+
+                // Search Filter
+                if(searchInput) {
+                  searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    list.querySelectorAll('li').forEach(li => {
+                      const txt = li.querySelector('.opt-name')?.textContent.toLowerCase() || li.textContent.toLowerCase();
+                      li.style.display = txt.includes(term) ? 'flex' : 'none';
+                    });
+                  });
+                }
+              }
+
+              // Initialize all dropdowns
+              const allDropdowns = document.querySelectorAll('.dm-dropdown-container');
+              allDropdowns.forEach(setupDropdown);
+
+              // Close on outside click
+              document.addEventListener('click', () => {
+                document.querySelectorAll('.dm-dropdown-menu').forEach(m => m.classList.remove('show'));
+                document.querySelectorAll('.dm-dropdown-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.dm-dropdown-container').forEach(c => c.classList.remove('active-z'));
+              });
+
+              // Save default HTML for Brands
+              const marcaDropdown = document.querySelector('[data-field="marca"]');
+              const defaultBrandsHTML = marcaDropdown?.querySelector('.dm-list')?.innerHTML;
+
+              // --- AJAX UPDATES ---
+              function updateBrands(tipoId) {
+                const marcaCont = document.querySelector('[data-field="marca"]');
+                const list = marcaCont.querySelector('.dm-list');
+                const selectedText = marcaCont.querySelector('.selected-text');
+                const hiddenInput = marcaCont.querySelector('input[type="hidden"]');
+                
+                // Reset
+                hiddenInput.value = "";
+                selectedText.textContent = "Todas las marcas";
+                resetModels();
+
+                if(!tipoId) {
+                  list.innerHTML = defaultBrandsHTML;
+                  return;
+                }
+
+                list.innerHTML = '<li style="padding: 20px; justify-content: center; color: var(--txt3);">Cargando...</li>';
+
+                fetch(`/obtener_marcas/${tipoId}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    let html = `<li data-value="" class="selected"><span class="opt-name">Todas las marcas</span></li>`;
+                    if(data && data.length > 0) {
+                      data.forEach(m => {
+                        const logoHtml = m.logo 
+                          ? `<img src="/static/img/logos/${m.logo}" alt="${m.nombre}" class="dm-logo" onerror="this.onerror=null; this.parentElement.insertAdjacentHTML('afterbegin', '<span class=\'dm-logo-placeholder\'>${m.nombre[0]}</span>'); this.remove();">`
+                          : `<span class="dm-logo-placeholder">${m.nombre[0]}</span>`;
+                        html += `<li data-value="${m.nombre}" data-id="${m.id}">${logoHtml} <span class="opt-name">${m.nombre}</span></li>`;
+                      });
+                    } else {
+                      html = '<li style="padding: 20px; justify-content: center;">No hay marcas</li>';
+                    }
+                    list.innerHTML = html;
+                  });
+              }
+
+              function updateModels(marcaId) {
+                const modeloCont = document.querySelector('[data-field="modelo"]');
+                const btn = modeloCont.querySelector('.dm-dropdown-btn');
+                const list = modeloCont.querySelector('.dm-list');
+                const selectedText = modeloCont.querySelector('.selected-text');
+                const hiddenInput = modeloCont.querySelector('input[type="hidden"]');
+
+                if(!marcaId) {
+                  resetModels();
+                  return;
+                }
+
+                btn.classList.remove('disabled');
+                selectedText.textContent = "Cualquier modelo";
+                list.innerHTML = '<li style="padding: 20px; justify-content: center;">Cargando...</li>';
+
+                fetch(`/obtener_modelos/${marcaId}`)
+                  .then(res => res.json())
+                  .then(data => {
+                    let html = `<li data-value="" class="selected"><div class="dm-icon"><i class="fas fa-tags"></i></div> <span class="opt-name">Cualquier modelo</span></li>`;
+                    if(data && data.length > 0) {
+                      data.forEach(m => {
+                        html += `<li data-value="${m.nombre}"><div class="dm-icon"><i class="fas fa-road"></i></div> <span class="opt-name">${m.nombre}</span></li>`;
+                      });
+                    } else {
+                      html = '<li style="padding: 20px; justify-content: center;">N/A</li>';
+                    }
+                    list.innerHTML = html;
+                  });
+              }
+
+              function resetModels() {
+                const modeloCont = document.querySelector('[data-field="modelo"]');
+                const btn = modeloCont.querySelector('.dm-dropdown-btn');
+                const list = modeloCont.querySelector('.dm-list');
+                const selectedText = modeloCont.querySelector('.selected-text');
+                const hiddenInput = modeloCont.querySelector('input[type="hidden"]');
+
+                btn.classList.add('disabled');
+                selectedText.textContent = "Primero elige marca";
+                hiddenInput.value = "";
+                list.innerHTML = `<li data-value="" class="selected">Primero elige marca</li>`;
+              }
+            });
+          </script>
+        </div>
+
+        <!-- Divisor vertical -->
+        <div class="ah-divider"></div>
+
+        <!-- Zona Vender -->
+        <div class="ah-sell">
+          <div class="ah-header">
+            <h3><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Vende rápido y seguro</h3>
+            <p>Elige el método que mejor se adapte a ti.</p>
+          </div>
+          <div class="ah-sell-options">
+            
+            <a href="{{ url_for('vender') }}" class="ah-sell-card">
+              <div class="ah-sc-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              </div>
+              <div class="ah-sc-text">
+                <h4>Lo hacemos por ti</h4>
+                <p>Nos encargamos de todo el proceso de venta de principio a fin.</p>
+              </div>
+              <div class="ah-sc-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+            </a>
+
+            <a href="{{ url_for('vender') }}" class="ah-sell-card">
+              <div class="ah-sc-icon outline">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="ah-sc-text">
+                <h4>Véndelo tú mismo</h4>
+                <p>Publica gratis, conecta y negocia directamente con compradores.</p>
+              </div>
+              <div class="ah-sc-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+            </a>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN: PROMOCIONES — Rediseño Premium
+  ═══════════════════════════════════════════════════════ -->
+  <section class="promo-v2-section" id="promociones">
+    <style>
+      /* ── Wrapper ─────────────────────────────────── */
+      .promo-v2-section {
+        padding: 48px 0;
+        background: #f8fafc;
+        position: relative;
+        overflow: hidden;
+      }
+      .promo-v2-section::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, #FF6B1A, #ff9345, #fbbf24, #FF6B1A);
+        background-size: 300% auto;
+        animation: promo-shimmer 4s linear infinite;
+      }
+      @keyframes promo-shimmer { 0%{background-position:0%} 100%{background-position:300%} }
+
+      .promo-v2-inner {
+        max-width: 1180px; margin: 0 auto; padding: 0 24px;
+      }
+
+      /* ── Section Header ──────────────────────────── */
+      .promo-v2-header {
+        display: flex; align-items: flex-end; justify-content: space-between;
+        margin-bottom: 36px; gap: 20px; flex-wrap: wrap;
+      }
+      .promo-v2-title-group { }
+      .promo-v2-eyebrow {
+        display: inline-flex; align-items: center; gap: 7px;
+        color: #FF6B1A; font-size: 12px; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+      }
+      .promo-v2-eyebrow span { width:16px; height:2px; background:#FF6B1A; border-radius:2px; }
+      .promo-v2-title {
+        font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 900; color: #0f172a;
+        line-height: 1.2; margin: 0;
+      }
+      .promo-v2-title em { font-style: normal; color: #FF6B1A; }
+
+      .promo-v2-nav-btns {
+        display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+      }
+      .promo-nav-btn {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: #fff; border: 1.5px solid #e2e8f0;
+        color: #334155; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.25s cubic-bezier(.34,1.56,.64,1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      }
+      .promo-nav-btn:hover {
+        background: #FF6B1A; border-color: #FF6B1A; color: #fff;
+        transform: scale(1.08);
+        box-shadow: 0 6px 18px rgba(255,107,26,0.3);
+      }
+
+      /* ── Track ───────────────────────────────────── */
+      .promo-v2-track-wrap { position: relative; overflow: hidden; border-radius: 24px; }
+
+      /* Progress bar */
+      .promo-v2-progress {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        height: 3px; background: rgba(255,255,255,0.15); z-index: 20;
+      }
+      .promo-v2-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #FF6B1A, #ff9345);
+        border-radius: 3px;
+        width: 33.33%;
+        transition: width 0.4s ease;
+      }
+
+      .promo-v2-track {
+        display: flex;
+        transition: transform 0.55s cubic-bezier(0.77, 0, 0.175, 1);
+        will-change: transform;
+      }
+
+      /* ── Slide ───────────────────────────────────── */
+      .promo-v2-slide {
+        flex: 0 0 100%;
+        position: relative;
+        display: block;
+        text-decoration: none;
+        overflow: hidden;
+        cursor: pointer;
+        height: 340px;
+        border-radius: 24px;
+      }
+      .promo-v2-slide-img {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.7s ease;
+        will-change: transform;
+      }
+      .promo-v2-slide:hover .promo-v2-slide-img { transform: scale(1.06); }
+
+      /* Multi-layer gradient for depth */
+      .promo-v2-slide-overlay {
+        position: absolute; inset: 0;
+        background:
+          linear-gradient(to right, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.08) 75%, rgba(0,0,0,0) 100%),
+          linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 40%);
+        transition: background 0.3s;
+      }
+      .promo-v2-slide:hover .promo-v2-slide-overlay {
+        background:
+          linear-gradient(to right, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.12) 75%, rgba(0,0,0,0) 100%),
+          linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 40%);
+      }
+
+      /* Content */
+      .promo-v2-content {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column; justify-content: center;
+        padding: 36px 52px;
+        max-width: 580px;
+        color: #fff;
+      }
+
+      /* Badge / Tag */
+      .promo-v2-badge {
+        display: inline-flex; align-items: center; gap: 7px;
+        font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;
+        padding: 6px 14px; border-radius: 100px;
+        width: fit-content; margin-bottom: 22px;
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.25);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+        transition: transform 0.3s;
+      }
+      .promo-v2-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+      .promo-v2-slide:hover .promo-v2-badge { transform: translateX(4px); }
+
+      /* Title */
+      .promo-v2-content h2 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        font-weight: 900; line-height: 1.1;
+        margin: 0 0 14px;
+        text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        letter-spacing: -0.5px;
+      }
+      .promo-v2-content p {
+        font-size: 1.1rem; opacity: 0.88; line-height: 1.6;
+        margin: 0 0 32px; max-width: 440px;
+      }
+
+      /* CTA button */
+      .promo-v2-cta {
+        display: inline-flex; align-items: center; gap: 10px;
+        background: #fff; color: #0f172a;
+        font-weight: 800; font-size: 0.95rem;
+        padding: 14px 28px; border-radius: 14px;
+        width: fit-content; text-decoration: none;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+        transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+        border: 2px solid transparent;
+      }
+      .promo-v2-slide:hover .promo-v2-cta {
+        background: #FF6B1A; color: #fff;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(255,107,26,0.5);
+      }
+      .promo-v2-cta svg { transition: transform 0.3s; }
+      .promo-v2-slide:hover .promo-v2-cta svg { transform: translateX(4px); }
+
+      /* Right side decorative counter */
+      .promo-v2-slide-num {
+        position: absolute; bottom: 36px; right: 48px;
+        font-size: 7rem; font-weight: 900; line-height: 1;
+        color: rgba(255,255,255,0.06);
+        letter-spacing: -4px; pointer-events: none; user-select: none;
+      }
+
+      /* ── Dots ─────────────────────────────────────── */
+      .promo-v2-dots {
+        display: flex; justify-content: center; align-items: center;
+        gap: 8px; margin-top: 24px;
+      }
+      .promo-v2-dot {
+        width: 8px; height: 8px; border-radius: 8px;
+        background: #cbd5e1; border: none; cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 0;
+      }
+      .promo-v2-dot.active {
+        width: 28px; background: #FF6B1A;
+        box-shadow: 0 2px 8px rgba(255,107,26,0.35);
+      }
+
+      /* ── Responsive ──────────────────────────────── */
+      @media (max-width: 768px) {
+        .promo-v2-slide { height: 280px; }
+        .promo-v2-content { padding: 28px 24px; max-width: 100%; }
+        .promo-v2-content h2 { font-size: 1.6rem; }
+        .promo-v2-slide-overlay {
+          background:
+            linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.1) 100%) !important;
+        }
+        .promo-v2-content { justify-content: flex-end; padding-bottom: 40px; }
+        .promo-v2-nav-btns { display: none; }
+      }
+    </style>
+
+    <div class="promo-v2-inner">
+
+      <!-- Header -->
+      <div class="promo-v2-header">
+        <div class="promo-v2-title-group">
+          <div class="promo-v2-eyebrow">
+            <span></span> Ofertas & Promociones
+          </div>
+          <h2 class="promo-v2-title">Las mejores <em>ofertas</em> del momento</h2>
+        </div>
+        {% if promociones and promociones|length > 1 %}
+        <div class="promo-v2-nav-btns">
+          <button class="promo-nav-btn" id="promoV2Prev" aria-label="Anterior">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button class="promo-nav-btn" id="promoV2Next" aria-label="Siguiente">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Track -->
+      <div class="promo-v2-track-wrap" id="promoV2Wrap">
+        <div class="promo-v2-track" id="promoV2Track">
+
+          {% if promociones %}
+            {% for promo in promociones %}
+            <a href="{{ promo.enlace_boton }}" class="promo-v2-slide">
+              <img
+                src="{% if promo.imagen.startswith('http') %}{{ promo.imagen }}{% else %}{{ url_for('static', filename=promo.imagen) }}{% endif %}"
+                alt="{{ promo.titulo }}"
+                class="promo-v2-slide-img"
+                loading="{% if loop.index0 == 0 %}eager{% else %}lazy{% endif %}"
+              >
+              <div class="promo-v2-slide-overlay"></div>
+              <div class="promo-v2-content">
+                <div class="promo-v2-badge" style="background: {{ promo.color_etiqueta }}; color: #fff;">
+                  <span class="promo-v2-badge-dot"></span>
+                  {{ promo.etiqueta }}
+                </div>
+                <h2>{{ promo.titulo }}</h2>
+                <p>{{ promo.descripcion }}</p>
+                <div class="promo-v2-cta">
+                  {{ promo.texto_boton }}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+              </div>
+              <div class="promo-v2-slide-num">{{ '%02d' % loop.index }}</div>
+            </a>
+            {% endfor %}
+          {% else %}
+            <a href="{{ url_for('buscar') }}" class="promo-v2-slide">
+              <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200&auto=format&fit=crop" alt="DriveMarket Promociones" class="promo-v2-slide-img">
+              <div class="promo-v2-slide-overlay"></div>
+              <div class="promo-v2-content">
+                <div class="promo-v2-badge" style="background: #FF6B1A; color: #fff;">
+                  <span class="promo-v2-badge-dot"></span>
+                  Oferta Exclusiva
+                </div>
+                <h2>Las mejores ofertas están aquí</h2>
+                <p>Explora nuestro catálogo completo y encuentra el auto de tus sueños al mejor precio.</p>
+                <div class="promo-v2-cta">
+                  Ver Catálogo
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+              </div>
+              <div class="promo-v2-slide-num">01</div>
+            </a>
+          {% endif %}
+
+        </div>
+
+        <!-- Progress bar -->
+        <div class="promo-v2-progress">
+          <div class="promo-v2-progress-bar" id="promoV2Bar"></div>
+        </div>
+      </div>
+
+      <!-- Dots -->
+      <div class="promo-v2-dots" id="promoV2Dots">
+        {% if promociones %}
+          {% for promo in promociones %}
+          <button class="promo-v2-dot {% if loop.index0 == 0 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Ir a promoción {{ loop.index }}"></button>
+          {% endfor %}
+        {% else %}
+          <button class="promo-v2-dot active" data-index="0" aria-label="Ir a promoción 1"></button>
+        {% endif %}
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+  (function() {
+    const track = document.getElementById('promoV2Track');
+    const dotsContainer = document.getElementById('promoV2Dots');
+    const progressBar = document.getElementById('promoV2Bar');
+    const prevBtn = document.getElementById('promoV2Prev');
+    const nextBtn = document.getElementById('promoV2Next');
+
+    if (!track) return;
+
+    const slides = track.querySelectorAll('.promo-v2-slide');
+    const dots = dotsContainer ? dotsContainer.querySelectorAll('.promo-v2-dot') : [];
+    const total = slides.length;
+    let current = 0;
+    let timer = null;
+    const AUTOPLAY_MS = 5500;
+
+    function goTo(index) {
+      current = (index + total) % total;
+      track.style.transform = `translateX(-${current * 100}%)`;
+      // Update dots
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+      // Update progress bar
+      if (progressBar) {
+        progressBar.style.width = ((current + 1) / total * 100) + '%';
+      }
+      resetTimer();
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      if (total > 1) timer = setInterval(() => goTo(current + 1), AUTOPLAY_MS);
+    }
+
+    // Nav buttons
+    if (prevBtn) prevBtn.addEventListener('click', () => goTo(current - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => goTo(current + 1));
+
+    // Dots
+    dots.forEach(d => {
+      d.addEventListener('click', () => goTo(parseInt(d.dataset.index)));
+    });
+
+    // Swipe support
+    let touchStartX = 0;
+    const wrap = document.getElementById('promoV2Wrap');
+    if (wrap) {
+      wrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+      wrap.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+      }, {passive: true});
+      wrap.addEventListener('mouseenter', () => clearInterval(timer));
+      wrap.addEventListener('mouseleave', resetTimer);
+    }
+
+    // Init progress bar
+    if (progressBar && total > 0) progressBar.style.width = (1 / total * 100) + '%';
+
+    // Start
+    if (total > 1) resetTimer();
+  })();
+  </script>
+
+  <section class="featured">
+    <div class="section-inner">
+      <div class="section-header">
+        <div>
+          <p class="section-eyebrow">Destacados</p>
+          <h2 class="section-title">Vehículos del Momento</h2>
+        </div>
+        <a href="{{ url_for('buscar') }}" class="btn-outline">Ver todos →</a>
+      </div>
+      <style>
+        .vehicles-carousel::-webkit-scrollbar { display: none; }
+      </style>
+      <div class="vehicles-carousel-wrapper" style="position: relative; display: flex; align-items: center;">
+        <button class="carousel-btn carousel-prev-btn" aria-label="Anterior" onclick="document.getElementById('vehiclesCarousel').scrollBy({left: -350, behavior: 'smooth'})">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 19L8 12L15 5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        
+        <div class="cards-grid vehicles-carousel" id="vehiclesCarousel" style="display: flex; gap: 20px; overflow-x: auto; scroll-behavior: smooth; padding: 20px 0; -ms-overflow-style: none; scrollbar-width: none; width: 100%;">
+          {% for v in vehiculos %}
+          <article class="car-card reveal-fade-up delay-{{ loop.index0 * 100 if loop.index0 < 5 else 500 }} premium-hover" style="flex: 0 0 calc(33.333% - 14px); min-width: 300px;">
+            <div class="card-img-wrap">
+              <a href="{{ url_for('vehiculo_detalle', slug=v.slug if v.slug else v.id) }}" style="display:block; width:100%; height:100%;">
+                <img src="{{ url_for('static', filename=v.imagen) if v.imagen else url_for('static', filename='img/default_car.jpg') }}" alt="{{ v.marca }} {{ v.modelo }}" />
+              </a>
+              <span class="card-tag">{{ v.estado | capitalize if v.estado else 'Destacado' }}</span>
+              <button class="card-fav" aria-label="Favorito">♡</button>
+            </div>
+            <div class="card-body">
+              <div class="card-top">
+                <h3>{{ v.marca }} {{ v.modelo }} {{ v.version if v.version else '' }}</h3>
+                <span class="card-year">{{ v.anio }}</span>
+              </div>
+              <div class="card-specs">
+                <span>🛣️ {{ "{:,}".format(v.kilometraje).replace(',', '.') }} km</span>
+                <span>⛽ {{ v.tipo_combustible if v.tipo_combustible else 'N/A' }}</span>
+                <span title="{{ v.ciudad_venta }}">📍 {{ v.ciudad_venta[:10] + '..' if v.ciudad_venta|length > 10 else v.ciudad_venta }}</span>
+              </div>
+              <div class="card-footer">
+                <p class="card-price">${{ "{:,}".format(v.precio).replace(',', '.') }}</p>
+                <a href="{{ url_for('vehiculo_detalle', slug=v.slug if v.slug else v.id) }}" class="btn-card">Ver detalles</a>
+              </div>
+            </div>
+          </article>
+          {% else %}
+          <div style="padding: 40px; text-align: center; width: 100%; color: #666;">
+            <h3>Aún no hay vehículos publicados</h3>
+            <p>Sé el primero en publicar el tuyo</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <button class="carousel-btn carousel-next-btn" aria-label="Siguiente" onclick="document.getElementById('vehiclesCarousel').scrollBy({left: 350, behavior: 'smooth'})">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 5L16 12L9 19" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="popular-brands">
+    <div class="section-inner">
+      <h2 class="brands-title"><span>Marcas</span> de vehículos más buscadas</h2>
+      
+      <div class="brands-carousel-wrapper">
+        <button class="carousel-btn carousel-prev-btn" aria-label="Desplazar marcas a la izquierda" onclick="document.getElementById('brandsCarousel').scrollBy({left: -350, behavior: 'smooth'})">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 19L8 12L15 5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        
+
+        <div class="brands-carousel" id="brandsCarousel">
+          <div class="brands-track">
+            {% for i in range(2) %} {# Duplicamos para el bucle infinito #}
+              {% for marca in marcas_populares %}
+              <a href="{{ url_for('buscar', marca=marca.nombre) }}" class="brand-link" title="Ver vehículos {{ marca.nombre }}">
+                <div class="brand-logo-container">
+                  {% if marca.logo %}
+                    <img src="{{ url_for('static', filename='img/logos/' ~ marca.logo) }}" alt="{{ marca.nombre }}" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <div class="brand-logo-fallback" style="display:none;">
+                      <span>{{ marca.nombre[0].upper() }}</span>
+                    </div>
+                  {% else %}
+                    <div class="brand-logo-fallback">
+                      <span>{{ marca.nombre[0].upper() if marca.nombre else '?' }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+              </a>
+              {% endfor %}
+            {% endfor %}
+          </div>
+        </div>
+        <style>
+          .brands-carousel {
+            --brands-speed: 30s; /* AJUSTA AQUÍ: Menos segundos = más rápido, Más segundos = más lento */
+            overflow: hidden;
+            padding: 20px 0;
+            width: 100%;
+            position: relative;
+          }
+          
+          .brands-track {
+            display: flex;
+            width: max-content;
+            animation: scroll-brands var(--brands-speed) linear infinite;
+          }
+
+          .brands-carousel:hover .brands-track {
+            animation-play-state: paused;
+          }
+
+          @keyframes scroll-brands {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+
+          .brand-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+            margin-right: 60px; /* Margen constante para bucle perfecto */
+          }
+
+          .brand-logo-container {
+            width: 110px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid rgba(241, 245, 249, 1);
+            overflow: hidden;
+            position: relative;
+          }
+
+
+          .brand-logo { 
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 18px;
+            filter: grayscale(0.2);
+            transition: all 0.3s ease;
+          }
+
+          .brand-logo-fallback {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+          }
+
+          .brand-link:hover {
+            transform: scale(1.05);
+          }
+
+          .brand-link:hover .brand-logo-container {
+            box-shadow: 0 15px 35px rgba(255, 112, 67, 0.15);
+            border-color: var(--orange);
+            background: white;
+          }
+
+          .brand-link:hover .brand-logo {
+            filter: grayscale(0);
+            transform: scale(1.1);
+          }
+        </style>
+        
+        <button class="carousel-btn carousel-next-btn" aria-label="Desplazar marcas a la derecha" onclick="document.getElementById('brandsCarousel').scrollBy({left: 350, behavior: 'smooth'})">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5L16 12L9 19" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+<!-- NUEVA SECCIÓN DE SOPORTE IA -->
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN: IA SOPORTE — Rediseño Premium
+  ═══════════════════════════════════════════════════════ -->
+  <section class="ai-promo-v2">
+    <style>
+      .ai-promo-v2 {
+        padding: 56px 0;
+        background: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+      .ai-promo-v2-inner {
+        max-width: 1180px; margin: 0 auto; padding: 0 24px;
+        display: flex; align-items: center; gap: 64px; flex-wrap: wrap;
+      }
+
+      /* ── Left: Text Side ─────────────────────────── */
+      .ai-promo-text {
+        flex: 1; min-width: 300px;
+        position: relative; z-index: 2;
+      }
+      .ai-promo-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, rgba(255,107,26,0.1), rgba(255,107,26,0.06));
+        border: 1px solid rgba(255,107,26,0.25);
+        color: #FF6B1A; font-size: 11px; font-weight: 800;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        padding: 6px 16px; border-radius: 100px;
+        margin-bottom: 22px;
+      }
+      .ai-promo-badge-dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: #FF6B1A;
+        animation: ai-pulse 1.8s ease-in-out infinite;
+      }
+      @keyframes ai-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.7);opacity:.4} }
+
+      .ai-promo-title {
+        font-size: clamp(1.9rem, 3.5vw, 2.7rem);
+        font-weight: 900; color: #0f172a; line-height: 1.15;
+        margin: 0 0 16px; letter-spacing: -0.5px;
+      }
+      .ai-promo-title em { font-style: normal; color: #FF6B1A; }
+
+      .ai-promo-desc {
+        font-size: 1rem; color: #64748b; line-height: 1.7;
+        margin: 0 0 32px; max-width: 460px;
+      }
+
+      /* Feature cards */
+      .ai-features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; }
+      .ai-feature {
+        display: flex; align-items: flex-start; gap: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px; padding: 16px 18px;
+        transition: all 0.25s ease;
+      }
+      .ai-feature:hover {
+        border-color: rgba(255,107,26,0.3);
+        background: #fff;
+        box-shadow: 0 4px 16px rgba(255,107,26,0.08);
+        transform: translateX(4px);
+      }
+      .ai-feature-icon {
+        width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+        background: linear-gradient(135deg, rgba(255,107,26,0.12), rgba(255,107,26,0.06));
+        display: flex; align-items: center; justify-content: center;
+      }
+      .ai-feature-icon svg { width: 18px; height: 18px; stroke: #FF6B1A; }
+      .ai-feature-body { }
+      .ai-feature-title { font-size: 0.88rem; font-weight: 800; color: #0f172a; margin: 0 0 3px; }
+      .ai-feature-desc { font-size: 0.82rem; color: #64748b; margin: 0; line-height: 1.5; }
+
+      /* CTA Button */
+      .ai-promo-cta {
+        display: inline-flex; align-items: center; gap: 10px;
+        background: linear-gradient(135deg, #FF6B1A, #ff8c42);
+        color: #fff; font-weight: 800; font-size: 0.95rem;
+        padding: 15px 32px; border-radius: 14px;
+        border: none; cursor: pointer; text-decoration: none;
+        box-shadow: 0 8px 24px rgba(255,107,26,0.35);
+        transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+      }
+      .ai-promo-cta:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 14px 34px rgba(255,107,26,0.45);
+      }
+      .ai-promo-cta svg { transition: transform 0.3s; }
+      .ai-promo-cta:hover svg { transform: translateX(3px); }
+
+      /* ── Right: Chat Mockup ──────────────────────── */
+      .ai-promo-visual {
+        flex: 1; min-width: 300px; max-width: 420px;
+        position: relative; display: flex; justify-content: center;
+      }
+      /* Glow aura */
+      .ai-promo-aura {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 110%; height: 110%;
+        background: radial-gradient(circle, rgba(255,107,26,0.12) 0%, rgba(255,107,26,0.04) 50%, transparent 75%);
+        pointer-events: none; z-index: 0;
+        filter: blur(20px);
+      }
+      .ai-promo-chat {
+        width: 100%; max-width: 380px;
+        background: #fff;
+        border-radius: 22px;
+        box-shadow: 0 24px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05);
+        overflow: hidden;
+        position: relative; z-index: 2;
+        animation: chat-float 5s ease-in-out infinite;
+      }
+      @keyframes chat-float {
+        0%,100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+      }
+
+      /* Chat header */
+      .ai-chat-header {
+        background: linear-gradient(135deg, #FF6B1A 0%, #ff8c42 100%);
+        padding: 18px 20px;
+        display: flex; align-items: center; gap: 12px;
+      }
+      .ai-chat-avatar {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.3);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .ai-chat-avatar svg { width: 22px; height: 22px; stroke: #fff; }
+      .ai-chat-info { flex: 1; }
+      .ai-chat-name { font-size: 15px; font-weight: 800; color: #fff; margin: 0 0 3px; }
+      .ai-chat-status {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 12px; color: rgba(255,255,255,0.85);
+      }
+      .ai-status-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #4ade80;
+        box-shadow: 0 0 6px #4ade80;
+        animation: status-blink 2s ease-in-out infinite;
+      }
+      @keyframes status-blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+      .ai-chat-badge {
+        background: rgba(255,255,255,0.2); color: #fff;
+        font-size: 10px; font-weight: 700; letter-spacing: 0.8px;
+        padding: 3px 10px; border-radius: 100px;
+        border: 1px solid rgba(255,255,255,0.25);
+      }
+
+      /* Chat body */
+      .ai-chat-body {
+        padding: 20px 16px; background: #f8fafc;
+        display: flex; flex-direction: column; gap: 14px;
+      }
+      .ai-msg { display: flex; flex-direction: column; }
+      .ai-msg-bubble {
+        padding: 11px 15px; border-radius: 16px;
+        font-size: 13.5px; line-height: 1.5; max-width: 88%;
+      }
+      .ai-msg-bubble.bot {
+        background: #fff; color: #334155;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        align-self: flex-start;
+      }
+      .ai-msg-bubble.user {
+        background: linear-gradient(135deg, #FF6B1A, #ff8c42);
+        color: #fff;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 14px rgba(255,107,26,0.25);
+        align-self: flex-end;
+      }
+      .ai-msg-bubble strong { color: #FF6B1A; }
+      .ai-msg-bubble.bot strong { color: #FF6B1A; }
+
+      /* Typing indicator */
+      .ai-typing {
+        display: flex; align-items: flex-end; gap: 12px; align-self: flex-start;
+      }
+      .ai-typing-avatar {
+        width: 28px; height: 28px; border-radius: 8px;
+        background: linear-gradient(135deg, #FF6B1A, #ff8c42);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      }
+      .ai-typing-avatar svg { width: 14px; height: 14px; stroke: #fff; }
+      .ai-typing-dots {
+        background: #fff; border-radius: 14px; border-bottom-left-radius: 4px;
+        padding: 12px 18px; display: flex; gap: 5px; align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      }
+      .ai-typing-dots span {
+        width: 7px; height: 7px; border-radius: 50%; background: #FF6B1A;
+        animation: typing-bounce 1.2s ease-in-out infinite;
+        opacity: 0.5;
+      }
+      .ai-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+      .ai-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes typing-bounce { 0%,60%,100%{transform:translateY(0);opacity:.5} 30%{transform:translateY(-6px);opacity:1} }
+
+      /* Input row */
+      .ai-chat-input {
+        display: flex; align-items: center; gap: 10px;
+        background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px;
+        padding: 10px 14px; margin-top: 4px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+      }
+      .ai-chat-input span { color: #94a3b8; font-size: 13px; flex: 1; }
+      .ai-chat-send {
+        width: 34px; height: 34px; border-radius: 10px;
+        background: linear-gradient(135deg, #FF6B1A, #ff8c42);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(255,107,26,0.3);
+      }
+      .ai-chat-send svg { width: 14px; height: 14px; stroke: #fff; }
+
+      /* Floating badge */
+      .ai-float-badge {
+        position: absolute; top: -14px; right: -14px; z-index: 10;
+        background: linear-gradient(135deg, #FF6B1A, #ff8c42);
+        color: #fff; font-size: 11px; font-weight: 800;
+        padding: 8px 14px; border-radius: 100px;
+        box-shadow: 0 6px 20px rgba(255,107,26,0.4);
+        white-space: nowrap; letter-spacing: 0.3px;
+        display: flex; align-items: center; gap: 6px;
+        animation: badge-pop 3s ease-in-out infinite;
+      }
+      @keyframes badge-pop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+      .ai-float-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:#fff; }
+
+      @media (max-width: 900px) {
+        .ai-promo-v2-inner { flex-direction: column; gap: 40px; }
+        .ai-promo-visual { width: 100%; max-width: 100%; }
+        .ai-promo-chat { max-width: 100%; }
+      }
+    </style>
+
+    <div class="ai-promo-v2-inner">
+
+      <!-- LEFT: Text -->
+      <div class="ai-promo-text">
+        <div class="ai-promo-badge">
+          <span class="ai-promo-badge-dot"></span>
+          Novedad Exclusiva
+        </div>
+
+        <h2 class="ai-promo-title">
+          Soporte 24/7 con<br><em>Inteligencia Artificial</em>
+        </h2>
+
+        <p class="ai-promo-desc">
+          ¿Dudas sobre un vehículo, cómo publicar tu auto o comparar modelos? Nuestro <strong>Asistente Virtual IA</strong> está siempre en línea, listo para resolver tus inquietudes en segundos.
+        </p>
+
+        <div class="ai-features">
+          <div class="ai-feature">
+            <div class="ai-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
+            </div>
+            <div class="ai-feature-body">
+              <p class="ai-feature-title">Respuestas inmediatas</p>
+              <p class="ai-feature-desc">Sin tiempos de espera, sin operadores ocupados. Respuesta al instante.</p>
+            </div>
+          </div>
+          <div class="ai-feature">
+            <div class="ai-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div class="ai-feature-body">
+              <p class="ai-feature-title">Asesoría de compra personalizada</p>
+              <p class="ai-feature-desc">Te recomienda vehículos según tu estilo de vida y presupuesto real.</p>
+            </div>
+          </div>
+          <div class="ai-feature">
+            <div class="ai-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div class="ai-feature-body">
+              <p class="ai-feature-title">Navegación guiada</p>
+              <p class="ai-feature-desc">Resuelve cualquier problema con la plataforma al instante.</p>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="ai-promo-cta" onclick="document.getElementById('dm-launcher').click(); setTimeout(() => document.getElementById('dm-inp').focus(), 300);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Probar Asistente Ahora
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- RIGHT: Chat Mockup -->
+      <div class="ai-promo-visual">
+        <div class="ai-promo-aura"></div>
+
+        <div class="ai-float-badge" style="position:absolute; top:-12px; right:10px;">
+          IA activa · 24/7
+        </div>
+
+        <div class="ai-promo-chat">
+          <!-- Header -->
+          <div class="ai-chat-header">
+            <div class="ai-chat-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div class="ai-chat-info">
+              <p class="ai-chat-name">DriveMarket IA</p>
+              <div class="ai-chat-status">
+                <span class="ai-status-dot"></span>
+                En línea ahora
+              </div>
+            </div>
+            <div class="ai-chat-badge">IA</div>
+          </div>
+
+          <!-- Messages -->
+          <div class="ai-chat-body">
+            <div class="ai-msg">
+              <div class="ai-msg-bubble bot">
+                👋 ¡Hola! Soy el asistente de DriveMarket. ¿Qué tipo de vehículo estás buscando hoy?
+              </div>
+            </div>
+
+            <div class="ai-msg">
+              <div class="ai-msg-bubble user">
+                Busco una SUV familiar, económica, año 2022 o superior.
+              </div>
+            </div>
+
+            <div class="ai-msg">
+              <div class="ai-msg-bubble bot">
+                ¡Perfecto! Encontré <strong>3 opciones</strong> de Toyota y Mazda dentro de tu presupuesto. ¿Quieres que te las muestre?
+              </div>
+            </div>
+
+            <!-- Typing -->
+            <div class="ai-typing">
+              <div class="ai-typing-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <div class="ai-typing-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <!-- Input -->
+            <div class="ai-chat-input">
+              <span>Escribe tu mensaje...</span>
+              <div class="ai-chat-send">
+                <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN: ¿CÓMO FUNCIONA? — Rediseño Premium
+  ═══════════════════════════════════════════════════════ -->
+  <section class="how-v2" id="como-funciona">
+    <style>
+      .how-v2 {
+        padding: 56px 0;
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        overflow: hidden;
+        position: relative;
+      }
+      .how-v2::before {
+        content: '';
+        position: absolute;
+        top: -60px; left: 50%;
+        transform: translateX(-50%);
+        width: 700px; height: 700px;
+        background: radial-gradient(circle, rgba(255,107,26,0.06) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .how-v2 .section-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+      .how-v2-header { text-align: center; margin-bottom: 40px; }
+      .how-v2-eyebrow {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, rgba(255,107,26,0.12), rgba(255,107,26,0.06));
+        border: 1px solid rgba(255,107,26,0.2);
+        color: #FF6B1A; font-size: 12px; font-weight: 800;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        padding: 6px 16px; border-radius: 100px; margin-bottom: 18px;
+      }
+      .how-v2-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #FF6B1A; animation: pulse-dot 1.6s ease-in-out infinite; }
+      @keyframes pulse-dot { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.6); opacity:.5; } }
+      .how-v2-title { font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 900; color: #0f172a; line-height: 1.15; margin: 0; }
+      .how-v2-title em { font-style: normal; color: #FF6B1A; }
+
+      /* Timeline connector */
+      .how-steps-wrapper { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+      .how-steps-wrapper::before {
+        content: '';
+        position: absolute; top: 56px; left: calc(12.5%); right: calc(12.5%);
+        height: 2px;
+        background: linear-gradient(90deg, #FF6B1A 0%, #fbbf24 50%, #FF6B1A 100%);
+        background-size: 200% auto; animation: shimmer-line 3s linear infinite;
+        z-index: 0;
+      }
+      @keyframes shimmer-line { 0%{background-position:0%} 100%{background-position:200%} }
+
+      .how-step-card {
+        display: flex; flex-direction: column; align-items: center; text-align: center;
+        padding: 0 16px; position: relative; z-index: 1;
+        opacity: 0; transform: translateY(30px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+      .how-step-card.visible { opacity: 1; transform: translateY(0); }
+
+      .how-step-bubble {
+        width: 112px; height: 112px; border-radius: 50%;
+        background: #fff;
+        border: 2px solid #e2e8f0;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        display: flex; align-items: center; justify-content: center;
+        position: relative; margin-bottom: 28px;
+        transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+      }
+      .how-step-card:hover .how-step-bubble {
+        border-color: #FF6B1A;
+        box-shadow: 0 16px 40px rgba(255,107,26,0.25);
+        transform: translateY(-6px) scale(1.04);
+      }
+      .how-step-num-badge {
+        position: absolute; top: -8px; right: -8px;
+        width: 28px; height: 28px; border-radius: 50%;
+        background: linear-gradient(135deg, #FF6B1A, #ff9345);
+        color: #fff; font-size: 11px; font-weight: 900;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 10px rgba(255,107,26,0.35);
+        border: 2px solid #fff;
+      }
+      .how-step-icon-wrap {
+        width: 64px; height: 64px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(255,107,26,0.1), rgba(255,107,26,0.05));
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.3s;
+      }
+      .how-step-card:hover .how-step-icon-wrap { background: linear-gradient(135deg, rgba(255,107,26,0.2), rgba(255,107,26,0.1)); }
+      .how-step-icon-wrap svg { width: 28px; height: 28px; }
+      .how-step-card h3 { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 0 0 10px; }
+      .how-step-card p { font-size: 0.88rem; color: #64748b; line-height: 1.6; margin: 0; max-width: 200px; }
+
+      @media (max-width: 768px) {
+        .how-steps-wrapper { grid-template-columns: 1fr 1fr; gap: 32px 16px; }
+        .how-steps-wrapper::before { display: none; }
+      }
+      @media (max-width: 480px) {
+        .how-steps-wrapper { grid-template-columns: 1fr; }
+      }
+    </style>
+
+    <div class="section-inner">
+      <div class="how-v2-header">
+        <div class="how-v2-eyebrow">Proceso simple</div>
+        <h2 class="how-v2-title">Tu próximo auto en <em>4 pasos</em></h2>
+      </div>
+
+      <div class="how-steps-wrapper" id="howSteps">
+        <!-- Paso 1 -->
+        <div class="how-step-card" style="transition-delay:0.05s">
+          <div class="how-step-bubble">
+            <span class="how-step-num-badge">01</span>
+            <div class="how-step-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FF6B1A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </div>
+          </div>
+          <h3>Explora</h3>
+          <p>Miles de vehículos verificados con filtros avanzados por marca, precio y año.</p>
+        </div>
+
+        <!-- Paso 2 -->
+        <div class="how-step-card" style="transition-delay:0.15s">
+          <div class="how-step-bubble">
+            <span class="how-step-num-badge">02</span>
+            <div class="how-step-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FF6B1A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
+              </svg>
+            </div>
+          </div>
+          <h3>Verifica</h3>
+          <p>Historial de propietarios, revisión técnica y estado legal. Cero sorpresas.</p>
+        </div>
+
+        <!-- Paso 3 -->
+        <div class="how-step-card" style="transition-delay:0.25s">
+          <div class="how-step-bubble">
+            <span class="how-step-num-badge">03</span>
+            <div class="how-step-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FF6B1A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+          </div>
+          <h3>Negocia</h3>
+          <p>Chat directo con el vendedor. Seguro, transparente y sin intermediarios.</p>
+        </div>
+
+        <!-- Paso 4 -->
+        <div class="how-step-card" style="transition-delay:0.35s">
+          <div class="how-step-bubble">
+            <span class="how-step-num-badge">04</span>
+            <div class="how-step-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FF6B1A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+          <h3>¡Conduce!</h3>
+          <p>Cierra el trato con respaldo legal. Las llaves son tuyas. Listo para rodar.</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      const cards = document.querySelectorAll('#howSteps .how-step-card');
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+      }, { threshold: 0.2 });
+      cards.forEach(c => obs.observe(c));
+    })();
+    </script>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN: ¿POR QUÉ DRIVEMARKET? — Stats + Benefits
+  ═══════════════════════════════════════════════════════ -->
+  <section class="why-dm" id="por-que-nosotros">
+    <style>
+      .why-dm {
+        padding: 56px 0;
+        background: #ffffff;
+        position: relative; overflow: hidden;
+      }
+      .why-dm::before {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(circle at 15% 50%, rgba(255,107,26,0.05) 0%, transparent 50%),
+          radial-gradient(circle at 85% 20%, rgba(99,102,241,0.04) 0%, transparent 50%);
+        pointer-events: none;
+      }
+      /* Subtle grid pattern */
+      .why-dm::after {
+        content: '';
+        position: absolute; inset: 0;
+        background-image: linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+        pointer-events: none;
+      }
+      .why-dm .section-inner { max-width: 1180px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+      /* Header */
+      .why-dm-header { text-align: center; margin-bottom: 40px; }
+      .why-dm-eyebrow {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,107,26,0.08); border: 1px solid rgba(255,107,26,0.2);
+        color: #FF6B1A; font-size: 12px; font-weight: 800;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        padding: 6px 16px; border-radius: 100px; margin-bottom: 20px;
+      }
+      .why-dm-title { font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 900; color: #0f172a; line-height: 1.15; margin: 0; }
+      .why-dm-title span { color: #FF6B1A; }
+
+      /* Stats row */
+      .why-dm-stats {
+        display: grid; grid-template-columns: repeat(4, 1fr);
+        gap: 1px; background: #e2e8f0; border-radius: 20px; overflow: hidden;
+        margin-bottom: 36px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      }
+      .why-stat {
+        background: #f8fafc; padding: 32px 24px; text-align: center;
+        transition: background 0.3s;
+      }
+      .why-stat:hover { background: rgba(255,107,26,0.04); }
+      .why-stat-num {
+        font-size: 2.8rem; font-weight: 900; color: #0f172a;
+        line-height: 1; margin-bottom: 8px; letter-spacing: -2px;
+      }
+      .why-stat-num span { color: #FF6B1A; }
+      .why-stat-lbl { font-size: 0.82rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; }
+
+      /* Benefits grid */
+      .why-benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .why-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px; padding: 32px 28px;
+        display: flex; flex-direction: column; gap: 16px;
+        transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+        position: relative; overflow: hidden;
+        opacity: 0; transform: translateY(24px);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      }
+      .why-card.visible { opacity: 1; transform: translateY(0); }
+      .why-card::before {
+        content: '';
+        position: absolute; inset: 0; border-radius: 20px;
+        background: linear-gradient(135deg, rgba(255,107,26,0.05), transparent);
+        opacity: 0; transition: opacity 0.3s;
+      }
+      .why-card:hover { border-color: rgba(255,107,26,0.3); transform: translateY(-6px); box-shadow: 0 16px 40px rgba(255,107,26,0.1); }
+      .why-card:hover::before { opacity: 1; }
+
+      .why-card-icon {
+        width: 56px; height: 56px; border-radius: 14px;
+        background: linear-gradient(135deg, rgba(255,107,26,0.1), rgba(255,107,26,0.05));
+        border: 1px solid rgba(255,107,26,0.15);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s;
+      }
+      .why-card:hover .why-card-icon {
+        background: linear-gradient(135deg, #FF6B1A, #ff9345);
+        border-color: transparent;
+        box-shadow: 0 8px 24px rgba(255,107,26,0.35);
+      }
+      .why-card-icon svg { width: 24px; height: 24px; stroke: #FF6B1A; transition: stroke 0.3s; }
+      .why-card:hover .why-card-icon svg { stroke: #fff; }
+      .why-card h3 { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1.3; }
+      .why-card p { font-size: 0.875rem; color: #64748b; line-height: 1.7; margin: 0; }
+      .why-card-arrow {
+        width: 32px; height: 32px; border-radius: 50%;
+        border: 1px solid #e2e8f0;
+        display: flex; align-items: center; justify-content: center;
+        margin-top: auto; align-self: flex-start;
+        color: #94a3b8; transition: all 0.3s;
+      }
+      .why-card:hover .why-card-arrow { background: #FF6B1A; border-color: #FF6B1A; color: #fff; transform: rotate(-45deg); }
+
+      @media (max-width: 900px) {
+        .why-benefits { grid-template-columns: 1fr 1fr; }
+        .why-dm-stats { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 560px) {
+        .why-benefits { grid-template-columns: 1fr; }
+        .why-dm-stats { grid-template-columns: 1fr 1fr; }
+      }
+    </style>
+
+    <div class="section-inner">
+      <div class="why-dm-header">
+        <div class="why-dm-eyebrow">Nuestra promesa</div>
+        <h2 class="why-dm-title">¿Por qué elegir <span>DriveMarket?</span></h2>
+      </div>
+
+      <!-- Stats row -->
+      <div class="why-dm-stats">
+        <div class="why-stat">
+          <div class="why-stat-num" data-target="12000" data-suffix="+"><span>0</span></div>
+          <div class="why-stat-lbl">Vehículos publicados</div>
+        </div>
+        <div class="why-stat">
+          <div class="why-stat-num" data-target="98" data-suffix="%"><span>0</span></div>
+          <div class="why-stat-lbl">Compradores satisfechos</div>
+        </div>
+        <div class="why-stat">
+          <div class="why-stat-num" data-target="150" data-suffix="+"><span>0</span></div>
+          <div class="why-stat-lbl">Puntos de inspección</div>
+        </div>
+        <div class="why-stat">
+          <div class="why-stat-num" data-target="0" data-suffix="" data-prefix="$"><span>0</span></div>
+          <div class="why-stat-lbl">Comisiones ocultas</div>
+        </div>
+      </div>
+
+      <!-- Benefits cards -->
+      <div class="why-benefits" id="whyCards">
+
+        <div class="why-card" style="transition-delay:0s">
+          <div class="why-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
+            </svg>
+          </div>
+          <h3>Inspección de 150 Puntos</h3>
+          <p>Cada vehículo pasa por una evaluación mecánica y estética rigurosa. Tu tranquilidad en cada kilómetro, garantizada.</p>
+          <div class="why-card-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+
+        <div class="why-card" style="transition-delay:0.1s">
+          <div class="why-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+            </svg>
+          </div>
+          <h3>Trámite 100% Online</h3>
+          <p>Del papeleo legal a la verificación de antecedentes, todo digital, sin filas, sin burocracia y en tiempo récord.</p>
+          <div class="why-card-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+
+        <div class="why-card" style="transition-delay:0.2s">
+          <div class="why-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="12" y1="2" x2="12" y2="6"/>
+            </svg>
+          </div>
+          <h3>Cero Comisiones Ocultas</h3>
+          <p>Publica gratis y negocia directo con el comprador. Precio justo, modelo transparente, sin letras pequeñas.</p>
+          <div class="why-card-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+    (function(){
+      /* Animate counters */
+      const stats = document.querySelectorAll('.why-stat .why-stat-num');
+      function animateCounter(el) {
+        const target = parseInt(el.dataset.target) || 0;
+        const suffix = el.dataset.suffix || '';
+        const prefix = el.dataset.prefix || '';
+        const span = el.querySelector('span');
+        const duration = 1600;
+        const start = performance.now();
+        function update(timestamp) {
+          const elapsed = Math.min((timestamp - start) / duration, 1);
+          const ease = 1 - Math.pow(1 - elapsed, 3);
+          const current = Math.round(ease * target);
+          span.textContent = prefix + current.toLocaleString('es-ES') + suffix;
+          if (elapsed < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+      }
+      const obsStats = new IntersectionObserver(entries => {
+        entries.forEach(e => { if(e.isIntersecting) { animateCounter(e.target); obsStats.unobserve(e.target); } });
+      }, { threshold: 0.5 });
+      stats.forEach(s => obsStats.observe(s));
+
+      /* Animate benefit cards */
+      const cards = document.querySelectorAll('#whyCards .why-card');
+      const obsCards = new IntersectionObserver(entries => {
+        entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); obsCards.unobserve(e.target); } });
+      }, { threshold: 0.15 });
+      cards.forEach(c => obsCards.observe(c));
+    })();
+    </script>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       SECCIÓN: CTA BANNER — Rediseño Premium
+  ═══════════════════════════════════════════════════════ -->
+  <section class="cta-v2">
+    <style>
+      .cta-v2 {
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .cta-v2-inner {
+        max-width: 100%;
+        background: linear-gradient(125deg, #FF6B1A 0%, #ff4500 40%, #c0392b 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 56px max(5vw, 40px);
+        gap: 40px;
+        min-height: 280px;
+      }
+      /* Decorative shapes */
+      .cta-v2-inner::before {
+        content: '';
+        position: absolute; top: -80px; right: -80px;
+        width: 400px; height: 400px; border-radius: 50%;
+        background: rgba(255,255,255,0.07);
+        pointer-events: none;
+      }
+      .cta-v2-inner::after {
+        content: '';
+        position: absolute; bottom: -100px; left: 30%;
+        width: 300px; height: 300px; border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        pointer-events: none;
+      }
+      .cta-v2-ring {
+        position: absolute; bottom: -60px; right: 220px;
+        width: 200px; height: 200px; border-radius: 50%;
+        border: 40px solid rgba(255,255,255,0.06);
+        pointer-events: none;
+      }
+      /* Large ghost text */
+      .cta-v2-ghost {
+        position: absolute; right: -20px; top: 50%;
+        transform: translateY(-50%);
+        font-size: clamp(80px, 14vw, 160px); font-weight: 900;
+        color: rgba(255,255,255,0.06);
+        letter-spacing: -6px; line-height: 1;
+        pointer-events: none; user-select: none;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .cta-v2-text { flex: 1; min-width: 280px; position: relative; z-index: 2; }
+      .cta-v2-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff; font-size: 11px; font-weight: 800;
+        letter-spacing: 1.5px; text-transform: uppercase;
+        padding: 5px 14px; border-radius: 100px; margin-bottom: 20px;
+      }
+      .cta-v2-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:#fff; }
+      .cta-v2-text h2 {
+        font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+        font-weight: 900; color: #fff; margin: 0 0 14px;
+        line-height: 1.15;
+      }
+      .cta-v2-text p { font-size: 1.05rem; color: rgba(255,255,255,0.82); margin: 0 0 36px; max-width: 480px; line-height: 1.6; }
+
+      .cta-v2-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+      .cta-v2-btn-primary {
+        display: inline-flex; align-items: center; gap: 10px;
+        background: #fff; color: #FF6B1A;
+        font-weight: 800; font-size: 1rem;
+        padding: 16px 32px; border-radius: 14px;
+        text-decoration: none;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+        white-space: nowrap;
+      }
+      .cta-v2-btn-primary:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 14px 40px rgba(0,0,0,0.3); }
+      .cta-v2-btn-primary svg { width: 18px; height: 18px; }
+      .cta-v2-btn-secondary {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.15);
+        border: 1.5px solid rgba(255,255,255,0.4);
+        color: #fff; font-weight: 700; font-size: 1rem;
+        padding: 16px 28px; border-radius: 14px;
+        text-decoration: none;
+        backdrop-filter: blur(6px);
+        transition: all 0.25s;
+        white-space: nowrap;
+      }
+      .cta-v2-btn-secondary:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); transform: translateY(-2px); }
+
+      /* Right image pill */
+      .cta-v2-visual {
+        position: relative; z-index: 2;
+        flex-shrink: 0; width: clamp(260px, 30vw, 420px);
+        display: flex; align-items: center; justify-content: flex-end;
+      }
+      .cta-v2-img-wrap {
+        position: relative;
+        width: 100%; max-width: 420px;
+        border-radius: 24px; overflow: hidden;
+        box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+        aspect-ratio: 16/10;
+      }
+      .cta-v2-img-wrap img {
+        width: 100%; height: 100%; object-fit: cover;
+        transition: transform 0.6s ease;
+      }
+      .cta-v2-img-wrap:hover img { transform: scale(1.05); }
+      .cta-v2-img-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to right, rgba(255,107,26,0.3), transparent);
+        pointer-events: none;
+      }
+
+      /* Mini trust pill */
+      .cta-v2-trust {
+        display: flex; align-items: center; gap: 10px; margin-top: 28px;
+        color: rgba(255,255,255,0.7); font-size: 0.82rem;
+      }
+      .cta-v2-trust-avatars { display: flex; }
+      .cta-v2-trust-avatar {
+        width: 30px; height: 30px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.4);
+        overflow: hidden; margin-left: -8px; background: rgba(255,255,255,0.2);
+      }
+      .cta-v2-trust-avatar:first-child { margin-left: 0; }
+      .cta-v2-trust-avatar span { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff; }
+
+      @media (max-width: 900px) {
+        .cta-v2-visual { display: none; }
+        .cta-v2-inner { justify-content: center; text-align: center; }
+        .cta-v2-text p { margin-left: auto; margin-right: auto; }
+        .cta-v2-actions { justify-content: center; }
+        .cta-v2-trust { justify-content: center; }
+      }
+    </style>
+
+    <div class="cta-v2-inner">
+      <div class="cta-v2-ghost">VENDE</div>
+      <div class="cta-v2-ring"></div>
+
+      <div class="cta-v2-text">
+        <div class="cta-v2-badge">Publicación Gratuita</div>
+        <h2>¿Tienes un vehículo<br>que quieres vender?</h2>
+        <p>Publica en minutos y llega a miles de compradores activos cada día. Sin costo, sin complicaciones.</p>
+
+        <div class="cta-v2-actions">
+          <a href="{{ url_for('vender') }}" class="cta-v2-btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+            Publicar ahora — es gratis
+          </a>
+          <a href="{{ url_for('buscar') }}" class="cta-v2-btn-secondary">
+            Explorar catálogo →
+          </a>
+        </div>
+
+        <div class="cta-v2-trust">
+          <div class="cta-v2-trust-avatars">
+            <div class="cta-v2-trust-avatar"><span>A</span></div>
+            <div class="cta-v2-trust-avatar"><span>M</span></div>
+            <div class="cta-v2-trust-avatar"><span>J</span></div>
+            <div class="cta-v2-trust-avatar"><span>+</span></div>
+          </div>
+          <span>+12,000 vendedores ya confían en DriveMarket</span>
+        </div>
+      </div>
+
+      <div class="cta-v2-visual">
+        <div class="cta-v2-img-wrap">
+          <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=883&auto=format&fit=crop" alt="Vende tu vehículo en DriveMarket" loading="lazy">
+          <div class="cta-v2-img-overlay"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // --- BANNER CAROUSEL LOGIC ---
+      const bSlides = document.querySelectorAll('.banner-slide');
+      const bDots = document.querySelectorAll('.b-dot');
+      let currentBSlide = 0;
+      let bInterval;
+
+      function goToBSlide(index) {
+        if(bSlides.length === 0) return;
+        bSlides[currentBSlide].classList.remove('active');
+        if(bDots.length > 0) bDots[currentBSlide].classList.remove('active');
+        currentBSlide = (index + bSlides.length) % bSlides.length;
+        bSlides[currentBSlide].classList.add('active');
+        if(bDots.length > 0) bDots[currentBSlide].classList.add('active');
+        resetBTimer();
+      }
+
+      function nextBSlide() { goToBSlide(currentBSlide + 1); }
+
+      function resetBTimer() {
+        clearInterval(bInterval);
+        if(bSlides.length > 1) {
+          bInterval = setInterval(nextBSlide, 4000);
+        }
+      }
+
+      if(bSlides.length > 0) {
+        if(bDots.length > 0) {
+          bDots.forEach((dot, index) => {
+            dot.addEventListener('click', () => goToBSlide(index));
+          });
+        }
+        resetBTimer();
+      }
+    });
+  </script>
+
+
+{% endblock %}

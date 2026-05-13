@@ -1,0 +1,1368 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Dashboard{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+<div class="adm" id="adminRoot">
+  <!-- SIDEBAR -->
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <!-- MAIN -->
+  <main class="adm-main">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()" title="Menú">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="search-box" style="position:relative;">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Buscar vehículos, usuarios…" id="globalSearch" autocomplete="off">
+          <div id="searchResults" class="search-dropdown"></div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <!-- Dark mode -->
+        <button class="icon-btn" id="themeToggle" title="Cambiar tema" onclick="toggleTheme()">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <!-- Quick Actions Dropdown -->
+        <div class="actions-wrap">
+          <button class="icon-btn actions-btn" onclick="toggleActions()" title="Acciones Rápidas">
+            <i class="fas fa-bolt"></i>
+            <span class="actions-badge">Acciones</span>
+          </button>
+          <div class="actions-menu" id="actionsMenu">
+            <div class="actions-header">Acciones Rápidas</div>
+            <a href="{{ url_for('admin.admin_vehiculos') }}#nuevo" class="action-item">
+              <i class="fas fa-plus-circle" style="color:#ff7043"></i>
+              <div>
+                <span>Nuevo Vehículo</span>
+                <p>Publicar auto</p>
+              </div>
+            </a>
+            <a href="{{ url_for('admin.admin_usuarios') }}" class="action-item">
+              <i class="fas fa-user-plus" style="color:#10b981"></i>
+              <div>
+                <span>Nuevo Usuario</span>
+                <p>Gestionar cuentas</p>
+              </div>
+            </a>
+            <a href="{{ url_for('admin.ajustes') }}" class="action-item">
+              <i class="fas fa-cog" style="color:#f59e0b"></i>
+              <div>
+                <span>Configuración</span>
+                <p>Ajustes globales</p>
+              </div>
+            </a>
+            <div style="border-top:1px solid var(--border); margin-top:0.5rem; padding-top:0.5rem;">
+              <a href="#" onclick="openCmdPalette(); return false;" class="action-item">
+                <i class="fas fa-keyboard" style="color:var(--text2)"></i>
+                <div>
+                  <span>Comandos</span>
+                  <p>Ctrl + K</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Notifications -->
+        <div class="notif-wrap">
+          <button class="icon-btn notif-btn" onclick="toggleNotif()">
+            <i class="fas fa-bell"></i>
+            {% if notificaciones_recientes|length > 0 %}
+            <span class="notif-dot"></span>
+            {% endif %}
+          </button>
+          <div class="notif-panel" id="notifPanel">
+            <div class="notif-header"><b>Notificaciones</b><button onclick="clearNotif()">Limpiar</button></div>
+            <div class="notif-list" id="notifList">
+              {% for n in notificaciones_recientes %}
+              <div class="notif-item unread">
+                <i class="fas {{ n.icon }}" style="color: {{ n.color }};"></i>
+                <div>
+                  <b>{{ n.titulo }}</b>
+                  <p>{{ n.texto }}</p>
+                  <small>{{ n.fecha.strftime('%d %b %H:%M') if n.fecha else '' }}</small>
+                </div>
+              </div>
+              {% else %}
+              <div style="padding: 1.5rem; text-align: center; color: var(--text2); font-size: .85rem;">
+                <i class="fas fa-bell-slash" style="font-size: 1.5rem; margin-bottom: .5rem; display: block; opacity: 0.5;"></i>
+                No tienes notificaciones
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <!-- User -->
+        <div class="avatar-wrap" onclick="toggleUserMenu()">
+          {% if admin_usuario and admin_usuario.foto %}
+            <img src="{{ url_for('static', filename='uploads/usuarios/' ~ admin_usuario.foto) }}" style="width:36px;height:36px;border-radius:12px;object-fit:cover;" alt="Avatar">
+          {% else %}
+            <div class="avatar"><i class="fas fa-user-shield"></i></div>
+          {% endif %}
+          <span class="avatar-name">{{ admin_usuario.nombre.split(' ')[0] if admin_usuario and admin_usuario.nombre else 'Admin' }}</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem;opacity:.6"></i>
+          <div class="user-menu" id="userMenu">
+            <a href="{{ url_for('admin.ajustes') }}"><i class="fas fa-cog"></i> Configuración</a>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div>
+          <h1><span class="heading-icon"><i class="fas fa-chart-line"></i></span>Dashboard</h1>
+          <p class="subtext">Vista general de Drive Market &mdash; <span id="currentDate"></span></p>
+        </div>
+        <div class="header-actions" style="display:flex;gap:.6rem;">
+          <button class="btn-export" onclick="openExportModal()"><i class="fas fa-file-pdf"></i> Exportar PDF</button>
+          <button class="btn-export" onclick="openExportExcelModal()" style="background:rgba(16,185,129,.1);color:#10b981;border-color:rgba(16,185,129,.2);"><i class="fas fa-file-excel"></i> Exportar Excel</button>
+        </div>
+      </div>
+      
+      <!-- EXPORT MODAL -->
+      <div id="exportModal" class="adm-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="card" style="width: 380px; animation: slideInToast 0.3s ease;">
+          <div class="card-header" style="justify-content: space-between;">
+            <h2 style="margin:0;"><i class="fas fa-file-export"></i> Exportar Datos</h2>
+            <button onclick="closeExportModal()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.2rem;"><i class="fas fa-times"></i></button>
+          </div>
+          <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem;">
+            <p style="color:var(--text2); font-size:0.85rem; margin-top:0;">Selecciona el formato y entidad a exportar:</p>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem;">
+              <a href="{{ url_for('admin.exportar_datos', entidad='vehiculos', formato='pdf') }}" class="btn-view" style="justify-content:center; padding: 0.6rem; background: #ff7043; font-size:0.8rem;">
+                <i class="fas fa-car"></i> Vehículos (PDF)
+              </a>
+              <a href="{{ url_for('admin.exportar_datos', entidad='vehiculos', formato='csv') }}" class="btn-view" style="justify-content:center; padding: 0.6rem; background: #ff7043; font-size:0.8rem; filter: hue-rotate(20deg);">
+                <i class="fas fa-file-csv"></i> Vehículos (Excel)
+              </a>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem;">
+              <a href="{{ url_for('admin.exportar_datos', entidad='usuarios', formato='pdf') }}" class="btn-view" style="justify-content:center; padding: 0.6rem; background: #10b981; font-size:0.8rem;">
+                <i class="fas fa-users"></i> Usuarios (PDF)
+              </a>
+              <a href="{{ url_for('admin.exportar_datos', entidad='usuarios', formato='csv') }}" class="btn-view" style="justify-content:center; padding: 0.6rem; background: #10b981; font-size:0.8rem; filter: contrast(0.8);">
+                <i class="fas fa-file-csv"></i> Usuarios (Excel)
+              </a>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.6rem;">
+              <a href="{{ url_for('admin.exportar_datos', entidad='reportes', formato='pdf') }}" class="btn-view" style="justify-content:center; padding: 0.6rem; background: #6366f1; font-size:0.8rem;">
+                <i class="fas fa-flag"></i> Reportes (PDF)
+              </a>
+              <a href="{{ url_for('admin.exportar_datos', entidad='reportes', formato='csv') }}" class="btn-view" style="justify-content:center; padding: 0.6rem; background: #6366f1; font-size:0.8rem; filter: saturate(1.5);">
+                <i class="fas fa-file-csv"></i> Reportes (Excel)
+              </a>
+            </div>
+
+            <div style="border-top:1px solid var(--border); padding-top:0.8rem;">
+              <a href="{{ url_for('admin.exportar_datos', entidad='logs', formato='csv') }}" class="btn-view" style="justify-content:center; padding: 0.6rem; background: var(--text2); font-size:0.8rem;">
+                <i class="fas fa-history"></i> Logs de Auditoría (Excel)
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- KPI CARDS -->
+      <section class="kpi-grid">
+        <div class="kpi-card" style="--accent:#ff7043">
+          <div class="kpi-top">
+            <span class="kpi-icon"><i class="fas fa-car"></i></span>
+            {% set var_v = kpi_variacion.vehiculos if kpi_variacion else 0 %}
+            <span class="kpi-badge {{ 'badge-up' if var_v >= 0 else 'badge-down' }}">
+              <i class="fas fa-arrow-{{ 'up' if var_v >= 0 else 'down' }}"></i> {{ var_v }}% mes
+            </span>
+          </div>
+          <div class="kpi-value" id="kpi-vehiculos" data-target="{{ total_vehiculos }}">0</div>
+          <div class="kpi-label">Total Vehículos</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:{{ pct_vehiculos_bar }}%"></div></div>
+        </div>
+        <div class="kpi-card" style="--accent:#10b981">
+          <div class="kpi-top">
+            <span class="kpi-icon"><i class="fas fa-users"></i></span>
+            {% set var_u = kpi_variacion.usuarios if kpi_variacion else 0 %}
+            <span class="kpi-badge {{ 'badge-up' if var_u >= 0 else 'badge-down' }}">
+              <i class="fas fa-arrow-{{ 'up' if var_u >= 0 else 'down' }}"></i> {{ var_u }}% mes
+            </span>
+          </div>
+          <div class="kpi-value" id="kpi-usuarios" data-target="{{ total_usuarios }}">0</div>
+          <div class="kpi-label">Total Usuarios</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:{{ pct_usuarios_bar }}%"></div></div>
+        </div>
+        <div class="kpi-card" style="--accent:#a855f7">
+          <div class="kpi-top">
+            <span class="kpi-icon"><i class="fas fa-heart"></i></span>
+            <span class="kpi-badge badge-up"><i class="fas fa-heart"></i> Guardados</span>
+          </div>
+          <div class="kpi-value" id="kpi-favoritos" data-target="{{ total_favoritos }}">0</div>
+          <div class="kpi-label">Total Favoritos</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:{{ pct_favoritos_bar }}%"></div></div>
+        </div>
+        <div class="kpi-card" style="--accent:#f59e0b">
+          <div class="kpi-top">
+            <span class="kpi-icon"><i class="fas fa-calendar-day"></i></span>
+            <span class="kpi-badge badge-now"><i class="fas fa-clock"></i> Hoy</span>
+          </div>
+          <div class="kpi-value" id="kpi-hoy" data-target="{{ publicados_hoy }}">0</div>
+          <div class="kpi-label">Publicados Hoy</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:{{ pct_hoy_bar }}%"></div></div>
+        </div>
+      </section>
+      <!-- MIDDLE ROW: Chart + Donut + Health -->
+      <section class="mid-row" style="grid-template-columns: 2fr 1.2fr 1fr;">
+        <!-- Bar Chart (Chart.js) -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-area"></i> Publicaciones por Mes</h2>
+            <div class="card-actions">
+              <span style="font-size:.75rem;color:var(--text2);font-weight:600;background:var(--surface2);padding:.3rem .7rem;border-radius:8px;border:1px solid var(--border);"><i class="fas fa-calendar" style="color:var(--primary);"></i> {{ 2026 }}</span>
+            </div>
+          </div>
+          <div style="padding:1.2rem 1.5rem .8rem;height:195px;position:relative;">
+            <canvas id="barChartCanvas"></canvas>
+          </div>
+          <!-- Hidden div preserved for JS compatibility -->
+          <div class="bar-chart" id="barChart" style="display:none"></div>
+          <div class="bar-labels" id="barLabels" style="display:none"></div>
+        </div>
+        
+        <!-- Doughnut Chart: Top Marcas -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-pie"></i> Marcas Top</h2>
+          </div>
+          <div style="padding:1.5rem; display:flex; flex-direction:column; align-items:center; height: calc(100% - 60px); justify-content: center;">
+            <div class="donut" id="donutTopMarcas" data-marcas='{{ top_marcas | tojson | safe }}' style="
+              width: 140px; height: 140px; border-radius: 50%;
+              display:flex; align-items:center; justify-content:center;
+              transition: transform 0.3s;
+              position: relative;
+            ">
+              <div style="width: 100px; height: 100px; background: var(--surface); border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--text); font-size: 1.1rem; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);">
+                Top 5
+              </div>
+            </div>
+            
+            <!-- Leyenda -->
+            <div id="donutLegend" style="margin-top: 1.5rem; width:100%; display:flex; flex-direction:column; gap:0.6rem; font-size:0.85rem; color:var(--text2); font-weight: 500;">
+            </div>
+          </div>
+        </div>
+
+
+        <!-- System Health Widget -->
+        <div class="card" id="healthWidget" style="display:flex;flex-direction:column;min-width:200px;">
+          <div class="card-header">
+            <h2><i class="fas fa-heartbeat" style="color:#FF6A00;"></i> Salud del Sistema</h2>
+          </div>
+          <div class="health-body">
+            <div class="health-item" id="h-db">
+              <div class="health-icon" style="--hc:#6366f1"><i class="fas fa-database"></i></div>
+              <div class="health-info">
+                <span class="health-label">Base de Datos</span>
+                <span class="health-val" id="h-db-val">Verificando…</span>
+              </div>
+              <span class="health-dot" id="h-db-dot"></span>
+            </div>
+            <div class="health-item" id="h-mail">
+              <div class="health-icon" style="--hc:#10b981"><i class="fas fa-envelope"></i></div>
+              <div class="health-info">
+                <span class="health-label">Correo SMTP</span>
+                <span class="health-val" id="h-mail-val">Verificando…</span>
+              </div>
+              <span class="health-dot" id="h-mail-dot"></span>
+            </div>
+            <div class="health-item" id="h-storage">
+              <div class="health-icon" style="--hc:#f59e0b"><i class="fas fa-hdd"></i></div>
+              <div class="health-info">
+                <span class="health-label">Almacenamiento</span>
+                <span class="health-val" id="h-storage-val">Verificando…</span>
+              </div>
+              <span class="health-dot" id="h-storage-dot"></span>
+            </div>
+            <div class="health-item" id="h-internet">
+              <div class="health-icon" style="--hc:#3b82f6"><i class="fas fa-globe"></i></div>
+              <div class="health-info">
+                <span class="health-label">Conexión Externa</span>
+                <span class="health-val" id="h-internet-val">Verificando…</span>
+              </div>
+              <span class="health-dot" id="h-internet-dot"></span>
+            </div>
+            <div class="health-item" id="h-ram">
+              <div class="health-icon" style="--hc:#ec4899"><i class="fas fa-memory"></i></div>
+              <div class="health-info">
+                <span class="health-label">Memoria RAM</span>
+                <span class="health-val" id="h-ram-val">Verificando…</span>
+              </div>
+              <span class="health-dot" id="h-ram-dot"></span>
+            </div>
+            <div class="health-footer">
+              <span id="h-last-check">Actualizando…</span>
+              <button class="health-refresh-btn" onclick="checkHealth()" title="Actualizar">
+                <i class="fas fa-sync-alt" id="h-refresh-icon"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- BOTTOM ROW: Table + Timeline -->
+      <section class="bottom-row">
+        <!-- Table -->
+        <div class="card table-card-wrap">
+          <div class="card-header">
+            <h2><i class="fas fa-history"></i> Últimas Publicaciones</h2>
+            <div class="card-actions">
+              <input type="text" class="table-search" id="tableSearch" placeholder="Filtrar…" oninput="filterTable()">
+              <button class="btn-icon-sm" onclick="location.reload()" title="Actualizar">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="dtable" id="mainTable">
+              <thead>
+                <tr>
+                  <th onclick="sortTable(0)">ID <i class="fas fa-sort"></i></th>
+                  <th>Miniatura</th>
+                  <th onclick="sortTable(2)">Marca / Modelo <i class="fas fa-sort"></i></th>
+                  <th onclick="sortTable(3)">Año <i class="fas fa-sort"></i></th>
+                  <th onclick="sortTable(4)">Precio <i class="fas fa-sort"></i></th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody">
+                {% for v in ultimos %}
+                <tr class="trow">
+                  <td><span class="badge-id">#{{ v.id }}</span></td>
+                  <td>
+                    {% if v.imagen %}
+                    <div class="thumb-wrap">
+                      <img src="{% if v.imagen %}{{ url_for('static', filename=v.imagen) }}{% else %}{{ url_for('static', filename='img/default_car.jpg') }}{% endif %}" class="thumb" alt="thumb">
+                      <div class="thumb-ov"><i class="fas fa-search-plus"></i></div>
+                    </div>
+                    {% else %}
+                    <span class="no-thumb"><i class="fas fa-image"></i></span>
+                    {% endif %}
+                  </td>
+                  <td><b>{{ v.marca }} {{ v.modelo }}</b></td>
+                  <td><span class="badge-year">{{ v.anio }}</span></td>
+                  <td><span class="badge-price">${{ "{:,.0f}".format(v.precio|float) }}</span></td>
+                  <td>
+                    <a href="{{ url_for('admin.admin_vehiculos') }}#v-{{ v.id }}" class="btn-view">
+                      <i class="fas fa-eye"></i> Ver
+                    </a>
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="empty-row"><i class="fas fa-inbox"></i><p>No hay vehículos recientes.</p></td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <!-- Pagination -->
+          <div class="pagination" id="pagination"></div>
+        </div>
+        <!-- Activity Timeline -->
+        <div class="card timeline-card">
+          <div class="card-header">
+            <h2><i class="fas fa-stream"></i> Actividad Reciente</h2>
+          </div>
+          <ul class="timeline" id="activityTimeline">
+            {% for act in actividad_reciente[:15] %}
+            <li class="tl-item">
+              {% if act.tipo == 'vehiculo' %}
+                <div class="tl-dot" style="--c:#ff7043"><i class="fas fa-car"></i></div>
+              {% elif act.tipo == 'usuario' %}
+                <div class="tl-dot" style="--c:#10b981"><i class="fas fa-user-plus"></i></div>
+              {% elif act.tipo == 'favorito' %}
+                <div class="tl-dot" style="--c:#e8520a"><i class="fas fa-heart"></i></div>
+              {% endif %}
+              <div class="tl-body">
+                <b>{{ act.titulo }}</b>
+                <p>{{ act.descripcion }}</p>
+                <small>{{ act.fecha.strftime('%d/%m/%Y %H:%M') if act.fecha else '' }}</small>
+              </div>
+            </li>
+            {% else %}
+            <li class="tl-item empty-trow">
+              <div class="tl-body"><p>No hay actividad reciente.</p></div>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </section>
+    </div><!-- /page-content -->
+  </main>
+</div>
+<!-- COMMAND PALETTE (Ctrl+K) -->
+<div id="cmdPalette" class="cmd-overlay" onclick="closeCmdPalette(event)">
+  <div class="cmd-modal">
+    <div class="cmd-search-wrap">
+      <i class="fas fa-search cmd-search-icon"></i>
+      <input type="text" id="cmdInput" class="cmd-input" placeholder="Buscar sección, acción o usuario… (Esc para cerrar)" autocomplete="off">
+      <kbd class="cmd-esc-badge">ESC</kbd>
+    </div>
+    <div class="cmd-results" id="cmdResults"></div>
+    <div class="cmd-footer">
+      <span><kbd>↑↓</kbd> Navegar</span>
+      <span><kbd>Enter</kbd> Abrir</span>
+      <span><kbd>Esc</kbd> Cerrar</span>
+      <span style="margin-left:auto;opacity:.5;font-size:.75rem;">Ctrl + K para abrir</span>
+    </div>
+  </div>
+</div>
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+<style>
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --border: #e5e7eb;
+  --text: #0f172a;
+  --text2: #64748b;
+  --primary: #FF6A00;
+  --primary-dark: #e55d00;
+  --primary-gradient: linear-gradient(135deg, #FF6A00 0%, #FF4500 100%);
+  --shadow: 0 4px 24px rgba(0,0,0,.07);
+  --shadow-hover: 0 16px 40px rgba(0,0,0,.13);
+  --radius: 16px;
+  --sidebar-w: 260px;
+  font-family: 'Inter', sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface2: #162032;
+  --border: #334155;
+  --text: #f1f5f9;
+  --text2: #94a3b8;
+  --shadow: 0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+/* Layout */
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;transition:transform .3s;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+/* Top Bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.8rem;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;padding:.4rem;}
+.search-box{display:flex;align-items:center;gap:.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.5rem 1rem;}
+.search-box i{color:var(--text2);}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:.9rem;width:220px;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.5rem .7rem;color:var(--text);cursor:pointer;font-size:.95rem;position:relative;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.notif-wrap{position:relative;}
+.notif-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:#ef4444;border-radius:50%;border:2px solid var(--surface);}
+.notif-panel{display:none;position:absolute;top:calc(100% + 8px);right:0;width:300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);z-index:300;overflow:hidden;}
+.notif-panel.open{display:block;}
+.notif-header{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem;border-bottom:1px solid var(--border);}
+.notif-header button{background:none;border:none;color:var(--primary);cursor:pointer;font-size:.85rem;}
+.notif-item{display:flex;gap:.8rem;padding:.8rem 1rem;border-bottom:1px solid var(--border);font-size:.85rem;transition:background .2s;}
+.notif-item:hover{background:var(--surface2);}
+.notif-item.unread{background:rgba(255,112,67,.05);}
+.notif-item i{font-size:1.2rem;color:var(--primary);margin-top:.2rem;flex-shrink:0;}
+.notif-item p{color:var(--text2);margin:.2rem 0;}
+.notif-item small{color:var(--text2);}
+.avatar-wrap{display:flex;align-items:center;gap:.6rem;cursor:pointer;position:relative;padding:.4rem .8rem;border-radius:10px;transition:background .2s;}
+.avatar-wrap:hover{background:var(--surface2);}
+.avatar{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.9rem;}
+.avatar-name{font-weight:600;font-size:.9rem;}
+.user-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);width:180px;overflow:hidden;z-index:300;}
+.user-menu.open{display:block;}
+.user-menu a{display:flex;align-items:center;gap:.7rem;padding:.8rem 1rem;color:var(--text);text-decoration:none;font-size:.9rem;transition:background .2s;}
+.user-menu a:hover{background:var(--surface2);color:var(--primary);}
+/* Page Content */
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.8rem;}
+.page-heading{display:flex;justify-content:space-between;align-items:center;gap:1rem;}
+.page-heading h1{font-size:1.7rem;font-weight:800;display:flex;align-items:center;gap:.7rem;}
+.heading-icon{width:48px;height:48px;border-radius:14px;background:var(--primary-gradient);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;flex-shrink:0;box-shadow:0 8px 20px rgba(255,106,0,.25);}
+.subtext{color:var(--text2);margin-top:.3rem;font-size:.9rem;}
+.btn-export{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.3rem;background:var(--surface);color:var(--primary);border:1.5px solid rgba(255,106,0,.25);border-radius:12px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .3s;}
+.btn-export:hover{background:var(--primary-gradient);color:#fff;border-color:transparent;transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,106,0,.3);}
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4rem;}
+.kpi-card{
+  background:var(--surface);border-radius:var(--radius);padding:1.6rem;
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  transition:transform .35s cubic-bezier(.4,0,.2,1),box-shadow .35s;
+  cursor:default;position:relative;overflow:hidden;
+}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:var(--accent,var(--primary));border-radius:4px 4px 0 0;
+}
+.kpi-card::after{
+  content:'';position:absolute;top:0;right:0;width:80px;height:80px;
+  background:radial-gradient(circle at top right,color-mix(in srgb,var(--accent,var(--primary)) 8%,transparent),transparent 70%);
+  pointer-events:none;
+}
+.kpi-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-hover);}
+.kpi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.kpi-icon{
+  width:46px;height:46px;border-radius:13px;
+  background:color-mix(in srgb,var(--accent,var(--primary)) 12%,transparent);
+  color:var(--accent,var(--primary));display:flex;align-items:center;justify-content:center;
+  font-size:1.15rem;box-shadow:0 4px 10px color-mix(in srgb,var(--accent,var(--primary)) 20%,transparent);
+}
+.kpi-badge{display:flex;align-items:center;gap:.3rem;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:700;}
+.badge-up{background:rgba(16,185,129,.1);color:#10b981;}
+.badge-down{background:rgba(239,68,68,.1);color:#ef4444;}
+.badge-now{background:rgba(255,106,0,.1);color:#FF6A00;}
+.kpi-value{font-size:2.4rem;font-weight:800;letter-spacing:-.03em;margin-bottom:.15rem;line-height:1;}
+.kpi-label{font-size:.78rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem;}
+.kpi-sparkline{height:36px;margin-bottom:.8rem;}
+.kpi-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.kpi-bar-fill{height:100%;border-radius:2px;background:var(--accent,var(--primary));animation:barGrow 1.5s ease-out both;transform-origin:left;}
+@keyframes barGrow{from{width:0!important;}to{}}
+/* Cards */
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);gap:1rem;}
+.card-header h2{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:.6rem;}
+.card-header h2 i{color:var(--primary);}
+.card-actions{display:flex;align-items:center;gap:.6rem;}
+.table-search{padding:.4rem .8rem;border:1px solid var(--border);border-radius:8px;font-size:.85rem;background:var(--surface2);color:var(--text);outline:none;width:160px;}
+.btn-icon-sm{background:none;border:1px solid var(--border);border-radius:8px;padding:.4rem .7rem;color:var(--text2);cursor:pointer;transition:all .2s;}
+.btn-icon-sm:hover{color:var(--primary);border-color:var(--primary);}
+/* Mid Row */
+.mid-row{display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;}
+.chart-card {padding-bottom:1rem;}
+/* Bar Chart */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;padding:1.5rem 1.5rem .5rem;height:180px;}
+.bar-item{
+  flex:1;border-radius:8px 8px 0 0;min-height:4px;
+  transition:opacity .2s,filter .2s;animation:riseBar .7s cubic-bezier(.34,1.56,.64,1) both;
+  position:relative;
+}
+.bar-item:hover{opacity:.85;filter:brightness(1.1);}
+.bar-item::after{
+  content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#1e293b;color:#fff;padding:.2rem .5rem;border-radius:6px;font-size:.68rem;
+  white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;font-weight:600;
+}
+.bar-item:hover::after{opacity:1;}
+@keyframes riseBar{from{transform:scaleY(0);transform-origin:bottom;}}
+.bar-labels{display:flex;gap:6px;padding:.3rem 1.5rem .8rem;font-size:.72rem;color:var(--text2);}
+.bar-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;}
+/* Quick Actions */
+.quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;padding:1.2rem;}
+.qa-item{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1rem;border-radius:12px;background:color-mix(in srgb,var(--qa,#6366f1) 10%,transparent);color:var(--qa,#6366f1);text-decoration:none;font-size:.8rem;font-weight:600;border:1px solid color-mix(in srgb,var(--qa,#6366f1) 20%,transparent);transition:all .25s;}
+.qa-item:hover{background:var(--qa,#6366f1);color:#fff;transform:translateY(-3px);}
+.qa-item i{font-size:1.5rem;}
+
+/* Search Dropdown AJAX */
+.search-dropdown { position: absolute; top: calc(100% + 10px); left: 0; width: 350px; background: var(--surface); border-radius: var(--radius); box-shadow: 0 10px 40px rgba(0,0,0,0.2); border: 1px solid var(--border); overflow: hidden; display: none; z-index: 1000; }
+.search-dropdown.active { display: block; animation: slideInToast 0.2s ease; }
+.search-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; text-decoration: none; color: var(--text); border-bottom: 1px solid var(--border); transition: background 0.2s; }
+.search-item:last-child { border-bottom: none; }
+.search-item:hover { background: var(--surface2); }
+.search-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+.s-info h4 { font-size: 0.95rem; margin: 0; font-weight: 700; }
+.s-info p { font-size: 0.8rem; color: var(--text2); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.s-tipo { font-size: 0.7rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.2rem; }
+
+/* Bottom Row */
+.bottom-row{display:grid;grid-template-columns:2fr 1fr;gap:1.2rem;}
+.table-card-wrap{min-width:0;}
+/* Table */
+.table-wrap{overflow-x:auto;}
+.dtable{width:100%;border-collapse:collapse;}
+.dtable thead{background:var(--surface2);}
+.dtable th{padding:1rem 1.2rem;text-align:left;font-size:.75rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;}
+.dtable th:hover{color:var(--primary);}
+.dtable td{padding:1rem 1.2rem;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--text);}
+.trow{transition:background .2s;animation:fadeRow .4s ease both;}
+@keyframes fadeRow{from{opacity:0;transform:translateY(8px);}}
+.trow:nth-child(1){animation-delay:.05s;}
+.trow:nth-child(2){animation-delay:.1s;}
+.trow:nth-child(3){animation-delay:.15s;}
+.trow:nth-child(4){animation-delay:.2s;}
+.trow:nth-child(5){animation-delay:.25s;}
+.trow:hover{background:rgba(255,106,0,.04);}
+.badge-id{padding:.3rem .7rem;background:rgba(255,106,0,.08);color:var(--primary);border-radius:8px;font-weight:700;font-size:.8rem;}
+.badge-year{padding:.3rem .7rem;background:rgba(245,158,11,.1);color:#f59e0b;border-radius:8px;font-weight:700;font-size:.8rem;}
+.badge-price{padding:.3rem .8rem;background:rgba(16,185,129,.1);color:#10b981;border-radius:8px;font-weight:800;font-size:.88rem;}
+.thumb-wrap{position:relative;width:72px;height:48px;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.thumb{width:100%;height:100%;object-fit:cover;transition:transform .4s cubic-bezier(.4,0,.2,1);}
+.thumb-ov{position:absolute;inset:0;background:rgba(255,106,0,.6);display:flex;align-items:center;justify-content:center;color:#fff;opacity:0;transition:opacity .3s;}
+.thumb-wrap:hover .thumb{transform:scale(1.08);}
+.thumb-wrap:hover .thumb-ov{opacity:1;}
+.no-thumb{display:flex;align-items:center;gap:.3rem;padding:.5rem .8rem;background:var(--surface2);color:var(--text2);border-radius:8px;font-size:.8rem;}
+.btn-view{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--primary-gradient);color:#fff;border-radius:10px;text-decoration:none;font-size:.8rem;font-weight:700;transition:all .3s;box-shadow:0 4px 12px rgba(255,106,0,.25);}
+.btn-view:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,106,0,.35);}
+.empty-row{text-align:center;padding:3rem;color:var(--text2);}
+.empty-row i{font-size:2.5rem;display:block;margin-bottom:.5rem;}
+.pagination{display:flex;gap:.4rem;padding:1rem 1.2rem;justify-content:flex-end;}
+.pg-btn{padding:.35rem .8rem;border:1.5px solid var(--border);border-radius:8px;background:none;color:var(--text);cursor:pointer;font-size:.82rem;font-weight:600;transition:all .2s;}
+.pg-btn:hover,.pg-btn.active{background:var(--primary-gradient);color:#fff;border-color:transparent;box-shadow:0 4px 10px rgba(255,106,0,.25);}
+/* Timeline */
+.timeline-card .card-header{padding:1.2rem 1.5rem;}
+.timeline{list-style:none;padding:1.2rem 1.5rem;display:flex;flex-direction:column;gap:1.2rem;overflow:hidden;max-height:430px;}
+.tl-item{display:flex;gap:.9rem;align-items:flex-start;}
+.tl-dot{width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--c,#6366f1) 15%,transparent);color:var(--c,#6366f1);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.tl-body{flex:1;}
+.tl-body b{font-size:.88rem;font-weight:700;}
+.tl-body p{color:var(--text2);font-size:.8rem;margin:.15rem 0;}
+.tl-body small{color:var(--text2);font-size:.72rem;}
+/* Toast */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.7rem;z-index:9999;}
+.toast{padding:.7rem 1.2rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.85rem;font-weight:600;min-width:220px;animation:slideInToast .3s ease;}
+@keyframes slideInToast{from{transform:translateX(120%);opacity:0;}to{transform:none;opacity:1;}}
+/* Responsive */
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.mid-row,.bottom-row{grid-template-columns:1fr;}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .search-box input{width:140px;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .page-content{padding:1rem;}
+}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr;}.avatar-name{display:none;}}
+/* ── System Health Widget ──────────────────────── */
+.health-body{padding:1rem 1.2rem 0;display:flex;flex-direction:column;gap:.6rem;flex:1;}
+.health-item{display:flex;align-items:center;gap:.8rem;padding:.7rem .8rem;border-radius:12px;background:var(--surface2);border:1px solid var(--border);transition:box-shadow .2s;}
+.health-item:hover{box-shadow:0 4px 12px rgba(0,0,0,.06);}
+.health-icon{width:34px;height:34px;border-radius:9px;background:color-mix(in srgb,var(--hc,#6366f1) 12%,transparent);color:var(--hc,#6366f1);display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.health-info{flex:1;display:flex;flex-direction:column;gap:.1rem;}
+.health-label{font-size:.75rem;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.04em;}
+.health-val{font-size:.78rem;color:var(--text2);font-weight:500;}
+.health-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;background:#94a3b8;transition:background .3s;}
+.health-dot.ok{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);}
+.health-dot.warn{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2);}
+.health-dot.error{background:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.2);}
+.health-footer{display:flex;align-items:center;justify-content:space-between;padding:.8rem 0 .6rem;color:var(--text2);font-size:.72rem;font-weight:500;}
+.health-refresh-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:.3rem .5rem;color:var(--text2);cursor:pointer;font-size:.78rem;transition:all .2s;}
+.health-refresh-btn:hover{background:var(--primary-gradient);color:#fff;border-color:transparent;}
+.health-refresh-btn.spinning i{animation:spinIcon .8s linear infinite;}
+@keyframes spinIcon{to{transform:rotate(360deg);}}
+/* ── Command Palette ──────────────────────────── */
+.cmd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:9000;display:none;align-items:flex-start;justify-content:center;padding-top:12vh;}
+.cmd-overlay.open{display:flex;animation:fadeIn .15s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.cmd-modal{width:100%;max-width:580px;background:var(--surface);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.3);border:1px solid var(--border);overflow:hidden;animation:cmdSlide .2s cubic-bezier(.34,1.56,.64,1);}
+@keyframes cmdSlide{from{transform:translateY(-20px) scale(.97);opacity:0;}to{transform:none;opacity:1;}}
+.cmd-search-wrap{display:flex;align-items:center;gap:.8rem;padding:1rem 1.2rem;border-bottom:1px solid var(--border);}
+.cmd-search-icon{color:var(--text2);font-size:1rem;flex-shrink:0;}
+.cmd-input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:1rem;font-weight:500;font-family:inherit;}
+.cmd-input::placeholder{color:var(--text2);}
+.cmd-esc-badge{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.2rem .5rem;font-size:.7rem;color:var(--text2);font-family:inherit;cursor:default;}
+.cmd-results{max-height:380px;overflow-y:auto;padding:.5rem;}
+.cmd-results::-webkit-scrollbar{width:3px;}
+.cmd-results::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.cmd-group-label{font-size:.68rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;padding:.4rem .7rem .2rem;}
+.cmd-item{display:flex;align-items:center;gap:.8rem;padding:.65rem .8rem;border-radius:10px;cursor:pointer;transition:background .15s,transform .1s;color:var(--text);text-decoration:none;}
+.cmd-item:hover,.cmd-item.active{background:color-mix(in srgb,var(--primary) 8%,transparent);}
+.cmd-item.active{outline:2px solid var(--primary);}
+.cmd-item i{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;}
+.cmd-item-title{font-size:.88rem;font-weight:600;}
+.cmd-item-sub{font-size:.76rem;color:var(--text2);margin-top:.05rem;}
+.cmd-item-badge{margin-left:auto;font-size:.72rem;font-weight:700;padding:.2rem .55rem;border-radius:20px;color:#fff;background:var(--primary-gradient);}
+.cmd-footer{display:flex;gap:1.2rem;align-items:center;padding:.7rem 1.2rem;border-top:1px solid var(--border);background:var(--surface2);}
+.cmd-footer span{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--text2);}
+.cmd-footer kbd{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:.1rem .38rem;font-size:.7rem;font-family:inherit;}
+
+/* ── Actions Dropdown ─────────────────────────── */
+.actions-wrap{position:relative;}
+.actions-btn{display:flex;align-items:center;gap:.6rem;padding:.5rem .9rem;background:var(--surface2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .3s;width:auto;height:40px;}
+.actions-btn:hover{background:var(--surface);border-color:var(--primary);box-shadow:0 0 15px rgba(255,106,0,.15);}
+.actions-btn i{color:var(--primary);font-size:1rem;filter:drop-shadow(0 0 5px rgba(255,106,0,.3));}
+.actions-badge{font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;}
+.actions-menu{position:absolute;top:calc(100% + 12px);right:0;width:240px;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 15px 40px rgba(0,0,0,.15);display:none;flex-direction:column;z-index:100;padding:.8rem;animation:slideIn .3s ease;backdrop-filter:blur(10px);}
+.actions-menu.show{display:flex;}
+.actions-header{font-size:.7rem;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;padding:.4rem .8rem .8rem;border-bottom:1px solid var(--border);margin-bottom:.5rem;}
+.action-item{display:flex;align-items:center;gap:.9rem;padding:.7rem .8rem;border-radius:12px;text-decoration:none;color:var(--text);transition:all .2s;}
+.action-item:hover{background:var(--surface2);transform:translateX(4px);}
+.action-item i{font-size:1.1rem;width:20px;text-align:center;}
+.action-item div{display:flex;flex-direction:column;gap:.1rem;}
+.action-item span{font-size:.85rem;font-weight:700;}
+.action-item p{font-size:.72rem;color:var(--text2);margin:0;}
+
+.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+<script>
+// Actions Menu Toggle
+function toggleActions() {
+  document.getElementById('actionsMenu').classList.toggle('show');
+}
+// Notifications Toggle
+function toggleNotif() {
+  document.getElementById('notifPanel').classList.toggle('show');
+}
+// User Menu Toggle
+function toggleUserMenu() {
+  document.getElementById('userMenu').classList.toggle('show');
+}
+
+// Close menus on outside click
+window.addEventListener('click', (e) => {
+  const menus = [
+    { wrap: '.actions-wrap', menu: 'actionsMenu' },
+    { wrap: '.notif-wrap', menu: 'notifPanel' },
+    { wrap: '.avatar-wrap', menu: 'userMenu' }
+  ];
+  
+  menus.forEach(m => {
+    const wrap = document.querySelector(m.wrap);
+    const menu = document.getElementById(m.menu);
+    if (wrap && menu && !wrap.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+});
+
+// Theme
+const root=document.getElementById('adminRoot');
+const savedTheme=localStorage.getItem('adminTheme')||'light';
+if(savedTheme==='dark')root.setAttribute('data-theme','dark');
+document.documentElement.setAttribute('data-theme',savedTheme);
+function toggleTheme(){
+  const isDark=root.getAttribute('data-theme')==='dark';
+  const next=isDark?'light':'dark';
+  root.setAttribute('data-theme',next);
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=isDark?'fas fa-moon':'fas fa-sun';
+}
+if(savedTheme==='dark')document.getElementById('themeIcon').className='fas fa-sun';
+// Date
+const d=new Date();
+document.getElementById('currentDate').textContent=d.toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'});
+// Counter animation
+function animateValue(el, target) {
+  let cur=parseInt(el.textContent)||0, step=Math.max(1, Math.abs(target-cur)/40);
+  if(cur===target)return;
+  el.dataset.target = target;
+  const asc = target>cur;
+  const t=setInterval(()=>{
+    cur += asc?step:-step;
+    if((asc&&cur>=target)||(!asc&&cur<=target)){el.textContent=target;clearInterval(t);}
+    else el.textContent=Math.floor(cur);
+  }, 16);
+}
+document.querySelectorAll('.kpi-value[data-target]').forEach(el => animateValue(el, parseInt(el.dataset.target)||0));
+
+// Real-Time Polling for Metrics (every 10 seconds)
+setInterval(async () => {
+  try {
+    const res = await fetch('{{ url_for("admin.admin_dashboard_live") }}');
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    const vEl = document.getElementById('kpi-vehiculos');
+    if (parseInt(vEl.dataset.target) !== data.vehiculos) animateValue(vEl, data.vehiculos);
+    
+    const uEl = document.getElementById('kpi-usuarios');
+    if (parseInt(uEl.dataset.target) !== data.usuarios) animateValue(uEl, data.usuarios);
+    
+    const fEl = document.getElementById('kpi-favoritos');
+    if (parseInt(fEl.dataset.target) !== data.favoritos) animateValue(fEl, data.favoritos);
+    
+    const hEl = document.getElementById('kpi-hoy');
+    if (parseInt(hEl.dataset.target) !== data.hoy) animateValue(hEl, data.hoy);
+    
+  } catch(e) {}
+}, 10000);
+
+// Sidebar
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+// Notifications
+function toggleNotif(){document.getElementById('notifPanel').classList.toggle('open');document.getElementById('userMenu').classList.remove('open');}
+function clearNotif(){document.querySelectorAll('.notif-item').forEach(i=>i.classList.remove('unread'));document.querySelector('.notif-dot').style.display='none';}
+// User menu
+function toggleUserMenu(){document.getElementById('userMenu').classList.toggle('open');document.getElementById('notifPanel').classList.remove('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.notif-wrap'))document.getElementById('notifPanel').classList.remove('open');if(!e.target.closest('.avatar-wrap'))document.getElementById('userMenu').classList.remove('open');});
+
+// ========== GLOBAL SEARCH AJAX ========== //
+const searchInput = document.getElementById('globalSearch');
+const searchDropdown = document.getElementById('searchResults');
+let searchTimeout;
+
+if (searchInput) {
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    const query = this.value.trim();
+    
+    if (query.length < 2) {
+      searchDropdown.classList.remove('active');
+      return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+      fetch(`/admin/buscar?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.resultados && data.resultados.length > 0) {
+            searchDropdown.innerHTML = data.resultados.map(r => `
+              <a href="${r.url}" class="search-item">
+                <div class="search-icon" style="background:${r.color}"><i class="fas ${r.icono}"></i></div>
+                <div class="s-info">
+                  <span class="s-tipo">${r.tipo}</span>
+                  <h4>${r.titulo}</h4>
+                  <p>${r.sub}</p>
+                </div>
+              </a>
+            `).join('');
+            searchDropdown.classList.add('active');
+          } else {
+            searchDropdown.innerHTML = `<div style="padding:1.5rem;color:var(--text2);text-align:center;font-size:0.9rem;"><i class="fas fa-ghost" style="font-size: 2rem; margin-bottom:0.5rem; opacity:0.5;"></i><br>Sin resultados para "${query}"</div>`;
+            searchDropdown.classList.add('active');
+          }
+        })
+        .catch(err => console.error("Error buscando:", err));
+    }, 350);
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+      searchDropdown.classList.remove('active');
+    }
+  });
+}
+
+// ========== DOUGHNUT CHART (Marcas Populares) ========== //
+const donutEl = document.getElementById('donutTopMarcas');
+const legendEl = document.getElementById('donutLegend');
+if (donutEl && donutEl.dataset.marcas) {
+  const marcas = JSON.parse(donutEl.dataset.marcas);
+  const colors = ['#ff7043', '#10b981', '#a855f7', '#3b82f6', '#f59e0b'];
+  
+  if (marcas.length > 0) {
+    let total = marcas.reduce((s, m) => s + m.cantidad, 0);
+    let gradientStr = [];
+    let accum = 0;
+    let legendHTML = '';
+    
+    marcas.forEach((m, idx) => {
+      let pct = (m.cantidad / total) * 100;
+      gradientStr.push(`${colors[idx]} ${accum}% ${accum + pct}%`);
+      accum += pct;
+      
+      legendHTML += `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.35rem 0.6rem; border-radius: 8px; transition: background 0.2s; cursor: default;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <span style="width:12px; height:12px; border-radius:50%; background:${colors[idx]}; box-shadow: 0 0 5px ${colors[idx]}80;"></span>
+            ${m.nombre.substring(0, 15)}
+          </div>
+          <strong style="color:var(--text)">${m.cantidad}</strong>
+        </div>
+      `;
+    });
+    
+    donutEl.style.background = `conic-gradient(${gradientStr.join(', ')})`;
+    legendEl.innerHTML = legendHTML;
+    
+    donutEl.style.transform = 'scale(0.8)';
+    setTimeout(() => { donutEl.style.transform = 'scale(1)'; }, 100);
+  } else {
+    legendEl.innerHTML = '<p style="text-align:center;">No hay datos.</p>';
+    donutEl.style.background = 'var(--surface2)';
+  }
+}
+
+// ========== BAR CHART ========== //
+const months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const data={{ publicaciones_meses | tojson }};
+const maxD=Math.max(...data) || 1;
+const avg=data.reduce((a,b)=>a+b,0)/data.length;
+const bc=document.getElementById('barChart');
+const bl=document.getElementById('barLabels');
+data.forEach((v,i)=>{
+  const b=document.createElement('div');
+  b.className='bar-item';
+  b.style.height=(v/maxD*100)+'%';
+  b.title=months[i]+': '+v+' publicaciones';
+  b.style.animationDelay=(i*.06)+'s';
+  
+  // Colores: naranja DriveMarket si >= promedio, rojo si < promedio
+  if(v >= avg) {
+    b.style.background = 'linear-gradient(180deg, #FF6A00, #FF4500)';
+  } else {
+    b.style.background = 'linear-gradient(180deg, #ef4444, #b91c1c)';
+  }
+  
+  bc.appendChild(b);
+  const s=document.createElement('span');
+  s.textContent=months[i];
+  bl.appendChild(s);
+});
+// Table filter
+function filterTable(){
+  const q=document.getElementById('tableSearch').value.toLowerCase();
+  document.querySelectorAll('#tableBody .trow').forEach(r=>{
+    r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+// Sort table
+let sortDir={};
+function sortTable(col){
+  const tbody=document.getElementById('tableBody');
+  const rows=[...tbody.querySelectorAll('.trow')];
+  const asc=!sortDir[col];sortDir={};sortDir[col]=asc;
+  rows.sort((a,b)=>{
+    const av=a.cells[col]?.textContent.trim()||'';
+    const bv=b.cells[col]?.textContent.trim()||'';
+    const an=parseFloat(av.replace(/[^0-9.]/g,'')),bn=parseFloat(bv.replace(/[^0-9.]/g,''));
+    if(!isNaN(an)&&!isNaN(bn))return asc?an-bn:bn-an;
+    return asc?av.localeCompare(bv):bv.localeCompare(bv);
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+// Export Modal
+function openExportModal() { document.getElementById('exportModal').style.display = 'flex'; }
+function openExportExcelModal() { openExportModal(); }
+function closeExportModal() { document.getElementById('exportModal').style.display = 'none'; }
+// Toast
+function showToast(msg,color='#6366f1'){
+  const t=document.createElement('div');
+  t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(()=>t.remove(),3500);
+}
+// Timeline Auto-Rotate
+const tl = document.getElementById('activityTimeline');
+if(tl && tl.children.length > 5) {
+  setInterval(() => {
+    const first = tl.firstElementChild;
+    if(!first.classList.contains('empty-trow')) {
+      const h = first.offsetHeight;
+      first.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+      first.style.marginTop = `-${h + 19}px`; // rem gap
+      first.style.opacity = '0';
+      setTimeout(() => {
+        first.style.transition = 'none';
+        first.style.marginTop = '0';
+        first.style.opacity = '1';
+        tl.appendChild(first);
+      }, 600);
+    }
+  }, 3500);
+}
+// Show toast on load
+window.addEventListener('load',()=>{showToast('Dashboard cargado correctamente');});
+
+// ========== SPARKLINES en KPI Cards ========== //
+(function renderSparklines() {
+  const sparkData = {
+    'kpi-vehiculos': [60,65,70,68,75,80,85,82,90,88,95,100],
+    'kpi-usuarios':  [30,35,33,40,42,45,50,48,55,58,60,65],
+    'kpi-favoritos': [20,25,22,28,30,35,38,36,42,44,48,52],
+    'kpi-hoy':       [1,3,2,4,3,5,4,6,5,7,6,8],
+  };
+  const colors = {
+    'kpi-vehiculos': '#FF6A00',
+    'kpi-usuarios':  '#10b981',
+    'kpi-favoritos': '#a855f7',
+    'kpi-hoy':       '#f59e0b',
+  };
+  Object.keys(sparkData).forEach(kpiId => {
+    const kpiCard = document.getElementById(kpiId)?.closest('.kpi-card');
+    if (!kpiCard) return;
+    // Insertar contenedor sparkline antes de la barra
+    const barEl = kpiCard.querySelector('.kpi-bar');
+    if (!barEl) return;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'kpi-sparkline';
+    canvas.height = 36;
+    canvas.style.width = '100%';
+    kpiCard.insertBefore(canvas, barEl);
+    // Dibujar sparkline simple
+    requestAnimationFrame(() => {
+      canvas.width = canvas.offsetWidth || 200;
+      const ctx = canvas.getContext('2d');
+      const d = sparkData[kpiId];
+      const w = canvas.width, h = canvas.height;
+      const min = Math.min(...d), max = Math.max(...d);
+      const range = max - min || 1;
+      const pts = d.map((v, i) => ({
+        x: (i / (d.length - 1)) * w,
+        y: h - ((v - min) / range) * (h - 6) - 3
+      }));
+      // Gradiente de relleno
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, colors[kpiId] + '40');
+      grad.addColorStop(1, colors[kpiId] + '00');
+      // Área
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, h);
+      pts.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.lineTo(pts[pts.length-1].x, h);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+      // Línea
+      ctx.beginPath();
+      pts.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+      ctx.strokeStyle = colors[kpiId];
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      // Punto final
+      const last = pts[pts.length-1];
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = colors[kpiId];
+      ctx.fill();
+    });
+  });
+})();
+
+// ========== CHART.JS — Gráfico de Área ========== //
+(function initAreaChart() {
+  const canvas = document.getElementById('barChartCanvas');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const chartMonthData = {{ publicaciones_meses | tojson }};
+  const chartMonths = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const chartAvg = chartMonthData.reduce((a, b) => a + b, 0) / chartMonthData.length;
+
+  const isDark = document.getElementById('adminRoot')?.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#94a3b8' : '#64748b';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  const ctx = canvas.getContext('2d');
+  const gradFill = ctx.createLinearGradient(0, 0, 0, 180);
+  gradFill.addColorStop(0, 'rgba(255,106,0,0.35)');
+  gradFill.addColorStop(1, 'rgba(255,106,0,0.01)');
+
+  window._areaChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartMonths,
+      datasets: [{
+        label: 'Publicaciones',
+        data: chartMonthData,
+        fill: true,
+        backgroundColor: gradFill,
+        borderColor: '#FF6A00',
+        borderWidth: 2.5,
+        pointBackgroundColor: chartMonthData.map(v => v >= chartAvg ? '#FF6A00' : '#ef4444'),
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        tension: 0.42,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 900, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: isDark ? '#1e293b' : '#0f172a',
+          titleColor: '#fff',
+          bodyColor: '#94a3b8',
+          padding: 10,
+          cornerRadius: 10,
+          callbacks: {
+            label: ctx => ` ${ctx.raw} publicaci${ctx.raw === 1 ? 'ón' : 'ones'}`,
+          }
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: textColor, font: { size: 11, weight: '600' } },
+          border: { display: false },
+        },
+        y: {
+          grid: { color: gridColor, drawBorder: false },
+          ticks: { color: textColor, font: { size: 11 }, stepSize: 1 },
+          border: { display: false },
+          beginAtZero: true,
+        }
+      }
+    }
+  });
+
+  // Re-render cuando cambia el tema
+  document.getElementById('adminRoot')?.addEventListener('themeChanged', () => {
+    window._areaChart?.destroy();
+    initAreaChart();
+  });
+})();
+
+// ========== SYSTEM HEALTH ========== //
+async function checkHealth() {
+  const icon = document.getElementById('h-refresh-icon');
+  if (icon) icon.classList.add('spinning');
+
+  try {
+    const res = await fetch('{{ url_for("admin.admin_dashboard_health") }}');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+
+    // DB
+    const dbDot = document.getElementById('h-db-dot');
+    const dbVal = document.getElementById('h-db-val');
+    if (data.db?.ok) {
+      dbDot.className = 'health-dot ok';
+      dbVal.textContent = `Activa · ${data.db.latency_ms}ms`;
+    } else {
+      dbDot.className = 'health-dot error';
+      dbVal.textContent = 'Error de conexión';
+    }
+
+    // Mail
+    const mailDot = document.getElementById('h-mail-dot');
+    const mailVal = document.getElementById('h-mail-val');
+    if (data.mail?.ok) {
+      mailDot.className = 'health-dot ok';
+      mailVal.textContent = 'Configurado';
+    } else {
+      mailDot.className = 'health-dot warn';
+      mailVal.textContent = 'Sin configurar';
+    }
+
+    // Storage
+    const stDot = document.getElementById('h-storage-dot');
+    const stVal = document.getElementById('h-storage-val');
+    const mb = data.storage?.used_mb || 0;
+    if (data.storage?.ok) {
+      stDot.className = mb > 1000 ? 'health-dot warn' : 'health-dot ok';
+      stVal.textContent = mb >= 1024
+        ? `${(mb/1024).toFixed(1)} GB usados`
+        : `${mb} MB usados`;
+    } else {
+      stDot.className = 'health-dot error';
+      stVal.textContent = 'Espacio crítico';
+    }
+
+    // Internet
+    const intDot = document.getElementById('h-internet-dot');
+    const intVal = document.getElementById('h-internet-val');
+    if (data.internet?.ok) {
+      intDot.className = 'health-dot ok';
+      intVal.textContent = 'Conectado (1.1.1.1)';
+    } else {
+      intDot.className = 'health-dot error';
+      intVal.textContent = 'Sin conexión externa';
+    }
+
+    // RAM
+    const ramDot = document.getElementById('h-ram-dot');
+    const ramVal = document.getElementById('h-ram-val');
+    if (data.ram?.ok) {
+      const u = data.ram.usage;
+      ramDot.className = u > 70 ? 'health-dot warn' : 'health-dot ok';
+      ramVal.textContent = `${u}% en uso`;
+    } else {
+      ramDot.className = 'health-dot error';
+      ramVal.textContent = data.ram?.usage === 'N/A' ? 'No disponible' : 'Uso crítico';
+    }
+
+    // Timestamp
+    const ts = new Date().toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit'});
+    const el = document.getElementById('h-last-check');
+    if (el) el.textContent = `Revisado ${ts}`;
+
+  } catch(e) {
+    ['h-db-dot','h-mail-dot','h-storage-dot','h-internet-dot','h-ram-dot'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.className = 'health-dot error';
+    });
+  } finally {
+    const icon = document.getElementById('h-refresh-icon');
+    if (icon) icon.classList.remove('spinning');
+  }
+}
+
+// Consultar health al cargar y cada 30s
+document.addEventListener('DOMContentLoaded', () => {
+  checkHealth();
+  setInterval(checkHealth, 30000);
+});
+
+// ========== COMMAND PALETTE (Ctrl+K) ========== //
+const CMD_SECTIONS = [
+  { title: 'Dashboard', sub: 'Vista general', icon: 'fas fa-chart-line', color: '#FF6A00', url: '{{ url_for("admin.admin_dashboard") }}' },
+  { title: 'Vehículos', sub: 'Gestionar publicaciones', icon: 'fas fa-car', color: '#FF6A00', url: '{{ url_for("admin.admin_vehiculos") }}' },
+  { title: 'Agregar Vehículo', sub: 'Nueva publicación', icon: 'fas fa-plus-circle', color: '#10b981', url: '{{ url_for("admin.admin_vehiculos") }}#nuevo' },
+  { title: 'Usuarios', sub: 'Gestión de cuentas', icon: 'fas fa-users', color: '#10b981', url: '{{ url_for("admin.admin_usuarios") }}' },
+  { title: 'Categorías y Marcas', sub: 'Tipos y marcas de vehículos', icon: 'fas fa-tags', color: '#a855f7', url: '{{ url_for("admin.administrar_categorias") }}' },
+  { title: 'Aprobaciones', sub: 'Solicitudes de vendedores', icon: 'fas fa-user-check', color: '#f59e0b', url: '{{ url_for("admin.solicitudes_vendedores") }}' },
+  { title: 'Reportes', sub: 'Gestión de reportes', icon: 'fas fa-flag', color: '#ef4444', url: '{{ url_for("admin.reportes_usuarios") }}' },
+  { title: 'Logs de Auditoría', sub: 'Historial de acciones', icon: 'fas fa-history', color: '#6366f1', url: '{{ url_for("admin.logs_auditoria") }}' },
+  { title: 'Configuración', sub: 'Ajustes del sistema', icon: 'fas fa-cog', color: '#64748b', url: '{{ url_for("admin.ajustes") }}' },
+  { title: 'Volver al Sitio', sub: 'Vista pública', icon: 'fas fa-home', color: '#10b981', url: '{{ url_for("index") }}' },
+  { title: 'Exportar PDF', sub: 'Exportar datos', icon: 'fas fa-file-pdf', color: '#FF6A00', action: 'openExportModal' },
+  { title: 'Cerrar Sesión', sub: 'Salir del panel', icon: 'fas fa-sign-out-alt', color: '#ef4444', url: '{{ url_for("logout") }}' },
+];
+
+let cmdActiveIdx = -1;
+let cmdFilteredItems = [];
+
+function openCmdPalette() {
+  const palette = document.getElementById('cmdPalette');
+  const input = document.getElementById('cmdInput');
+  palette.classList.add('open');
+  input.value = '';
+  cmdActiveIdx = -1;
+  renderCmdResults('');
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeCmdPalette(e) {
+  if (!e || e.target === document.getElementById('cmdPalette')) {
+    document.getElementById('cmdPalette').classList.remove('open');
+  }
+}
+
+function renderCmdResults(query) {
+  const container = document.getElementById('cmdResults');
+  const q = query.toLowerCase().trim();
+
+  if (!q) {
+    // Sin query: mostrar secciones predefinidas + tip
+    container.innerHTML = `
+      <div class="cmd-group-label">Navegación Rápida</div>
+      ${CMD_SECTIONS.map((s, i) => `
+        <a class="cmd-item" href="${s.url || '#'}" ${s.action ? `onclick="closeCmdPalette();${s.action}();return false;"` : `onclick="closeCmdPalette()"`} data-idx="${i}">
+          <i class="${s.icon}" style="background:${s.color}18;color:${s.color};"></i>
+          <div><div class="cmd-item-title">${s.title}</div><div class="cmd-item-sub">${s.sub}</div></div>
+        </a>
+      `).join('')}
+    `;
+    cmdFilteredItems = CMD_SECTIONS.map((_, i) => i);
+    return;
+  }
+
+  // Filtrar estático
+  const staticMatches = CMD_SECTIONS.filter(s =>
+    s.title.toLowerCase().includes(q) || s.sub.toLowerCase().includes(q)
+  );
+
+  // Buscar en backend (vehículos/usuarios)
+  const resultsEl = container;
+  resultsEl.innerHTML = staticMatches.length
+    ? `<div class="cmd-group-label">Secciones</div>
+       ${staticMatches.map((s, i) => `
+         <a class="cmd-item" href="${s.url || '#'}" ${s.action ? `onclick="closeCmdPalette();${s.action}();return false;"` : `onclick="closeCmdPalette()"`} data-idx="${i}">
+           <i class="${s.icon}" style="background:${s.color}18;color:${s.color};"></i>
+           <div><div class="cmd-item-title">${s.title}</div><div class="cmd-item-sub">${s.sub}</div></div>
+         </a>`).join('')}`
+    : '';
+
+  // Buscar también en la API global
+  if (q.length >= 2) {
+    fetch(`/admin/buscar?q=${encodeURIComponent(q)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.resultados?.length) return;
+        const existing = document.getElementById('cmdResults');
+        existing.innerHTML += `
+          <div class="cmd-group-label">Resultados</div>
+          ${data.resultados.map(r => `
+            <a class="cmd-item" href="${r.url}" onclick="closeCmdPalette()">
+              <i class="${r.icono}" style="background:${r.color}18;color:${r.color};"></i>
+              <div>
+                <div class="cmd-item-title">${r.titulo}</div>
+                <div class="cmd-item-sub">${r.sub}</div>
+              </div>
+              <span class="cmd-item-badge">${r.tipo}</span>
+            </a>
+          `).join('')}
+        `;
+        cmdFilteredItems = [...cmdFilteredItems, ...data.resultados.map((_, i) => 1000 + i)];
+      })
+      .catch(() => {});
+  }
+
+  cmdFilteredItems = staticMatches.map((_, i) => i);
+}
+
+// Eventos del Command Palette
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('cmdInput');
+  if (!input) return;
+
+  input.addEventListener('input', e => {
+    cmdActiveIdx = -1;
+    renderCmdResults(e.target.value);
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = document.querySelectorAll('#cmdResults .cmd-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      cmdActiveIdx = Math.min(cmdActiveIdx + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('active', i === cmdActiveIdx));
+      items[cmdActiveIdx]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      cmdActiveIdx = Math.max(cmdActiveIdx - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('active', i === cmdActiveIdx));
+      items[cmdActiveIdx]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      if (cmdActiveIdx >= 0 && items[cmdActiveIdx]) {
+        items[cmdActiveIdx].click();
+      }
+    }
+  });
+});
+
+// Atajo de teclado global Ctrl+K
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    const palette = document.getElementById('cmdPalette');
+    palette.classList.contains('open') ? closeCmdPalette({ target: palette }) : openCmdPalette();
+  }
+  if (e.key === 'Escape') {
+    const palette = document.getElementById('cmdPalette');
+    if (palette.classList.contains('open')) closeCmdPalette({ target: palette });
+  }
+});
+
+// Añadir indicador Ctrl+K en la barra de búsqueda existente
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('globalSearch');
+  if (searchInput) {
+    searchInput.placeholder = 'Buscar… (Ctrl+K para panel avanzado)';
+  }
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

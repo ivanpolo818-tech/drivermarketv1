@@ -1,0 +1,438 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Admin · Gestión de Promociones{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right" style="font-size:.6rem; margin: 0 8px;"></i>
+          <span>Promociones</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <a href="{{ url_for('admin.crear_promocion') }}" class="btn-add" style="display:flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;background:linear-gradient(135deg,var(--primary),#a855f7);color:#fff;border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .25s;box-shadow:0 4px 12px rgba(99,102,241,.3);">
+          <i class="fas fa-plus"></i> Nueva Promoción
+        </a>
+      </div>
+    </header>
+    
+    <div class="page-content">
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas fa-bullhorn"></i></div>
+        <div>
+          <h1>Gestión de Promociones</h1>
+          <p class="subtext">Administra los banners dinámicos del carrusel de inicio.</p>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <section class="stat-grid">
+        <div class="stat-card" style="--acc:#4f46e5">
+          <span class="stat-icon"><i class="fas fa-images"></i></span>
+          <div>
+            <div class="stat-val">{{ promociones|length }}</div>
+            <div class="stat-lbl">Total Promos</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#10b981">
+          <span class="stat-icon"><i class="fas fa-eye"></i></span>
+          <div>
+            <div class="stat-val">{{ promociones|selectattr('activa','equalto',true)|list|length }}</div>
+            <div class="stat-lbl">Visibles</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#64748b">
+          <span class="stat-icon"><i class="fas fa-eye-slash"></i></span>
+          <div>
+            <div class="stat-val">{{ promociones|selectattr('activa','equalto',false)|list|length }}</div>
+            <div class="stat-lbl">Inactivas</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FILTERS -->
+      <div class="toolbar">
+        <form class="toolbar-form" onsubmit="event.preventDefault();">
+          <div class="search-box-tb">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar por título..." autocomplete="off" oninput="filterPromos()">
+            <button type="button" class="clear-x" id="clearSearchBtn" onclick="document.getElementById('searchInput').value=''; filterPromos();" style="display:none;"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="sel-wrap">
+            <select id="statusFilter" onchange="filterPromos()">
+              <option value="all">Todos los estados</option>
+              <option value="active">Solo Visibles</option>
+              <option value="inactive">Solo Ocultas</option>
+            </select>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </form>
+      </div>
+
+      <!-- PREMIUM LIST -->
+      <div class="promo-list">
+        {% for promo in promociones %}
+        <div class="promo-card {% if not promo.activa %}dimmed{% endif %}">
+          <!-- LEFT: Image & Details -->
+          <div class="pc-left">
+            <div class="pc-thumb">
+              <div class="pc-order"><i class="fas fa-sort-amount-up-alt"></i> #{{ promo.orden }}</div>
+              <img src="{% if promo.imagen.startswith('http') %}{{ promo.imagen }}{% else %}{{ url_for('static', filename=promo.imagen) }}{% endif %}" alt="{{ promo.titulo }}">
+              {% if not promo.activa %}
+              <div class="pc-overlay"><i class="fas fa-eye-slash"></i> Inactiva</div>
+              {% endif %}
+            </div>
+            <div class="pc-details">
+              <h3 class="pc-title">{{ promo.titulo }}</h3>
+              <p class="pc-desc">{{ promo.descripcion[:80] }}{% if promo.descripcion|length > 80 %}...{% endif %}</p>
+              <div class="pc-meta">
+                <span class="pc-label" style="background:color-mix(in srgb, {{ promo.color_etiqueta }} 15%, transparent); color: {{ promo.color_etiqueta }}; border-color:color-mix(in srgb, {{ promo.color_etiqueta }} 30%, transparent);">
+                  <i class="fas fa-tag"></i> {{ promo.etiqueta }}
+                </span>
+                <span class="pc-link"><i class="fas fa-link"></i> {{ promo.enlace_boton }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- RIGHT: Actions -->
+          <div class="pc-right">
+            <div class="pc-status">
+              {% if promo.activa %}
+              <span class="st-badge st-activo"><span class="st-dot"></span> Visible en Inicio</span>
+              {% else %}
+              <span class="st-badge st-inactivo"><span class="st-dot"></span> Oculta</span>
+              {% endif %}
+            </div>
+            <div class="pc-actions">
+              <!-- Toggle -->
+              <form action="{{ url_for('admin.toggle_promocion', id=promo.id) }}" method="POST" class="m-0 p-0">
+                <button type="submit" class="ab {% if promo.activa %}ab-warn{% else %}ab-success{% endif %}" title="{% if promo.activa %}Ocultar{% else %}Mostrar{% endif %}">
+                  <i class="fas {% if promo.activa %}fa-eye-slash{% else %}fa-eye{% endif %}"></i>
+                </button>
+              </form>
+              <!-- Edit -->
+              <a href="{{ url_for('admin.editar_promocion', id=promo.id) }}" class="ab ab-primary" title="Editar">
+                <i class="fas fa-pen"></i>
+              </a>
+              <!-- Delete -->
+              <form action="{{ url_for('admin.borrar_promocion', id=promo.id) }}" method="POST" class="m-0 p-0" onsubmit="return confirm('¿Eliminar definitivamente esta promoción?');">
+                <button type="submit" class="ab ab-danger" title="Eliminar">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="es-icon"><i class="fas fa-images"></i></div>
+          <h3>Sin Promociones</h3>
+          <p>Atrae más clientes destacando tus mejores ofertas y vehículos en el carrusel principal.</p>
+          <a href="{{ url_for('admin.crear_promocion') }}" class="btn-add mt-3" style="display:inline-flex;">
+            <i class="fas fa-plus"></i> Crear Promoción
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- PAGINATION FOOTER -->
+      <div class="table-foot" id="promoFoot" style="display:none;">
+        <span class="tf-info">
+          <i class="fas fa-layer-group"></i>
+          Mostrando <strong id="visibleCount">0</strong> de <strong id="totalFiltered">0</strong> promociones
+        </span>
+        <div id="pagination" class="pagination"></div>
+      </div>
+
+    </div><!-- /page-content -->
+  </main>
+</div>
+
+<style>
+/* ── Base ─────────────────────────────────────────── */
+:root {
+  --bg:#f8fafc; --surface:#fff; --surface2:#f1f5f9;
+  --border:#e2e8f0; --text:#0f172a; --text2:#64748b;
+  --primary:#4f46e5; --primary2:#7c3aed;
+  --shadow:0 12px 32px rgba(15,23,42,.04); --radius:20px; font-family:'Inter',sans-serif;
+}
+[data-theme="dark"] {
+  --bg:#0b0f19; --surface:#131b2c; --surface2:#1a233a;
+  --border:#2a3449; --text:#f1f5f9; --text2:#94a3b8;
+  --shadow:0 12px 32px rgba(0,0,0,.4);
+}
+/* Layout */
+.adm{display:flex;min-height:100vh;background:var(--bg);color:var(--text);}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;z-index:100;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 2rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:90;backdrop-filter:blur(10px);background:color-mix(in srgb, var(--surface) 90%, transparent);}
+.breadcrumb{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--text2);font-weight:500;}
+.breadcrumb a{color:var(--primary);text-decoration:none;font-weight:600;}
+.btn-add{display:inline-flex;align-items:center;gap:.5rem;padding:.7rem 1.4rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:12px;font-size:.9rem;font-weight:700;text-decoration:none;box-shadow:0 8px 20px rgba(79,70,229,.35);transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+.btn-add:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(79,70,229,.5);}
+/* Page content */
+.page-content{padding:2rem 3rem;display:flex;flex-direction:column;gap:2rem;}
+.page-heading{display:flex;align-items:center;gap:1.2rem;}
+.page-heading h1{font-size:2rem;font-weight:900;letter-spacing:-.03em;margin:0;color:var(--text);}
+.page-heading .subtext{color:var(--text2);font-size:.95rem;margin-top:.3rem;font-weight:500;}
+.heading-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;box-shadow:0 8px 24px rgba(79,70,229,.35);transform:rotate(-3deg);}
+
+/* Table footer */
+.table-foot{display:flex;align-items:center;justify-content:space-between;padding:1.4rem 1.8rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);gap:1rem;flex-wrap:wrap;}
+.tf-info{font-size:.85rem;color:var(--text2);display:flex;align-items:center;gap:.6rem;font-weight:500;}
+.tf-info i{color:var(--primary);font-size:1.1rem;}
+.tf-info strong{color:var(--text);font-weight:800;font-size:.95rem;}
+.pagination{display:flex;gap:.5rem;}
+.pg-btn{width:36px;height:36px;border:none;border-radius:12px;background:var(--surface2);color:var(--text2);cursor:pointer;font-size:.85rem;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.pg-btn:hover:not(:disabled){background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);}
+.pg-btn.active{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.35);}
+.pg-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem 1.6rem;display:flex;align-items:center;gap:1.2rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .3s,box-shadow .3s;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--acc,#6366f1);}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(0,0,0,.08);}
+.stat-icon{width:52px;height:52px;border-radius:14px;background:color-mix(in srgb,var(--acc,#6366f1) 12%,transparent);color:var(--acc,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.stat-val{font-size:1.8rem;font-weight:900;letter-spacing:-.02em;color:var(--text);line-height:1.2;}
+.stat-lbl{font-size:.8rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:.2rem;}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.toolbar-form{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;flex:1;}
+.search-box-tb{display:flex;align-items:center;gap:.6rem;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.6rem 1rem;flex:1;min-width:240px;max-width:380px;transition:all .2s;}
+.search-box-tb:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.15);}
+.search-box-tb i{color:var(--text2);font-size:.9rem;}
+.search-box-tb input{background:none;border:none;outline:none;color:var(--text);font-size:.9rem;width:100%;font-weight:500;}
+.search-box-tb input::placeholder{color:var(--text2);opacity:.7;}
+.clear-x{background:none;border:none;color:var(--text2);cursor:pointer;padding:.2rem;font-size:.8rem;transition:color .2s;}
+.clear-x:hover{color:var(--primary);}
+.sel-wrap{position:relative;min-width:180px;}
+.sel-wrap select{width:100%;appearance:none;padding:.65rem 2.4rem .65rem 1rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font-size:.88rem;font-weight:600;cursor:pointer;outline:none;transition:all .2s;}
+.sel-wrap select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.15);}
+.sel-wrap .fa-chevron-down{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:var(--text2);pointer-events:none;}
+
+/* Promo Cards */
+.promo-list{display:flex;flex-direction:column;gap:1.2rem;animation:fadeList .6s ease both;}
+@keyframes fadeList{from{opacity:0;transform:translateY(15px);}to{opacity:1;transform:none;}}
+
+.promo-card{display:flex;align-items:center;justify-content:space-between;padding:1.4rem;background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);transition:all .35s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden;}
+.promo-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(15,23,42,.08);border-color:color-mix(in srgb, var(--primary) 40%, var(--border));}
+.promo-card.dimmed{background:color-mix(in srgb, var(--surface) 50%, var(--surface2)); border-style:dashed;}
+.promo-card.dimmed .pc-thumb img{filter:grayscale(80%) brightness(0.8);}
+
+.pc-left{display:flex;align-items:center;gap:1.5rem;flex:1;min-width:0;}
+.pc-thumb{position:relative;width:160px;height:90px;border-radius:14px;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.1);flex-shrink:0;background:var(--surface2);}
+.pc-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .5s;}
+.promo-card:hover .pc-thumb img{transform:scale(1.05);}
+.pc-order{position:absolute;top:6px;left:6px;background:rgba(15,23,42,.75);backdrop-filter:blur(6px);color:#fff;font-size:.7rem;font-weight:800;padding:.2rem .5rem;border-radius:8px;z-index:2;display:flex;align-items:center;gap:.3rem;}
+.pc-overlay{position:absolute;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-size:.8rem;font-weight:700;z-index:3;}
+.pc-overlay i{font-size:1.2rem;margin-bottom:.2rem;}
+
+.pc-details{display:flex;flex-direction:column;min-width:0;}
+.pc-title{font-size:1.15rem;font-weight:800;color:var(--text);margin:0 0 .3rem 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em;}
+.pc-desc{font-size:.85rem;color:var(--text2);margin:0 0 .8rem 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.4;}
+.pc-meta{display:flex;align-items:center;gap:1rem;}
+.pc-label{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:20px;font-size:.75rem;font-weight:700;border:1px solid;}
+.pc-link{display:inline-flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--text2);font-weight:600;background:var(--surface2);padding:.3rem .8rem;border-radius:20px;}
+
+.pc-right{display:flex;align-items:center;gap:2rem;flex-shrink:0;}
+.st-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem 1rem;border-radius:24px;font-size:.78rem;font-weight:700;}
+.st-activo{background:rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.st-inactivo{background:rgba(100,116,139,.1);color:#475569;border:1px solid rgba(100,116,139,.2);}
+.st-dot{width:8px;height:8px;border-radius:50%;}
+.st-activo .st-dot{background:#10b981;box-shadow:0 0 8px #10b981;}
+.st-inactivo .st-dot{background:#64748b;}
+
+.pc-actions{display:flex;align-items:center;gap:.5rem;background:var(--surface2);padding:.4rem;border-radius:16px;border:1px solid var(--border);}
+.ab{width:38px;height:38px;border-radius:12px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--text2);text-decoration:none;transition:all .2s;background:transparent;}
+.ab:hover{transform:translateY(-2px);color:#fff;}
+.ab-success:hover{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 12px rgba(16,185,129,.4);}
+.ab-warn:hover{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 12px rgba(245,158,11,.4);}
+.ab-primary:hover{background:linear-gradient(135deg,var(--primary),var(--primary2));box-shadow:0 4px 12px rgba(79,70,229,.4);}
+.ab-danger:hover{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 12px rgba(239,68,68,.4);}
+.m-0{margin:0;} .p-0{padding:0;}
+
+/* Empty State */
+.empty-state{background:var(--surface);border:2px dashed var(--border);border-radius:24px;padding:4rem 2rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.es-icon{width:80px;height:80px;border-radius:24px;background:var(--surface2);color:var(--text2);font-size:2.5rem;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;}
+.empty-state h3{font-size:1.4rem;font-weight:800;color:var(--text);margin:0 0 .5rem 0;}
+.empty-state p{color:var(--text2);font-size:.95rem;max-width:400px;margin:0 auto;}
+
+@media(max-width:1100px){
+  .promo-card{flex-direction:column;align-items:flex-start;gap:1.5rem;}
+  .pc-right{width:100%;justify-content:space-between;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:600px){
+  .pc-left{flex-direction:column;align-items:flex-start;}
+  .pc-thumb{width:100%;height:160px;}
+  .page-content{padding:1.5rem;}
+  .stat-grid{grid-template-columns:1fr;}
+  .toolbar-form{flex-direction:column;}
+  .search-box-tb{max-width:100%;}
+  .sel-wrap{width:100%;}
+}
+</style>
+<script>
+let currentPage = 1;
+const ITEMS_PER_PAGE = 5;
+
+function filterPromos(page = 1) {
+  currentPage = page;
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const status = document.getElementById('statusFilter').value;
+  const btnClear = document.getElementById('clearSearchBtn');
+  const promoList = document.querySelector('.promo-list');
+  const cards = Array.from(promoList.querySelectorAll('.promo-card'));
+  
+  if(query.length > 0) btnClear.style.display = 'block';
+  else btnClear.style.display = 'none';
+
+  let filtered = [];
+
+  cards.forEach(card => {
+    const title = card.querySelector('.pc-title').textContent.toLowerCase();
+    const isInactive = card.classList.contains('dimmed');
+    
+    let matchesQuery = title.includes(query);
+    let matchesStatus = true;
+
+    if (status === 'active' && isInactive) matchesStatus = false;
+    if (status === 'inactive' && !isInactive) matchesStatus = false;
+
+    if (matchesQuery && matchesStatus) {
+      filtered.push(card);
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  const totalFiltered = filtered.length;
+  const totalPages = Math.ceil(totalFiltered / ITEMS_PER_PAGE);
+
+  // Pagination logic boundaries
+  if (currentPage > totalPages) currentPage = totalPages || 1;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+
+  // Render current page
+  filtered.forEach((card, index) => {
+    if(index >= startIndex && index < endIndex) {
+      card.style.display = 'flex';
+      card.style.animation = 'fadeList 0.4s ease both'; // re-trigger animation cleanly when paginating
+    } else {
+      card.style.display = 'none';
+      card.style.animation = 'none';
+    }
+  });
+
+  // Handle Empty State Form Filters
+  let fs = document.getElementById('filterEmptyState');
+  if (totalFiltered === 0 && cards.length > 0) {
+    if(!fs) {
+      promoList.insertAdjacentHTML('beforeend', `
+        <div class="empty-state" id="filterEmptyState" style="padding:4rem 2rem; border-color:transparent;">
+          <div class="es-icon" style="background:var(--surface2); color:var(--text2);"><i class="fas fa-search"></i></div>
+          <h3 style="color:var(--text2);">No hay resultados</h3>
+          <p>Ninguna promoción coincide con tu búsqueda o filtros.</p>
+        </div>`);
+    } else {
+      fs.style.display = 'flex';
+    }
+  } else if (fs) {
+    fs.style.display = 'none';
+  }
+
+  // Update Footer UI
+  const promoFoot = document.getElementById('promoFoot');
+  if (cards.length > 0) {
+    promoFoot.style.display = 'flex';
+    let endCount = Math.min(totalFiltered, startIndex + ITEMS_PER_PAGE);
+    let startCount = (totalFiltered === 0) ? 0 : startIndex + 1;
+    document.getElementById('visibleCount').textContent = startCount + "-" + endCount;
+    document.getElementById('totalFiltered').textContent = totalFiltered;
+    
+    renderPagination(totalPages);
+  } else {
+    promoFoot.style.display = 'none';
+  }
+}
+
+function renderPagination(totalPages) {
+  const container = document.getElementById('pagination');
+  container.innerHTML = '';
+  
+  if (totalPages <= 1) return;
+
+  // Prev
+  const prev = document.createElement('button');
+  prev.className = 'pg-btn';
+  prev.innerHTML = '<i class="fas fa-chevron-left"></i>';
+  prev.disabled = currentPage === 1;
+  if(currentPage > 1) {
+    prev.onclick = () => filterPromos(currentPage - 1);
+  }
+  container.appendChild(prev);
+
+  // Pages
+  for(let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.className = `pg-btn ${i === currentPage ? 'active' : ''}`;
+    btn.textContent = i;
+    btn.onclick = () => filterPromos(i);
+    container.appendChild(btn);
+  }
+
+  // Next
+  const next = document.createElement('button');
+  next.className = 'pg-btn';
+  next.innerHTML = '<i class="fas fa-chevron-right"></i>';
+  next.disabled = currentPage === totalPages;
+  if(currentPage < totalPages) {
+    next.onclick = () => filterPromos(currentPage + 1);
+  }
+  container.appendChild(next);
+}
+
+// Ensure first page renders on load
+document.addEventListener('DOMContentLoaded', () => {
+  filterPromos(1);
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

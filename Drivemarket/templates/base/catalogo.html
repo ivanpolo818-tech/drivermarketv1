@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}DriveMarket - Catálogo{% endblock %}
+{% block content %}
+
+<section class="catalogo">
+  <h1>Catálogo de Vehículos 🚘</h1>
+
+  <div class="vehiculos-grid">
+    {% for vehiculo in vehiculos %}
+      <div class="vehiculo-card">
+        <img src="{{ url_for('static', filename=vehiculo.imagen) if vehiculo.imagen else url_for('static', filename='img/default_car.jpg') }}" alt="{{ vehiculo.marca }} {{ vehiculo.modelo }}">
+        <h3>{{ vehiculo.marca }} {{ vehiculo.modelo }}</h3>
+        <p>{{ vehiculo.anio }} - {{ vehiculo.km }} km</p>
+        <p class="precio">${{ "{:,.0f}".format(vehiculo.precio) }}</p>
+        <a href="{{ url_for('detalles', id=vehiculo.id) }}" class="btn-detalles">Ver Detalles</a>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<style>
+.catalogo {
+  text-align: center;
+  padding: 2rem;
+}
+.vehiculos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+.vehiculo-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 1rem;
+  transition: transform 0.2s;
+}
+.vehiculo-card:hover {
+  transform: scale(1.02);
+}
+.vehiculo-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.btn-detalles {
+  display: inline-block;
+  background: #e60000;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 8px;
+  margin-top: 10px;
+  text-decoration: none;
+}
+.btn-detalles:hover {
+  background: #c40000;
+}
+</style>
+
+{% endblock %}

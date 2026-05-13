@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Pedidos | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* Extra table styles for pedidos */
+.pd-table { width:100%;border-collapse:collapse;text-align:left; }
+.pd-table th { padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l); }
+.pd-table td { padding:14px;font-size:.84rem;color:var(--t1);border-bottom:1px solid var(--bd-l);vertical-align:middle; }
+.pd-table tr:last-child td { border-bottom:none; }
+.pd-table tbody tr:hover { background:var(--bd-l); }
+.pd-search { width:100%;padding:10px 14px 10px 38px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--t1);font-size:.84rem;outline:none;font-family:'Inter',sans-serif;transition:border-color .2s; }
+.pd-search:focus { border-color:var(--pr); }
+.search-wrap { position:relative; }
+.search-wrap i { position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.9rem; }
+.pd-filters { display:flex;gap:8px;flex-wrap:wrap; }
+.pd-filter-btn { padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--t2);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s; }
+.pd-filter-btn.on,.pd-filter-btn:hover { border-color:var(--pr);color:var(--pr);background:var(--pr-l); }
+.pd-empty { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px; }
+.pd-empty i { font-size:3rem;color:var(--bd); }
+.pd-empty p { margin:0;font-size:.9rem;color:var(--t2);font-weight:500; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'pedidos' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <div class="db-page-header">
+      <div>
+        <h1><i class="fas fa-box" style="color:var(--ok);margin-right:10px;font-size:1.3rem;"></i>Pedidos</h1>
+        <p>Gestiona las solicitudes y reservas de tus vehículos</p>
+      </div>
+      <button class="db-btn db-btn-primary"><i class="fas fa-plus"></i> Nuevo Pedido</button>
+    </div>
+
+    <!-- Summary cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      {% set consultas_activas = conversaciones|selectattr('no_leidos','gt',0)|list|length if conversaciones else 0 %}
+      {% for icon, label, val, color, bg in [
+        ('fa-inbox','Total consultas', total_consultas|default(0),'#3B82F6','var(--bl-l)'),
+        ('fa-envelope-open','Sin responder', consultas_no_leidas|default(0),'#F59E0B','var(--am-l)'),
+        ('fa-check-circle','Respondidas', (total_consultas|default(0)) - (consultas_no_leidas|default(0)),'#10B981','var(--ok-l)'),
+        ('fa-car-side','Tus vehículos', total_vehiculos|default(0),'#FF6A00','var(--pr-l)')
+      ] %}
+      <div class="db-card" style="text-align:center;padding:16px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:{{bg}};color:{{color}};display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin:0 auto 10px;">
+          <i class="fas {{icon}}"></i>
+        </div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--t1);">{{val}}</div>
+        <div style="font-size:.72rem;font-weight:600;color:var(--t2);margin-top:2px;">{{label}}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Filters + Table -->
+    <div class="db-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap;">
+        <div class="pd-filters" id="filterBtns">
+          <button class="pd-filter-btn on" data-filter="all">Todos</button>
+          <button class="pd-filter-btn" data-filter="pendiente">Pendiente</button>
+          <button class="pd-filter-btn" data-filter="proceso">En proceso</button>
+          <button class="pd-filter-btn" data-filter="completado">Completado</button>
+          <button class="pd-filter-btn" data-filter="cancelado">Cancelado</button>
+        </div>
+        <div class="search-wrap" style="width:260px;">
+          <i class="fas fa-search"></i>
+          <input class="pd-search" type="text" id="searchInput" placeholder="Buscar pedido...">
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="pd-table" id="ordersTable">
+          <thead>
+            <tr>
+              <th>#Conv</th>
+              <th>Vehículo</th>
+              <th>Cliente</th>
+              <th>Última actividad</th>
+              <th>Precio</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if conversaciones %}
+            {% for c in conversaciones %}
+            <tr data-status="{% if c.no_leidos and c.no_leidos > 0 %}pendiente{% else %}respondido{% endif %}">
+              <td style="font-weight:700;color:var(--pr);">#CONV-{{ c.id }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:36px;height:36px;border-radius:9px;background:var(--bd-l);display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:.95rem;">
+                    <i class="fas fa-car-side"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:600;font-size:.84rem;">{{ c.marca }} {{ c.modelo }}</div>
+                    <div style="font-size:.72rem;color:var(--t2);">{{ c.ultimo_msg[:50] + '...' if c.ultimo_msg and c.ultimo_msg|length > 50 else (c.ultimo_msg or 'Sin mensajes') }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ c.comprador_nombre }}</td>
+              <td style="color:var(--t2);">{{ c.ultima_actividad.strftime('%d %b %Y, %H:%M') if c.ultima_actividad else '' }}</td>
+              <td style="font-weight:700;">${{ "{:,.0f}".format(c.precio|float) if c.precio else '—' }}</td>
+              <td>
+                {% if c.no_leidos and c.no_leidos > 0 %}
+                <span class="chip chip-amber"><i class="fas fa-envelope" style="font-size:.5rem;"></i> {{ c.no_leidos }} sin leer</span>
+                {% else %}
+                <span class="chip chip-green"><i class="fas fa-check" style="font-size:.5rem;"></i> Al día</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:5px;">
+                  <a href="{{ url_for('vendedor.mensajes', conv=c.id) }}" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--bd);background:var(--card);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .2s;" title="Abrir chat"><i class="fas fa-comments"></i></a>
+                  <a href="{{ url_for('detalle', id=c.vehiculo_id) }}" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--bd);background:var(--card);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:all .2s;" title="Ver vehículo"><i class="fas fa-eye"></i></a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="7"><div class="pd-empty"><i class="fas fa-inbox"></i><p>Aún no tienes consultas de compradores.</p></div></td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Filter buttons
+  document.getElementById('filterBtns').addEventListener('click', function(e){
+    const btn = e.target.closest('.pd-filter-btn');
+    if(!btn) return;
+    document.querySelectorAll('.pd-filter-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('#ordersTable tbody tr').forEach(row => {
+      row.style.display = (filter === 'all' || row.dataset.status === filter) ? '' : 'none';
+    });
+  });
+  // Search
+  document.getElementById('searchInput').addEventListener('input', function(){
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('#ordersTable tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

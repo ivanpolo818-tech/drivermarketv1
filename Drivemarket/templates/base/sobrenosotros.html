@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}Nuestra Historia — Drive Market{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+:root{
+  --o:#FF6A00; --ol:#FF8C38; --od:#D94F00;
+  --bg:#FFFFFF; --s1:#F4F6FB; --s2:#EEF1F6;
+  --t1:#090B10; --t2:#4A5065; --t3:#8B92A5;
+  --line:#E4E8F0; --line-o:rgba(255,106,0,.15);
+  --shadow-sm:0 8px 24px rgba(9,11,16,.04);
+  --shadow-md:0 20px 48px rgba(9,11,16,.06);
+  --shadow-lg:0 32px 80px rgba(9,11,16,.08);
+  --shadow-o:0 16px 40px rgba(255,106,0,.2);
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--t1);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+/* ── CONTENEDOR BASE ── */
+.au{width:100%;max-width:1440px;margin:0 auto;padding:0 32px;}
+.au-tag{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line-o);border-radius:40px;padding:8px 18px;font-size:.78em;font-weight:800;color:var(--o);text-transform:uppercase;letter-spacing:1px;box-shadow:var(--shadow-sm);}
+.au-tag-dot{width:6px;height:6px;border-radius:50%;background:var(--o);box-shadow:0 0 10px rgba(255,106,0,.6);}
+/* ── 1. HERO MONUMENTAL ── */
+.au-hero{position:relative;padding:160px 0 120px;background:var(--s1);overflow:hidden;}
+/* Patrón de fondo sofisticado */
+.au-hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(9,11,16,.04) 1px,transparent 1px),radial-gradient(rgba(255,106,0,.04) 1px,transparent 1px);background-size:40px 40px;background-position:0 0, 20px 20px;pointer-events:none;}
+.au-hero-glow{position:absolute;width:800px;height:800px;background:radial-gradient(circle,rgba(255,106,0,.06),transparent 70%);top:-300px;left:50%;transform:translateX(-50%);border-radius:50%;filter:blur(80px);pointer-events:none;}
+.au-hero-content{position:relative;z-index:1;text-align:center;max-width:960px;margin:0 auto;}
+.au-hero h1{font-family:'Bebas Neue',sans-serif;font-size:7.5em;line-height:.85;letter-spacing:2px;color:var(--t1);margin:32px 0;text-transform:uppercase;}
+.au-hero h1 .hx{display:block;color:var(--t3);font-size:.8em;}
+.au-hero h1 .ho{color:var(--o);background:linear-gradient(135deg,var(--od),var(--o));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.au-hero-p{font-size:1.3em;color:var(--t2);line-height:1.7;font-weight:400;max-width:700px;margin:0 auto 48px;}
+.au-hero-btns{display:flex;align-items:center;justify-content:center;gap:16px;}
+.au-btn-p{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--o),var(--ol));color:#fff;padding:18px 40px;border-radius:16px;font-weight:800;font-size:1.05em;text-decoration:none;box-shadow:var(--shadow-o);transition:all .3s;}
+.au-btn-p:hover{transform:translateY(-4px);box-shadow:0 24px 48px rgba(255,106,0,.35);}
+.au-btn-s{display:inline-flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line);color:var(--t1);padding:16px 36px;border-radius:14px;font-weight:700;font-size:1.05em;text-decoration:none;box-shadow:var(--shadow-sm);transition:all .3s;}
+.au-btn-s:hover{border-color:var(--o);color:var(--o);transform:translateY(-4px);box-shadow:var(--shadow-md);}
+/* ── 2. EL ORIGEN / HISTORIA (Grid superpuesta) ── */
+.au-story{padding:140px 0;background:var(--bg);position:relative;z-index:2;}
+.au-s-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:80px;align-items:center;}
+.au-sg-imgs{position:relative;height:560px;}
+.au-sg-img1{position:absolute;top:0;left:0;width:75%;height:75%;border-radius:32px;object-fit:cover;box-shadow:var(--shadow-lg);z-index:1;}
+.au-sg-img2{position:absolute;bottom:0;right:0;width:60%;height:60%;border-radius:32px;object-fit:cover;box-shadow:var(--shadow-lg);border:8px solid var(--bg);z-index:2;}
+.au-sg-badge{position:absolute;top:40%;right:-20px;background:#fff;padding:20px;border-radius:24px;box-shadow:var(--shadow-lg);z-index:3;text-align:center;border:1px solid var(--line);}
+.au-sg-bn{font-family:'Bebas Neue',sans-serif;font-size:3.5em;color:var(--o);line-height:1;}
+.au-sg-bl{font-weight:800;font-size:.8em;color:var(--t2);text-transform:uppercase;letter-spacing:1px;}
+.au-stxt h2{font-family:'Bebas Neue',sans-serif;font-size:4.5em;line-height:.9;color:var(--t1);margin-bottom:24px;}
+.au-stxt p{font-size:1.15em;color:var(--t2);line-height:1.8;margin-bottom:32px;}
+.au-mv{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px;}
+.au-mv-card{background:var(--s1);border:1px solid var(--line);border-radius:24px;padding:32px;transition:all .3s;}
+.au-mv-card:hover{background:#fff;border-color:var(--line-o);transform:translateY(-8px);box-shadow:var(--shadow-md);}
+.au-mv-i{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(255,106,0,.15),rgba(255,106,0,.05));color:var(--o);display:flex;align-items:center;justify-content:center;font-size:1.5em;margin-bottom:20px;}
+.au-mv-card h4{font-weight:800;font-size:1.15em;color:var(--t1);margin-bottom:12px;letter-spacing:.5px;}
+.au-mv-card p{font-size:.95em;color:var(--t2);line-height:1.6;}
+/* ── 3. VALORES (Parallax Cards) ── */
+.au-val{padding:140px 0;background:var(--s1);border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative;}
+.au-val-head{text-align:center;max-width:700px;margin:0 auto 100px;}
+.au-val-head h2{font-family:'Bebas Neue',sans-serif;font-size:4.8em;color:var(--t1);margin-bottom:20px;line-height:1;}
+.au-val-head p{font-size:1.15em;color:var(--t2);line-height:1.7;}
+.au-vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;}
+.au-vc{background:#fff;border-radius:32px;padding:48px 40px;box-shadow:var(--shadow-sm);border:1px solid rgba(255,255,255,.5);transition:all .4s;position:relative;overflow:hidden;}
+.au-vc::after{content:'';position:absolute;top:0;left:0;width:100%;height:6px;background:var(--line);transition:background .4s;}
+.au-vc:hover{transform:translateY(-12px);box-shadow:var(--shadow-lg);}
+.au-vc:hover::after{background:linear-gradient(90deg,var(--o),var(--ol));}
+.au-vc:nth-child(2){transform:translateY(40px);}
+.au-vc:nth-child(2):hover{transform:translateY(28px);} /* Parallax offset */
+.au-vc-i{width:72px;height:72px;border-radius:20px;background:var(--s1);color:var(--t1);display:flex;align-items:center;justify-content:center;font-size:2em;margin-bottom:32px;transition:all .4s;}
+.au-vc:hover .au-vc-i{background:var(--o);color:#fff;box-shadow:var(--shadow-o);transform:scale(1.1);}
+.au-vc h3{font-family:'Bebas Neue',sans-serif;font-size:2.6em;color:var(--t1);letter-spacing:1px;margin-bottom:16px;line-height:1;}
+.au-vc p{font-size:1.05em;color:var(--t2);line-height:1.7;}
+/* ── 4. TEAM Y CTA FINAL (Banners anchos) ── */
+.au-ctas{padding:140px 0;background:var(--bg);}
+.au-team{background:var(--s1);border-radius:40px;padding:80px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-bottom:40px;position:relative;overflow:hidden;}
+.au-team::after{content:'';position:absolute;width:600px;height:100%;background:url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&q=80') center/cover;right:0;top:0;mask-image:linear-gradient(to right,transparent,black 30%);-webkit-mask-image:linear-gradient(to right,transparent,black 30%);}
+.au-team-txt{position:relative;z-index:2;}
+.au-team-txt h2{font-family:'Bebas Neue',sans-serif;font-size:4.5em;color:var(--t1);line-height:.9;margin-bottom:24px;}
+.au-team-txt p{font-size:1.15em;color:var(--t2);line-height:1.7;margin-bottom:40px;max-width:500px;}
+.au-final{background:linear-gradient(135deg,var(--t1),#1a1d26);border-radius:40px;padding:100px 40px;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-lg);}
+.au-final-g1{position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(255,106,0,.2),transparent 70%);top:-250px;right:-100px;border-radius:50%;}
+.au-final-g2{position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(255,255,255,.05),transparent 70%);bottom:-200px;left:-100px;border-radius:50%;}
+.au-final-c{position:relative;z-index:2;max-width:700px;margin:0 auto;}
+.au-final h2{font-family:'Bebas Neue',sans-serif;font-size:5.5em;color:#fff;letter-spacing:2px;line-height:.9;margin-bottom:24px;}
+.au-final p{font-size:1.25em;color:rgba(255,255,255,.7);margin-bottom:48px;font-weight:400;}
+/* ── ANIMACIONES ESENCIALES ── */
+.sr-i{opacity:0;transform:translateY(50px);transition:all 1s cubic-bezier(.2,.8,.2,1);}
+.sr-show{opacity:1;transform:translateY(0);}
+.d1{transition-delay:.1s;} .d2{transition-delay:.2s;} .d3{transition-delay:.3s;}
+/* ── RESPONSIVE COMPLETO ── */
+@media(max-width:1200px){
+  .au-hero h1{font-size:6.5em;}
+  .au-s-grid{gap:40px;}
+  .au-stxt h2{font-size:4em;}
+  .au-sg-imgs{height:480px;}
+  .au-team{padding:60px 40px;gap:40px;}
+}
+@media(max-width:992px){
+  .au-s-grid{grid-template-columns:1fr;}
+  .au-sg-imgs{max-width:600px;margin:0 auto 60px;}
+  .au-vgrid{grid-template-columns:1fr; gap: 24px;}
+  .au-vc:nth-child(2){transform:translateY(0);}
+  .au-vc:nth-child(2):hover{transform:translateY(-12px);}
+  .au-team{grid-template-columns:1fr;text-align:center;}
+  .au-team::after{display:none;}
+  .au-team-txt p{margin-left:auto;margin-right:auto;}
+}
+@media(max-width:580px){
+  /* Reducir padding lateral para dar más espacio horizontal al contenido empacado */
+  .au { padding: 0 20px; }
+  
+  .au-hero { padding: 120px 0 80px; }
+  .au-hero h1 { font-size: 3.5em; margin: 24px 0; }
+  .au-hero-btns { flex-direction: column; gap: 16px; margin-top: 24px; }
+  .au-btn-p, .au-btn-s { width: 100%; justify-content: center; }
+  
+  .au-story { padding: 80px 0; }
+  .au-stxt h2 { font-size: 3em; }
+  .au-sg-imgs { height: 280px; margin-bottom: 40px; max-width: 100%; }
+  .au-sg-badge { display: none; }
+  
+  .au-mv { grid-template-columns: 1fr; gap: 16px; margin-top: 32px; }
+  .au-mv-card { padding: 24px; }
+  
+  .au-val { padding: 80px 0; }
+  .au-val-head { margin-bottom: 48px; }
+  .au-val-head h2 { font-size: 3.2em; }
+  
+  /* Corregir las tarjetas de valores demasiado estrujadas lateralmente */
+  .au-vc { padding: 32px 24px; }
+  .au-vc h3 { font-size: 2.2em; }
+  
+  .au-ctas { padding: 80px 0; }
+  .au-team { padding: 40px 24px; border-radius: 24px; }
+  .au-team-txt h2 { font-size: 3em; margin-bottom: 16px; }
+  
+  .au-final { padding: 60px 24px; border-radius: 24px; }
+  .au-final h2 { font-size: 3.2em; }
+  .au-final p { font-size: 1.1em; margin-bottom: 32px; }
+}
+</style>
+<!-- ── HERO ── -->
+<section class="au-hero">
+  <div class="au-hero-glow"></div>
+  <div class="au au-hero-content sr-i sr-show">
+    <div class="au-tag"><span class="au-tag-dot"></span>Nuestra pasión, tu ruta</div>
+    <h1>
+      <span class="hx">Revolucionando</span>
+      El mercado de <span class="ho">vehículos</span>
+    </h1>
+    <p class="au-hero-p">Construimos la plataforma que nosotros mismos queríamos usar. Transparente, rápida y diseñada para entusiastas y conductores exigentes en toda América Latina.</p>
+    <div class="au-hero-btns">
+      <a href="{{ url_for('buscar') }}" class="au-btn-p">Navegar Vehículos</a>
+      <a href="#historia" class="au-btn-s">Nuestra Historia</a>
+    </div>
+  </div>
+</section>
+<!-- ── HISTORIA ── -->
+<section id="historia" class="au-story">
+  <div class="au au-s-grid">
+    <div class="au-sg-imgs sr-i d1">
+      <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80" alt="Drive Market Origins" class="au-sg-img1">
+      <img src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=800&q=80" alt="Drive Market Team" class="au-sg-img2">
+      <div class="au-sg-badge">
+        <div class="au-sg-bn">12k+</div>
+        <div class="au-sg-bl">Vehículos Vendidos</div>
+      </div>
+    </div>
+    <div class="au-stxt sr-i d2">
+      <div class="au-tag"><i class="fas fa-flag"></i> Orígenes</div>
+      <h2>Del papel a la<br>carretera digital</h2>
+      <p>Drive Market nació al observar la frustración común: comprar o vender un auto era un proceso opaco y agotador. Decidimos combinar tecnología de punta con una cultura de confianza absoluta.</p>
+      
+      <div class="au-mv">
+        <div class="au-mv-card">
+          <div class="au-mv-i"><i class="fas fa-rocket"></i></div>
+          <h4>Misión</h4>
+          <p>Potenciar conexiones seguras y fluidas entre compradores y vendedores sin fricciones.</p>
+        </div>
+        <div class="au-mv-card">
+          <div class="au-mv-i"><i class="fas fa-globe-americas"></i></div>
+          <h4>Visión</h4>
+          <p>Ser el estándar de oro automotriz digital en toda la región para la próxima década.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ── VALORES ── -->
+<section class="au-val">
+  <div class="au au-val-head sr-i">
+    <div class="au-tag" style="margin-bottom:16px;">ADN corporativo</div>
+    <h2>Lo que nos impulsa</h2>
+    <p>No somos solo código y bases de datos. Somos los principios que aplicamos a cada transacción, a cada línea de atención al cliente y a cada mejora en la plataforma.</p>
+  </div>
+  
+  <div class="au au-vgrid">
+    <div class="au-vc sr-i d1">
+      <div class="au-vc-i"><i class="fas fa-shield-check"></i></div>
+      <h3>Transparencia</h3>
+      <p>Construimos sobre la claridad. Cada reporte, precio e historial de vehículo se muestra completo. Sin letras pequeñas ni sorpresas de último minuto.</p>
+    </div>
+    
+    <div class="au-vc sr-i d2">
+      <div class="au-vc-i"><i class="fas fa-lightbulb"></i></div>
+      <h3>Innovación Ágil</h3>
+      <p>Nuestra plataforma evoluciona semanalmente. Usamos analítica predictiva y diseño centrado en el usuario para hacer que tu experiencia sea superior.</p>
+    </div>
+    
+    <div class="au-vc sr-i d3">
+      <div class="au-vc-i"><i class="fas fa-headset"></i></div>
+      <h3>Servicio Humano</h3>
+      <p>Detrás de las pantallas hay ingenieros, expertos automotrices y soporte real dedicados a que cierres el mejor trato posible, en tiempo récord.</p>
+    </div>
+  </div>
+</section>
+<!-- ── CTAs ── -->
+<section class="au-ctas">
+  <div class="au">
+    <div class="au-team sr-i">
+      <div class="au-team-txt">
+        <div class="au-tag" style="margin-bottom:20px;">Únete al viaje</div>
+        <h2>Construyendo el<br>futuro juntos</h2>
+        <p>Siempre buscamos a los mejores diseñadores, desarrolladores y especialistas en producto que quieran dejar huella en la industria automotriz.</p>
+        <a href="{{ url_for('login') }}" class="au-btn-s"><i class="fas fa-briefcase"></i> Ver Empleos Abiertos</a>
+      </div>
+    </div>
+    <div class="au-final sr-i d1">
+      <div class="au-final-g1"></div>
+      <div class="au-final-g2"></div>
+      <div class="au-final-c">
+        <h2>¿Listo para el<br>siguiente nivel?</h2>
+        <p>No sigas buscando en plataformas del pasado. Entra al mercado automotriz diseñado para el comprador y vendedor inteligente.</p>
+        <a href="{{ url_for('buscar') }}" class="au-btn-p" style="background:var(--o);color:#fff;"><i class="fas fa-key"></i> Arrancar ahora</a>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('sr-show'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.sr-i').forEach(el => observer.observe(el));
+});
+</script>
+{% endblock %}

@@ -1,0 +1,324 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Logs de Auditoría{% endblock %}
+
+{% block content %}
+<div class="lg-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">{% include 'admin/_sidebar.html' %}</aside>
+
+  <!-- MAIN -->
+  <main class="lg-main">
+
+    <!-- ── Page Header ── -->
+    <header class="lg-page-header">
+      <div class="lg-header-left">
+        <div class="lg-header-icon"><i class="fas fa-history"></i></div>
+        <div>
+          <h1 class="lg-title">Logs de Auditoría</h1>
+          <p class="lg-subtitle">Registro de todas las acciones administrativas del sistema</p>
+        </div>
+      </div>
+      <div class="lg-header-right">
+        <span class="lg-total-badge">{{ total_logs }} registros</span>
+      </div>
+    </header>
+
+    <!-- ── Filters ── -->
+    <section class="lg-filters-bar">
+      <form method="GET" class="lg-filters-form">
+        <div class="lg-filter-field">
+          <label><i class="fas fa-user-shield"></i> Admin</label>
+          <input type="text" name="admin" placeholder="Nombre o ID…" value="{{ admin_filter }}">
+        </div>
+        <div class="lg-filter-field">
+          <label><i class="fas fa-tag"></i> Acción</label>
+          <input type="text" name="accion" placeholder="ban_usuario, editar…" value="{{ accion_filter }}">
+        </div>
+        <div class="lg-filter-field">
+          <label><i class="fas fa-calendar-alt"></i> Desde</label>
+          <input type="date" name="fecha_desde" value="{{ fecha_desde }}">
+        </div>
+        <div class="lg-filter-field">
+          <label><i class="fas fa-calendar-check"></i> Hasta</label>
+          <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}">
+        </div>
+        <div class="lg-filter-btns">
+          <button type="submit" class="lg-btn-apply"><i class="fas fa-search"></i> Filtrar</button>
+          {% if admin_filter or accion_filter or fecha_desde or fecha_hasta %}
+            <a href="{{ url_for('admin.logs_auditoria') }}" class="lg-btn-clear"><i class="fas fa-times"></i> Limpiar</a>
+          {% endif %}
+        </div>
+      </form>
+    </section>
+
+    <!-- ── Table ── -->
+    <section class="lg-card">
+      <div class="lg-table-wrap">
+        <table class="lg-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Admin</th>
+              <th>Acción</th>
+              <th>Entidad</th>
+              <th>Descripción</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr class="lg-row">
+              <td class="lg-id">{{ log.id }}</td>
+              <td class="lg-date">
+                <span class="lg-date-main">{{ log.fecha.strftime('%d/%m/%Y') if log.fecha else 'N/A' }}</span>
+                <span class="lg-date-time">{{ log.fecha.strftime('%H:%M:%S') if log.fecha else '' }}</span>
+              </td>
+              <td>
+                <div class="lg-admin-cell">
+                  <div class="lg-avatar">{{ log.nombre_admin[0]|upper if log.nombre_admin else 'A' }}</div>
+                  <div>
+                    <span class="lg-admin-name">{{ log.nombre_admin|default('Desconocido') }}</span>
+                    <span class="lg-admin-id">ID #{{ log.id_admin|default('?') }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="lg-action-tag lg-action-{{ log.accion.split('_')[0] if log.accion else 'otro' }}">
+                  <i class="fas fa-{{ 'ban' if 'ban' in log.accion else 'trash' if 'borrar' in log.accion else 'edit' if 'editar' in log.accion else 'lock' if 'cerrar' in log.accion else 'check' if 'aprobar' in log.accion else 'times' if 'rechazar' in log.accion else 'key' if 'rol' in log.accion else 'flag' if 'reporte' in log.accion else 'cog' }}"></i>
+                  {{ log.accion }}
+                </span>
+              </td>
+              <td>
+                {% if log.entidad %}
+                  <span class="lg-entity-badge">
+                    {{ log.entidad }}
+                    {% if log.id_entidad %}<em>#{{ log.id_entidad }}</em>{% endif %}
+                  </span>
+                {% else %}
+                  <span class="lg-na">—</span>
+                {% endif %}
+              </td>
+              <td class="lg-desc">{{ log.descripcion|default('—') }}</td>
+              <td class="lg-ip">
+                <i class="fas fa-network-wired"></i> {{ log.ip|default('N/A') }}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="lg-empty">
+                <i class="fas fa-clipboard-list"></i>
+                <span>No hay registros de auditoría con los filtros actuales.</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Pagination ── -->
+      {% if total_pages > 1 %}
+      <div class="lg-pagination">
+        {% if page > 1 %}
+          <a href="{{ url_for('admin.logs_auditoria', page=page-1, admin=admin_filter, accion=accion_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}" class="lg-page-btn">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+          {% if p == page %}
+            <span class="lg-page-btn lg-page-active">{{ p }}</span>
+          {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+            <a href="{{ url_for('admin.logs_auditoria', page=p, admin=admin_filter, accion=accion_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}" class="lg-page-btn">{{ p }}</a>
+          {% elif p == page - 3 or p == page + 3 %}
+            <span class="lg-page-ellipsis">…</span>
+          {% endif %}
+        {% endfor %}
+        {% if page < total_pages %}
+          <a href="{{ url_for('admin.logs_auditoria', page=page+1, admin=admin_filter, accion=accion_filter, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}" class="lg-page-btn">
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        {% endif %}
+        <span class="lg-page-info">Página {{ page }} de {{ total_pages }} · {{ total_logs }} registros</span>
+      </div>
+      {% endif %}
+    </section>
+
+  </main>
+</div>
+
+<style>
+/* ─── Layout ──────────────────────────────────────── */
+.lg-layout { display: flex; min-height: 100vh; font-family: 'Inter', sans-serif; }
+.lg-main   { flex: 1; padding: 2rem 2.5rem; background: #f3f4f6; overflow-x: hidden; }
+
+/* ─── Page Header ─────────────────────────────────── */
+.lg-page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.8rem;
+}
+.lg-header-left { display: flex; align-items: center; gap: 1rem; }
+.lg-header-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.4rem;
+  box-shadow: 0 8px 20px rgba(99,102,241,.35); flex-shrink: 0;
+}
+.lg-title    { font-size: 1.6rem; font-weight: 800; color: #1f2937; margin: 0; letter-spacing: -.02em; }
+.lg-subtitle { color: #6b7280; font-size: .9rem; margin: .15rem 0 0; }
+.lg-total-badge {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #fff; font-weight: 700; font-size: .85rem;
+  padding: .45rem 1rem; border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(99,102,241,.3);
+}
+
+/* ─── Filters ─────────────────────────────────────── */
+.lg-filters-bar {
+  background: #fff; border-radius: 14px;
+  padding: 1.2rem 1.4rem; margin-bottom: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.lg-filters-form {
+  display: flex; align-items: flex-end; gap: .9rem; flex-wrap: wrap;
+}
+.lg-filter-field { display: flex; flex-direction: column; gap: .35rem; }
+.lg-filter-field label {
+  font-size: .72rem; font-weight: 700; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: .05em;
+  display: flex; align-items: center; gap: .3rem;
+}
+.lg-filter-field input {
+  background: #f9fafb; border: 1px solid #e5e7eb;
+  border-radius: 9px; padding: .55rem .85rem;
+  font-size: .875rem; color: #374151; outline: none;
+  transition: border-color .2s; min-width: 150px;
+}
+.lg-filter-field input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+.lg-filter-btns { display: flex; align-items: flex-end; gap: .5rem; padding-bottom: 0; }
+.lg-btn-apply {
+  background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+  border: none; border-radius: 9px; padding: .58rem 1.2rem;
+  font-size: .875rem; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: .4rem; transition: opacity .2s;
+}
+.lg-btn-apply:hover { opacity: .9; }
+.lg-btn-clear {
+  background: #fee2e2; color: #ef4444; border-radius: 9px;
+  padding: .58rem 1rem; font-size: .875rem; font-weight: 600;
+  text-decoration: none; display: flex; align-items: center; gap: .4rem;
+  transition: all .2s;
+}
+.lg-btn-clear:hover { background: #ef4444; color: #fff; }
+
+/* ─── Card + Table ────────────────────────────────── */
+.lg-card { background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow: hidden; }
+.lg-table-wrap { overflow-x: auto; }
+.lg-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+.lg-table thead { background: #f9fafb; border-bottom: 2px solid #e5e7eb; }
+.lg-table th {
+  padding: 1rem 1.1rem; text-align: left;
+  font-size: .72rem; font-weight: 700; color: #9ca3af;
+  text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+}
+.lg-table tbody tr { border-bottom: 1px solid #f3f4f6; transition: background .15s; }
+.lg-table tbody tr:hover { background: #fafbff; }
+.lg-table td { padding: .85rem 1.1rem; font-size: .875rem; color: #374151; vertical-align: middle; }
+
+.lg-id { font-weight: 700; color: #6366f1; }
+
+.lg-date-main { display: block; font-weight: 600; color: #1f2937; }
+.lg-date-time { display: block; font-size: .75rem; color: #9ca3af; }
+
+.lg-admin-cell { display: flex; align-items: center; gap: .65rem; }
+.lg-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg,#ff7043,#e8520a);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .85rem; color: #fff; flex-shrink: 0;
+}
+.lg-admin-name { display: block; font-weight: 600; font-size: .875rem; color: #1f2937; }
+.lg-admin-id   { display: block; font-size: .72rem; color: #9ca3af; }
+
+/* Action tags */
+.lg-action-tag {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .3rem .75rem; border-radius: 20px;
+  font-size: .75rem; font-weight: 700; white-space: nowrap;
+}
+.lg-action-ban, .lg-action-ban_usuario { background: #fee2e2; color: #dc2626; }
+.lg-action-borrar { background: #fef3c7; color: #d97706; }
+.lg-action-editar { background: #dbeafe; color: #1d4ed8; }
+.lg-action-cerrar { background: #f3f4f6; color: #6b7280; }
+.lg-action-aprobar { background: #d1fae5; color: #065f46; }
+.lg-action-rechazar { background: #fee2e2; color: #dc2626; }
+.lg-action-desbloquear { background: #d1fae5; color: #065f46; }
+.lg-action-cambiar { background: #ede9fe; color: #6d28d9; }
+.lg-action-advertencia { background: #fef3c7; color: #d97706; }
+.lg-action-otro { background: #f3f4f6; color: #6b7280; }
+
+.lg-entity-badge {
+  background: #ede9fe; color: #6d28d9;
+  padding: .25rem .6rem; border-radius: 8px;
+  font-size: .78rem; font-weight: 600;
+}
+.lg-entity-badge em { font-style: normal; opacity: .7; margin-left: .2rem; }
+
+.lg-desc { color: #6b7280; max-width: 260px; font-size: .82rem; }
+.lg-ip { color: #9ca3af; font-size: .79rem; white-space: nowrap; }
+.lg-ip i { margin-right: .25rem; }
+.lg-na { color: #d1d5db; }
+
+/* Empty */
+.lg-empty { text-align: center; padding: 3rem; color: #9ca3af; }
+.lg-empty i { display: block; font-size: 2.5rem; margin-bottom: .75rem; opacity: .4; }
+
+/* ─── Pagination ──────────────────────────────────── */
+.lg-pagination {
+  display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+  padding: 1rem 1.4rem; border-top: 1px solid #f3f4f6; background: #fafafa;
+}
+.lg-page-btn {
+  min-width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; font-weight: 600; cursor: pointer;
+  text-decoration: none; color: #374151; background: #fff;
+  border: 1px solid #e5e7eb; transition: all .2s;
+}
+.lg-page-btn:hover  { background: #6366f1; color: #fff; border-color: #6366f1; }
+.lg-page-active     { background: #6366f1 !important; color: #fff !important; border-color: #6366f1 !important; }
+.lg-page-ellipsis   { padding: 0 .4rem; color: #9ca3af; }
+.lg-page-info       { margin-left: auto; font-size: .8rem; color: #9ca3af; }
+
+/* ─── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .lg-main { padding: 1rem; }
+  .lg-filters-form { flex-direction: column; }
+  .lg-filter-field input { min-width: 100%; }
+}
+</style>
+{% endblock %}
+
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

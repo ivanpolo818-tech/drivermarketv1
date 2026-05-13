@@ -1,0 +1,656 @@
+    {% extends "base.html" %}
+{% block title %}Editar Vehículo | Drive Market{% endblock %}
+
+{% block content %}
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11">
+
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<div class="elite-dashboard-wrapper">
+
+    <!-- SIDEBAR -->
+    
+    <!-- Botón de Hamburguesa para Móvil -->
+    <button id="mobileSidebarToggle" style="display: none; width: 100%; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 12px; padding: 14px 20px; font-weight: 700; color: var(--c-text); align-items: center; justify-content: space-between; cursor: pointer; box-shadow: var(--shadow-soft); margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class='bx bx-menu' style="font-size: 1.4rem; color: var(--c-brand);"></i>
+            Menú de Navegación
+        </div>
+        <i class='bx bx-chevron-down' id="toggleChevron" style="transition: 0.3s; font-size: 1.2rem;"></i>
+    </button>
+    <style>@media (max-width: 768px) { #mobileSidebarToggle { display: flex !important; } }</style>
+
+    <aside class="elite-sidebar">
+        <div class="sidebar-profile">
+            <div class="profile-avatar">
+                {% set foto_filename = session.get('foto', '') | string | trim %}
+                {% if foto_filename %}
+                    <img src="{{ url_for('static', filename='uploads/usuarios/' + foto_filename) }}" alt="Avatar">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/default_user.png') }}" alt="Avatar Default">
+                {% endif %}
+            </div>
+            <div class="profile-info">
+                <span class="profile-role">Gestor de Inventario</span>
+                <span class="profile-name">{{ session.get('nombre', 'Usuario') }}</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu">
+            <div class="menu-label">Mi Cuenta</div>
+            <a href="{{ url_for('users.perfil') }}" class="menu-item">
+                <i class='bx bx-id-card'></i> Información Personal
+            </a>
+            <a href="{{ url_for('users.mis_vehiculos') }}" class="menu-item active">
+                <i class='bx bx-car'></i> Mis Vehículos 
+            </a>
+            <a href="{{ url_for('users.favoritos') }}" class="menu-item">
+                <i class='bx bx-heart'></i> Guardados
+            </a>
+            
+            <a href="{{ url_for('mensajes.centro_mensajes') }}" class="menu-item">
+                <i class='bx bx-message-square-dots'></i> Bandeja de Entrada
+            </a>
+            
+            <div class="menu-divider"></div>
+            <a href="{{ url_for('logout') }}" class="menu-item danger">
+                <i class='bx bx-log-out-circle'></i> Cerrar Sesión
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="elite-main">
+        
+        <header class="main-header-elite">
+            <div>
+                <nav class="elite-breadcrumb">
+                    <a href="{{ url_for('users.mis_vehiculos') }}">Mis Vehículos</a>
+                    <i class='bx bx-chevron-right'></i>
+                    <span>Editar Publicación</span>
+                </nav>
+                <h1 class="elite-title">Actualizar Vehículo</h1>
+                <p class="elite-subtitle">Modifica la información técnica y visual de tu anuncio.</p>
+            </div>
+            
+            <a href="{{ url_for('users.mis_vehiculos') }}" class="btn-ultra-secondary">
+                <i class='bx bx-arrow-back'></i> Volver
+            </a>
+        </header>
+
+
+        <form action="{{ url_for('admin.editar_vehiculo', id=vehiculo.id) }}" method="POST" enctype="multipart/form-data" class="elite-form-container">
+            
+            <div class="form-grid">
+                
+                <!-- COLUMNA IZQUIERDA: DATOS -->
+                <div class="form-column">
+                    
+                    <!-- SECCIÓN: GENERAL -->
+                    <div class="elite-form-card">
+                        <div class="card-header">
+                            <i class='bx bx-info-circle'></i>
+                            <h3>Datos Generales</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Hidden IDs for DB integrity -->
+                            <input type="hidden" name="id_marca" value="{{ vehiculo.id_marca }}">
+                            <input type="hidden" name="id_modelo" value="{{ vehiculo.id_modelo }}">
+                            
+                            <div class="input-row">
+                                <div class="input-group locked">
+                                    <label>Marca</label>
+                                    <input type="text" value="{{ vehiculo.marca_nombre }}" disabled>
+                                    <input type="hidden" id="marca_val" value="{{ vehiculo.marca_nombre }}">
+                                </div>
+                                <div class="input-group locked">
+                                    <label>Modelo</label>
+                                    <input type="text" value="{{ vehiculo.modelo_nombre }}" disabled>
+                                    <input type="hidden" id="modelo_val" value="{{ vehiculo.modelo_nombre }}">
+                                </div>
+                            </div>
+
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="anio">Año</label>
+                                    <input type="number" id="anio" name="anio" value="{{ vehiculo.anio }}" min="1900" max="2100" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="placa">Placa</label>
+                                    <input type="text" id="placa" name="placa" value="{{ vehiculo.placa }}" maxlength="8" placeholder="Opcional">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN: PRECIO Y UBICACIÓN -->
+                    <div class="elite-form-card">
+                        <div class="card-header">
+                            <i class='bx bx-dollar-circle'></i>
+                            <h3>Precio y Ubicación</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-row">
+                                <div class="input-group prefix">
+                                    <label for="precio">Precio (COP)</label>
+                                    <div class="input-wrapper">
+                                        <span class="prefix-tag">$</span>
+                                        <input type="number" id="precio" name="precio" value="{{ vehiculo.precio }}" required>
+                                    </div>
+                                </div>
+                                <div class="input-group suffix">
+                                    <label for="kilometraje">Kilometraje</label>
+                                    <div class="input-wrapper">
+                                        <input type="number" id="kilometraje" name="kilometraje" value="{{ vehiculo.kilometraje }}" required>
+                                        <span class="suffix-tag">KM</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="ciudad">Ciudad de Venta</label>
+                                <input type="text" id="ciudad_venta" name="ciudad" value="{{ vehiculo.ciudad_venta or vehiculo.ciudad }}" placeholder="Ej: Bogotá, Medellín..." required>
+                            </div>
+                            <div class="input-group">
+                                <label for="version">Versión / Línea</label>
+                                <input type="text" id="version" name="version" value="{{ vehiculo.version }}" placeholder="Ej: LX, Touring, GT...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN: FICHA TÉCNICA -->
+                    <div class="elite-form-card">
+                        <div class="card-header">
+                            <i class='bx bx-wrench'></i>
+                            <h3>Especificaciones Técnicas</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="transmision">Transmisión</label>
+                                    <select name="transmision" id="transmision">
+                                        <option value="Automática" {% if vehiculo.transmision == 'Automática' %}selected{% endif %}>Automática</option>
+                                        <option value="Manual" {% if vehiculo.transmision == 'Manual' %}selected{% endif %}>Manual</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="combustible">Combustible</label>
+                                    <select name="combustible" id="combustible">
+                                        <option value="Gasolina" {% if vehiculo.combustible == 'Gasolina' %}selected{% endif %}>Gasolina</option>
+                                        <option value="Diesel" {% if vehiculo.combustible == 'Diesel' %}selected{% endif %}>Diesel</option>
+                                        <option value="Híbrido" {% if vehiculo.combustible == 'Híbrido' %}selected{% endif %}>Híbrido</option>
+                                        <option value="Eléctrico" {% if vehiculo.combustible == 'Eléctrico' %}selected{% endif %}>Eléctrico</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-row">
+                                <div class="input-group">
+                                    <label for="motor">Motor</label>
+                                    <input type="text" id="motor" name="motor" value="{{ vehiculo.motor or '' }}" placeholder="Ej: 1.6L, 2.0 Turbo">
+                                </div>
+                                <div class="input-group">
+                                    <label for="traccion">Tracción</label>
+                                    <select name="traccion" id="traccion">
+                                        <option value="4x2" {% if vehiculo.traccion == '4x2' %}selected{% endif %}>4x2</option>
+                                        <option value="4x4" {% if vehiculo.traccion == '4x4' %}selected{% endif %}>4x4</option>
+                                        <option value="AWD" {% if vehiculo.traccion == 'AWD' %}selected{% endif %}>AWD</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="puertas">Puertas</label>
+                                <select name="puertas" id="puertas">
+                                    <option value="2" {% if vehiculo.puertas|string == '2' %}selected{% endif %}>2 Puertas</option>
+                                    <option value="3" {% if vehiculo.puertas|string == '3' %}selected{% endif %}>3 Puertas</option>
+                                    <option value="4" {% if vehiculo.puertas|string == '4' %}selected{% endif %}>4 Puertas</option>
+                                    <option value="5" {% if vehiculo.puertas|string == '5' %}selected{% endif %}>5 Puertas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: IMAGEN Y DESCRIPCIÓN -->
+                <div class="form-column">
+                    
+                    <!-- SECCIÓN: MULTIMEDIA -->
+                    <div class="elite-form-card">
+                        <div class="card-header">
+                            <i class='bx bx-image-add'></i>
+                            <h3>Imagen del Vehículo</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="image-preview-container" id="imagePreview">
+                                {% if vehiculo.imagen %}
+                                    <img src="{{ url_for('static', filename=vehiculo.imagen) }}" alt="Preview" class="preview-img">
+                                    <div class="preview-actions">
+                                        <label for="imagen" class="btn-change-image-v2">
+                                            <i class='bx bx-camera'></i> Cambiar Foto Principal
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    <div class="empty-preview-v2">
+                                        <i class='bx bx-cloud-upload'></i>
+                                        <span>Sin foto de portada</span>
+                                        <label for="imagen" class="btn-upload-initial">Cargar Imagen</label>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <input type="file" id="imagen" name="imagen" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                            
+                            <div class="status-selector-elite">
+                                <label class="status-label">Estado de la Publicación</label>
+                                <div class="status-segmented-control">
+                                    <input type="radio" name="estado" value="activo" id="status-activo" {% if vehiculo.estado == 'activo' %}checked{% endif %}>
+                                    <label for="status-activo" class="status-option option-activo">
+                                        <i class='bx bx-check-circle'></i> Activo
+                                    </label>
+
+                                    <input type="radio" name="estado" value="pausado" id="status-pausado" {% if vehiculo.estado == 'pausado' %}checked{% endif %}>
+                                    <label for="status-pausado" class="status-option option-pausado">
+                                        <i class='bx bx-pause-circle'></i> Pausado
+                                    </label>
+
+                                    <input type="radio" name="estado" value="vendido" id="status-vendido" {% if vehiculo.estado == 'vendido' %}checked{% endif %}>
+                                    <label for="status-vendido" class="status-option option-vendido">
+                                        <i class='bx bx-purchase-tag-alt'></i> Vendido
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN: GALERÍA DE FOTOS (NUEVA) -->
+                    <div class="elite-form-card">
+                        <div class="card-header space-between">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class='bx bx-images'></i>
+                                <h3>Galería de Fotos</h3>
+                            </div>
+                            <span class="gallery-count">{{ imagenes|length }} fotos</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="elite-gallery-grid">
+                                {% for img in imagenes %}
+                                <div class="gallery-item">
+                                    <img src="{{ url_for('static', filename=img.url_imagen) }}" alt="Foto secundaria">
+                                    <button type="button" class="btn-delete-photo" title="Eliminar foto" onclick="deleteGalleryPhoto('{{ img.id }}')">
+                                        <i class='bx bx-trash'></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+
+                                <!-- Botón de agregar a la galería (vacío si no hay fotos) -->
+                                {% if not imagenes %}
+                                <div class="empty-gallery-msg">
+                                    <i class='bx bx-image-add'></i>
+                                    <p>Tu galería está vacía.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="gallery-upload-zone">
+                                    <label for="fotos_multiple" class="btn-add-photos">
+                                        <i class='bx bx-plus-circle'></i> Agregar Fotos a la Galería
+                                    </label>
+                                    <input type="file" id="fotos_multiple" name="fotos[]" multiple accept="image/*" style="display: none;" onchange="submitGalleryUpload()">
+                                <p class="file-hint">Puedes seleccionar varias fotos a la vez.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN: DESCRIPCIÓN CON IA -->
+                    <div class="elite-form-card">
+                        <div class="card-header space-between">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class='bx bx-detail'></i>
+                                <h3>Descripción</h3>
+                            </div>
+                            <button type="button" class="btn-ia-generate" id="btn-generar-ia">
+                                <i class='bx bx-magic-wand'></i> Mejorar con IA
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <textarea id="descripcion" name="descripcion" rows="12" placeholder="Escribe detalles sobre el estado del vehículo, mantenimientos, extras, etc...">{{ vehiculo.descripcion }}</textarea>
+                            </div>
+                            <p class="desc-hint">Usa la IA para redactar un texto vendedor basado en tus datos.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- FOOTER ACCIONES -->
+            <div class="form-actions-elite">
+                <button type="submit" class="btn-save-elite">
+                    <i class='bx bx-save'></i> Guardar Cambios
+                </button>
+                <a href="{{ url_for('users.mis_vehiculos') }}" class="btn-cancel-elite">Cancelar</a>
+            </div>
+
+        </form>
+
+    </main>
+</div>
+
+<style>
+/* ========================================================= */
+/* VARIABLES Y RESET (ELITE DASHBOARD)                       */
+/* ========================================================= */
+:root {
+    --c-brand: #FF6A00;
+    --c-brand-dark: #E64E00;
+    --c-bg: #f4f4f5;
+    --c-surface: #ffffff;
+    --c-text: #09090b;
+    --c-text-muted: #71717a;
+    --c-border: #e4e4e7;
+    --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    --radius-xl: 20px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+}
+
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--c-bg); color: var(--c-text); }
+
+.elite-dashboard-wrapper { display: flex; max-width: 1400px; margin: 30px auto 80px; padding: 0 20px; gap: 30px; }
+
+/* SIDEBAR */
+.elite-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 30px; height: fit-content; }
+.sidebar-profile { background: var(--c-surface); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.profile-avatar { width: 54px; height: 54px; border-radius: 14px; overflow: hidden; background: #f4f4f5; border: 2px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);}
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profile-info { display: flex; flex-direction: column; }
+.profile-role { font-size: 0.75rem; color: var(--c-brand); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.profile-name { font-size: 1.1rem; font-weight: 800; color: var(--c-text); line-height: 1.2;}
+
+.sidebar-menu { background: var(--c-surface); border-radius: var(--radius-lg); padding: 20px 12px; box-shadow: var(--shadow-soft); border: 1px solid var(--c-border); }
+.menu-label { font-size: 0.7rem; font-weight: 800; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 0 0 10px 12px; }
+.menu-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; color: var(--c-text-muted); text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: 0.3s; }
+.menu-item i { font-size: 1.3rem; }
+.menu-item:hover { background: #f4f4f5; color: var(--c-text); transform: translateX(4px);}
+.menu-item.active { background: rgba(255, 106, 0, 0.1); color: var(--c-brand); }
+.menu-item.danger:hover { background: #fef2f2; color: #ef4444; }
+.menu-divider { height: 1px; background: var(--c-border); margin: 15px 12px; }
+
+/* MAIN CONTENT */
+.elite-main { flex: 1; min-width: 0; }
+.main-header-elite { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; }
+.elite-breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--c-text-muted); margin-bottom: 10px; font-weight: 600; }
+.elite-breadcrumb a { color: inherit; text-decoration: none; transition: 0.2s; }
+.elite-breadcrumb a:hover { color: var(--c-brand); }
+.elite-breadcrumb i { font-size: 1.1rem; }
+.elite-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 4px; }
+.elite-subtitle { color: var(--c-text-muted); font-size: 1.05rem; margin: 0; }
+
+.btn-ultra-secondary { background: #fff; border: 1px solid var(--c-border); padding: 12px 20px; border-radius: 12px; font-weight: 700; color: var(--c-text); text-decoration: none; display: flex; align-items: center; gap: 8px; transition: 0.3s; box-shadow: var(--shadow-soft); }
+.btn-ultra-secondary:hover { background: #f4f4f5; transform: translateY(-2px); }
+
+/* FORM CONTAINER */
+.elite-form-container { width: 100%; }
+.form-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
+.form-column { display: flex; flex-direction: column; gap: 24px; }
+
+.elite-form-card { background: var(--c-surface); border-radius: var(--radius-xl); border: 1px solid var(--c-border); box-shadow: var(--shadow-soft); overflow: hidden; }
+.card-header { padding: 20px 24px; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 12px; background: #fafafa; }
+.card-header.space-between { justify-content: space-between; }
+.card-header i { font-size: 1.4rem; color: var(--c-brand); }
+.card-header h3 { font-size: 1.1rem; font-weight: 800; margin: 0; }
+
+.card-body { padding: 24px; }
+
+/* INPUT STYLES */
+.input-group { margin-bottom: 18px; display: flex; flex-direction: column; gap: 6px; }
+.input-group label { font-size: 0.85rem; font-weight: 700; color: var(--c-text); margin-left: 2px; }
+.input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--c-border); font-family: inherit; font-size: 0.95rem; font-weight: 500; outline: none; transition: 0.2s; background: #fff; box-sizing: border-box; }
+.input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: var(--c-brand); box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.1); }
+
+.input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.input-group.locked input { background: #f8fafc; color: var(--c-text-muted); cursor: not-allowed; border-style: dashed; }
+
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.prefix-tag { position: absolute; left: 14px; font-weight: 800; color: var(--c-brand); }
+.input-group.prefix input { padding-left: 30px; }
+.suffix-tag { position: absolute; right: 14px; font-size: 0.75rem; font-weight: 800; color: var(--c-text-muted); }
+.input-group.suffix input { padding-right: 45px; }
+
+/* IMAGE PREVIEW CLARITY ENHANCEMENTS */
+.image-preview-container { width: 100%; aspect-ratio: 16/10; border-radius: var(--radius-lg); overflow: hidden; position: relative; background: #f8fafc; border: 2px dashed #e2e8f0; }
+.preview-img { width: 100%; height: 100%; object-fit: cover; }
+
+.preview-actions { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px 15px 15px; display: flex; justify-content: center; }
+.btn-change-image-v2 { background: #fff; color: var(--c-text); padding: 8px 16px; border-radius: 30px; font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+.btn-change-image-v2:hover { transform: translateY(-3px); background: var(--c-brand); color: #fff; }
+
+.empty-preview-v2 { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; color: var(--c-text-muted); }
+.empty-preview-v2 i { font-size: 3.5rem; color: var(--c-brand); opacity: 0.4; animation: pulse 2s infinite; }
+.empty-preview-v2 span { font-weight: 700; font-size: 0.9rem; }
+.btn-upload-initial { background: var(--c-brand); color: #fff; padding: 10px 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(255,106,0,0.2); }
+.btn-upload-initial:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255,106,0,0.3); }
+
+@keyframes pulse { 0% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.1); opacity: 0.6; } 100% { transform: scale(1); opacity: 0.4; } }
+
+/* STATUS SELECTOR ELITE (SEGMENTED CONTROL) */
+.status-selector-elite { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--c-border); }
+.status-label { display: block; font-size: 0.95rem; font-weight: 800; color: var(--c-text); margin-bottom: 15px; }
+
+.status-segmented-control { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: #f1f5f9; padding: 6px; border-radius: 14px; border: 1px solid #e2e8f0; }
+.status-segmented-control input[type="radio"] { display: none; }
+
+.status-option { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 10px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: #64748b; transition: 0.3s all cubic-bezier(0.4, 0, 0.2, 1); }
+.status-option i { font-size: 1.1rem; }
+
+/* Styles for ACTIVE state */
+input[id="status-activo"]:checked + .option-activo { background: #10b981; color: #fff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+.option-activo:hover:not(input:checked + label) { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+/* Styles for PAUSED state */
+input[id="status-pausado"]:checked + .option-pausado { background: #f59e0b; color: #fff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+.option-pausado:hover:not(input:checked + label) { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+/* Styles for SOLD state */
+input[id="status-vendido"]:checked + .option-vendido { background: #334155; color: #fff; box-shadow: 0 4px 12px rgba(51, 65, 85, 0.3); }
+.option-vendido:hover:not(input:checked + label) { background: rgba(51, 65, 85, 0.1); color: #334155; }
+
+/* GALLERY GRID */
+.elite-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.gallery-item { position: relative; aspect-ratio: 1/1; border-radius: 12px; overflow: hidden; border: 1px solid var(--c-border); }
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+.btn-delete-photo { position: absolute; top: 5px; right: 5px; width: 26px; height: 26px; border-radius: 50%; background: rgba(239, 68, 68, 0.9); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; opacity: 0; transition: 0.2s; }
+.gallery-item:hover .btn-delete-photo { opacity: 1; }
+.gallery-item:hover .btn-delete-photo:hover { transform: scale(1.1); background: #ef4444; }
+
+.empty-gallery-msg { grid-column: 1 / -1; padding: 30px; text-align: center; color: var(--c-text-muted); opacity: 0.6; }
+.empty-gallery-msg i { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+
+.gallery-upload-zone { padding: 15px; border: 2px dashed var(--c-border); border-radius: var(--radius-md); text-align: center; background: #fafafa; }
+.btn-add-photos { cursor: pointer; padding: 10px 16px; border-radius: 10px; background: #fff; border: 1px solid var(--c-border); display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--c-text); font-size: 0.85rem; transition: 0.3s; }
+.btn-add-photos:hover { border-color: var(--c-brand); color: var(--c-brand); transform: translateY(-2px); }
+.gallery-count { font-size: 0.75rem; font-weight: 800; color: var(--c-text-muted); padding: 4px 10px; background: #f4f4f5; border-radius: 20px; }
+
+/* IA BUTTON */
+.btn-ia-generate { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; padding: 8px 16px; border-radius: 30px; font-weight: 700; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: 0.3s; }
+.btn-ia-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3); }
+.btn-ia-generate:disabled { opacity: 0.6; cursor: wait; }
+
+.desc-hint { font-size: 0.75rem; color: var(--c-text-muted); margin-top: 12px; font-weight: 600; }
+
+/* FORM ACTIONS */
+.form-actions-elite { margin-top: 40px; padding: 30px; background: var(--c-surface); border-radius: var(--radius-xl); border: 1px solid var(--c-brand); display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 30px rgba(255, 106, 0, 0.1); }
+.btn-save-elite { background: linear-gradient(135deg, var(--c-brand) 0%, #FF4500 100%); color: white; border: none; padding: 16px 32px; border-radius: 14px; font-weight: 800; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(255, 106, 0, 0.25); transition: 0.3s; }
+.btn-save-elite:hover { transform: translateY(-4px); box-shadow: 0 15px 30px rgba(255, 106, 0, 0.35); }
+.btn-cancel-elite { font-weight: 700; color: var(--c-text-muted); text-decoration: none; padding: 10px 20px; border-radius: 10px; transition: 0.2s; }
+.btn-cancel-elite:hover { color: var(--c-text); background: #f4f4f5; }
+
+/* ALERTS */
+.elite-alert { padding: 16px 20px; border-radius: 14px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 0.95rem; }
+.alert-success { background: #ecfdf5; color: #10b981; border: 1px solid #10b981; }
+.alert-danger { background: #fef2f2; color: #ef4444; border: 1px solid #ef4444; }
+
+@media (max-width: 1024px) {
+    .elite-dashboard-wrapper { flex-direction: column; }
+    .elite-sidebar { width: 100%; position: static; }
+    .form-grid { grid-template-columns: 1fr; }
+}
+
+/* FIX MOBILE SIDEBAR HAMBURGER */
+@media (max-width: 768px) {
+    .elite-sidebar { display: none !important; width: 100%; grid-template-columns: 1fr; margin-top: 10px; animation: slideDownElite 0.3s ease-out forwards; }
+    .elite-sidebar.show-mobile { display: block !important; }
+    @keyframes slideDownElite { from { opacity:0; transform: translateY(-10px); } to { opacity:1; transform: translateY(0); } }
+    
+    .main-header-elite { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px;}
+    .elite-title { font-size: 1.6rem !important; }
+    .elite-dashboard-wrapper { gap: 16px; padding: 0 10px; margin-top: 15px;}
+    .elite-form-card { padding: 20px 16px !important; }
+    .card-header h2 { font-size: 1.2rem !important; }
+}
+</style>
+
+<!-- FORMULARIOS OCULTOS PARA ACCIONES DE GALERÍA (Fuera del form principal para evitar anidamiento) -->
+<form id="hiddenDeleteForm" method="POST" style="display:none;"></form>
+<form id="hiddenUploadForm" action="{{ url_for('admin.subir_foto_galeria', id=vehiculo.id) }}" method="POST" enctype="multipart/form-data" style="display:none;">
+    <input type="file" id="hidden_fotos_input" name="fotos[]" multiple>
+</form>
+
+<script>
+// --- Funciones para la Galería (Evitan anidamiento de forms) ---
+function deleteGalleryPhoto(imgId) {
+    Swal.fire({
+        title: '¿Eliminar foto?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: '#ffffff',
+        borderRadius: '16px',
+        customClass: {
+            title: 'elite-swal-title',
+            popup: 'elite-swal-popup'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.getElementById('hiddenDeleteForm');
+            form.action = `/admin/vehiculo/{{ vehiculo.id }}/galeria/eliminar/${imgId}`;
+            form.submit();
+        }
+    });
+}
+
+function submitGalleryUpload() {
+    const mainInput = document.getElementById('fotos_multiple');
+    const hiddenInput = document.getElementById('hidden_fotos_input');
+    const hiddenForm = document.getElementById('hiddenUploadForm');
+    
+    // Transferir archivos al form oculto
+    hiddenInput.files = mainInput.files;
+    hiddenForm.submit();
+}
+
+// --- Previsualización de Imagen ---
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const container = document.getElementById('imagePreview');
+            container.innerHTML = `
+                <img src="${e.target.result}" alt="Preview" class="preview-img">
+                <div class="preview-actions">
+                    <label for="imagen" class="btn-change-image-v2">
+                        <i class='bx bx-camera'></i> Cambiar Foto Principal
+                    </label>
+                </div>
+            `;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// --- Estilo dinámico de Estado ---
+function updateStatusStyle(select) {
+    select.classList.remove('status-activo', 'status-pausado', 'status-vendido');
+    select.classList.add('status-' + select.value);
+}
+
+// --- Generación de Descripción con IA ---
+document.addEventListener('DOMContentLoaded', () => {
+    const btnIA = document.getElementById('btn-generar-ia');
+    const descTextarea = document.getElementById('descripcion');
+
+    if (btnIA && descTextarea) {
+        btnIA.addEventListener('click', async () => {
+            const marca = document.getElementById('marca_val').value;
+            const modelo = document.getElementById('modelo_val').value;
+            const anio = document.getElementById('anio').value;
+            const kilometraje = document.getElementById('kilometraje').value;
+            const version = document.getElementById('version').value;
+            const ciudad = document.getElementById('ciudad_venta').value;
+            
+            if (!marca || !modelo || !anio) {
+                alert('Faltan datos básicos para generar la descripción.');
+                return;
+            }
+
+            btnIA.disabled = true;
+            const originalContent = btnIA.innerHTML;
+            btnIA.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Redactando...';
+
+            try {
+                const response = await fetch('/vendedor/generar_descripcion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ marca, modelo, anio, kilometraje, version, extras: [], ciudad })
+                });
+                const result = await response.json();
+                if (result.ok) {
+                    descTextarea.value = result.descripcion;
+                    descTextarea.focus();
+                }
+            } catch (error) {
+                console.error('AI Error:', error);
+            } finally {
+                btnIA.disabled = false;
+                btnIA.innerHTML = originalContent;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+    <div style="text-align:center; padding: 1.5rem 1rem; color: #64748b; font-size: 0.85rem; margin-top: 2rem;">
+        &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileToggle = document.getElementById('mobileSidebarToggle');
+    if(mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            const sidebar = document.querySelector('.elite-sidebar');
+            if(sidebar) {
+                sidebar.classList.toggle('show-mobile');
+                const chevron = document.getElementById('toggleChevron');
+                if(sidebar.classList.contains('show-mobile')) {
+                    chevron.style.transform = 'rotate(180deg)';
+                    mobileToggle.style.borderColor = 'var(--c-brand)';
+                } else {
+                    chevron.style.transform = 'rotate(0deg)';
+                    mobileToggle.style.borderColor = 'var(--c-border)';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

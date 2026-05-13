@@ -1,0 +1,162 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Pagos Manuales{% endblock %}
+
+{% block content %}
+<div class="cat-layout">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">{% include 'admin/_sidebar.html' %}</aside>
+
+  <!-- MAIN -->
+  <main class="cat-main">
+    <header class="cat-page-header">
+      <div class="cat-header-left">
+        <div class="cat-header-icon" style="background: linear-gradient(135deg, #F59E0B, #D97706);"><i class="fas fa-file-invoice-dollar"></i></div>
+        <div>
+          <h1 class="cat-title">Aprobación de Pagos Manuales</h1>
+          <p class="cat-subtitle">Verifica los comprobantes de transferencia para destacar anuncios.</p>
+        </div>
+      </div>
+    </header>
+
+    <div class="cat-grid" style="grid-template-columns: 1fr;">
+      <section class="cat-panel">
+        <div class="cat-panel-header">
+          <h2><i class="fas fa-clock" style="color: #F59E0B;"></i> Pagos Pendientes de Revisión</h2>
+        </div>
+        <div class="cat-list-wrap">
+          <table class="cat-table">
+            <thead>
+              <tr>
+                <th>Vehículo</th>
+                <th>Usuario</th>
+                <th>Fecha Publicación</th>
+                <th>Comprobante</th>
+                <th style="text-align:right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pagos %}
+              <tr>
+                <td>
+                    <div style="font-weight: 700; color: #1f2937;">{{ p.marca }} {{ p.modelo }}</div>
+                    <div style="font-size: .8rem; color: #6b7280;">ID Vehículo: #{{ p.id }}</div>
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: #374151;">{{ p.usuario_nombre }}</div>
+                    <div style="font-size: .8rem; color: #6b7280;">{{ p.email }}</div>
+                </td>
+                <td>
+                    <div style="font-size: .85rem; color: #4b5563;">{{ p.fecha_publicacion.strftime('%d %b %Y') if p.fecha_publicacion else 'N/A' }}</div>
+                </td>
+                <td>
+                    <a href="{{ url_for('static', filename=p.comprobante_pago) }}" target="_blank" style="display:inline-flex; align-items:center; gap: 5px; background: #EEF2FF; color: #4F46E5; padding: 6px 12px; border-radius: 8px; font-size: .8rem; font-weight: 700; text-decoration: none; transition: background .2s;">
+                        <i class="fas fa-external-link-alt"></i> Ver Imagen
+                    </a>
+                </td>
+                <td style="text-align:right;">
+                  <form action="{{ url_for('admin.aprobar_pago', id=p.id) }}" method="POST" style="display:inline" onsubmit="return confirm('¿Aprobar pago y DESTACAR anuncio?')">
+                    <button class="cat-action-btn edit" style="background:#def7ec; color: #03543f; border-color: #31c48d; width: auto; padding: 0 10px; font-weight: 700;" title="Aprobar"><i class="fas fa-check" style="margin-right: 5px;"></i> Aprobar</button>
+                  </form>
+                  <form action="{{ url_for('admin.rechazar_pago', id=p.id) }}" method="POST" style="display:inline" onsubmit="return confirm('¿Rechazar este comprobante de pago?')">
+                    <button class="cat-action-btn delete" style="width: auto; padding: 0 10px; font-weight: 700;" title="Rechazar"><i class="fas fa-times" style="margin-right: 5px;"></i> Rechazar</button>
+                  </form>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="5" class="cat-empty">No hay pagos pendientes de revisión registrados en este momento.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+  </main>
+</div>
+
+<style>
+.cat-layout { display: flex; min-height: 100vh; font-family: 'Inter', sans-serif; background: #f3f4f6; }
+.cat-main { flex: 1; padding: 2.5rem; overflow-x: hidden; }
+
+/* Header */
+.cat-page-header { margin-bottom: 2rem; }
+.cat-header-left { display: flex; align-items: center; gap: 1.2rem; }
+.cat-header-icon {
+  width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.6rem;
+  box-shadow: 0 8px 25px rgba(245,158,11,.35);
+}
+.cat-title { font-size: 1.8rem; font-weight: 800; color: #111827; margin: 0; letter-spacing: -.03em; }
+.cat-subtitle { color: #6b7280; font-size: .95rem; margin: .25rem 0 0; }
+
+/* Flashes */
+.cat-flashes { margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: .5rem; }
+.cat-flash { padding: 1rem 1.4rem; border-radius: 12px; font-weight: 600; font-size: .95rem; display: flex; align-items: center; gap: .8rem; }
+.cat-flash-success { background: #d1fae5; color: #065f46; box-shadow: 0 2px 10px rgba(16,185,129,.1); }
+.cat-flash-warning { background: #fef3c7; color: #92400e; box-shadow: 0 2px 10px rgba(245,158,11,.1); }
+.cat-flash-danger { background: #fee2e2; color: #991b1b; box-shadow: 0 2px 10px rgba(239,68,68,.1); }
+
+/* Grid & Panels */
+.cat-grid { display: grid; gap: 2rem; align-items: start; }
+.cat-panel {
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.04); overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.cat-panel-header {
+  padding: 1.4rem 1.6rem; border-bottom: 1px solid #f3f4f6;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.cat-panel-header h2 { margin: 0; font-size: 1.2rem; font-weight: 800; color: #1f2937; display: flex; align-items: center; gap: .6rem; }
+
+/* Tables */
+.cat-list-wrap { padding: 0 1rem 1rem; overflow-y: auto; }
+.cat-table { width: 100%; border-collapse: separate; border-spacing: 0 .4rem; }
+.cat-table th {
+  padding: 1rem .8rem .4rem; text-align: left;
+  font-size: .75rem; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em;
+  position: sticky; top: 0; background: #fff; z-index: 1;
+}
+.cat-table td {
+  padding: .85rem .8rem; background: #f9fafb;
+}
+.cat-table tr td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
+.cat-table tr td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
+.cat-empty { text-align: center; color: #9ca3af; padding: 2rem !important; background: transparent !important; }
+
+/* Actions */
+.cat-action-btn {
+  height: 32px; border-radius: 8px;
+  border: none; display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; cursor: pointer; transition: all .2s; margin-left: .25rem; font-size: .85rem;
+}
+.cat-action-btn.edit { background: #fff; border: 1px solid #e5e7eb; color: #6b7280; box-shadow: 0 2px 4px rgba(0,0,0,.02); }
+.cat-action-btn.edit:hover { border-color: #10b981; color: #10b981; }
+.cat-action-btn.delete { background: #fee2e2; color: #ef4444; }
+.cat-action-btn.delete:hover { background: #ef4444; color: #fff; }
+</style>
+{% endblock %}
+
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

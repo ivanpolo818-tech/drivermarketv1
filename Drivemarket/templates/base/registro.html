@@ -1,0 +1,438 @@
+{% extends "base.html" %}
+{% block title %}Registro - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    #dm-widget { display: none !important; }
+    :root {
+        --brand-orange: #FF6A00;
+        --brand-orange-hover: #E65C00;
+        --bg-body: #F0F4F8; /* Fondo gris/celeste muy suave de tu imagen */
+        --bg-input: #F0F4F8; /* Color de relleno de los inputs */
+        --text-main: #1A1A1A;
+        --text-muted: #6B7280;
+        --text-placeholder: #9CA3AF;
+        --card-bg: #FFFFFF;
+    }
+
+    body {
+        background-color: var(--bg-body);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        margin: 0;
+        color: var(--text-main);
+    }
+
+    .registro-seccion {
+        min-height: calc(100vh - 100px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1.5rem;
+    }
+
+    .registro-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+        padding: 3rem;
+        max-width: 580px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Logo / Icono superior */
+    .logo-badge {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 1.5rem;
+        border: 1px solid #FFE4D6;
+        border-radius: 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        box-shadow: 0 4px 20px rgba(255, 106, 0, 0.08);
+    }
+    .logo-badge i { font-size: 1.5rem; margin-bottom: 2px; }
+    .logo-badge span { font-size: 0.45rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* Títulos */
+    .card-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        text-align: center;
+        margin: 0 0 0.5rem;
+        color: var(--text-main);
+    }
+    .card-subtitle {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        text-align: center;
+        margin: 0 auto 2rem;
+        font-weight: 500;
+        max-width: 90%;
+    }
+
+    /* ── INTERRUPTOR DE ROL (TOGGLE) ── */
+    .role-toggle {
+        display: flex;
+        background: var(--bg-input);
+        border-radius: 14px;
+        padding: 4px;
+        margin-bottom: 2rem;
+    }
+    .role-btn {
+        flex: 1;
+        text-align: center;
+        padding: 0.8rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .role-btn:hover { color: var(--text-main); }
+    .role-btn.active {
+        background: var(--card-bg);
+        color: var(--brand-orange);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    /* Formulario e Inputs */
+    .registro-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+    }
+    @media (min-width: 600px) {
+        .form-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+        background: var(--bg-input);
+        border-radius: 14px;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    .input-group:focus-within {
+        background: var(--card-bg);
+        border-color: var(--brand-orange);
+        box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.1);
+    }
+
+    .input-group .icon {
+        position: absolute;
+        left: 1.2rem;
+        color: var(--text-placeholder);
+        font-size: 1.1rem;
+        transition: color 0.3s ease;
+    }
+    .input-group:focus-within .icon { color: var(--brand-orange); }
+
+    .input-group input {
+        width: 100%;
+        padding: 1.1rem 3.5rem 1.1rem 3.2rem;
+        border: none;
+        background: transparent;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--text-main);
+        outline: none;
+        box-sizing: border-box;
+    }
+    .input-group input::placeholder { color: var(--text-placeholder); font-weight: 400; }
+
+    /* Estilo del ojo toggle */
+    .toggle-password {
+        position: absolute;
+        right: 1.2rem;
+        color: var(--text-placeholder);
+        cursor: pointer;
+        padding: 0.5rem;
+        z-index: 2;
+        border: none;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    .toggle-password:hover {
+        color: var(--brand-orange);
+        transform: scale(1.1);
+    }
+
+    /* Campos Vendedor (Ocultos por defecto) */
+    #vendedor-fields {
+        display: none;
+        animation: fadeIn 0.3s ease forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Botón Principal */
+    .btn-registrar {
+        background: var(--brand-orange);
+        color: white;
+        border: none;
+        padding: 1.15rem;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 0.5rem;
+        box-shadow: 0 4px 15px rgba(255, 106, 0, 0.25);
+    }
+    .btn-registrar:hover {
+        background: var(--brand-orange-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 106, 0, 0.3);
+    }
+
+    /* Divisor "O CONTINÚA CON" */
+    .divider {
+        position: relative;
+        text-align: center;
+        margin: 1.5rem 0;
+    }
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 50%; width: 100%; height: 1px;
+        background: #E5E7EB;
+    }
+    .divider-text {
+        background: var(--card-bg);
+        padding: 0 1rem;
+        color: var(--text-placeholder);
+        font-size: 0.75rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Botón Google */
+    .btn-google {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        padding: 1.1rem;
+        background: white;
+        border: 1px solid #E5E7EB;
+        color: var(--text-main);
+        font-weight: 600;
+        font-size: 0.95rem;
+        border-radius: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .btn-google img { width: 22px; height: 22px; }
+    .btn-google:hover {
+        background: #F9FAFB;
+        border-color: #D1D5DB;
+    }
+
+    /* Link de Iniciar Sesión */
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+    .login-link-cta {
+        color: var(--brand-orange);
+        font-weight: 700;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    .login-link-cta:hover { color: var(--brand-orange-hover); }
+
+    /* Mensajes Flash */
+    .flash-message {
+        padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;
+        font-weight: 600; font-size: 0.9rem; text-align: center;
+    }
+    .alert-success { background: #D1FAE5; color: #065F46; }
+    .alert-error { background: #FEE2E2; color: #991B1B; }
+    .alert-warning { background: #FEF3C7; color: #92400E; }
+
+    @media (max-width: 480px) {
+        .registro-card { padding: 2rem 1.5rem; border-radius: 20px; }
+        .card-title { font-size: 1.6rem; }
+        .input-group input { padding: 1rem 1rem 1rem 3rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="registro-seccion">
+    <div class="registro-card">
+        
+        <div class="logo-badge">
+            <i class="fas fa-car-side"></i>
+            <span>Drive Market</span>
+        </div>
+        
+        <h2 class="card-title">¡Crea tu cuenta!</h2>
+        <p class="card-subtitle">Regístrate para gestionar tus vehículos o encontrar el ideal.</p>
+
+
+
+        <form method="POST" action="{{ url_for('registro') }}" class="registro-form">
+            <input type="hidden" name="rol" id="rol_input" value="comprador">
+
+            <div class="role-toggle">
+                <div class="role-btn active" id="btn-comprador" onclick="setRole('comprador')">
+                    <i class="fas fa-user"></i> Soy Particular
+                </div>
+                <div class="role-btn" id="btn-vendedor" onclick="setRole('vendedor')">
+                    <i class="fas fa-store"></i> Soy Concesionario
+                </div>
+            </div>
+            
+            <div class="form-grid">
+                <div class="input-group">
+                    <i class="fas fa-id-badge icon"></i>
+                    <input type="text" name="nombre" placeholder="Nombre" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-users icon"></i>
+                    <input type="text" name="apellidos" placeholder="Apellidos" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-phone icon"></i>
+                    <input type="text" name="telefono" placeholder="Teléfono" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-at icon"></i>
+                    <input type="text" name="username" placeholder="Usuario" required>
+                </div>
+            </div>
+
+            <div id="vendedor-fields">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <i class="fas fa-building icon"></i>
+                        <input type="text" name="nombre_empresa" id="nombre_empresa" placeholder="Nombre Empresa / Marca">
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-file-invoice icon"></i>
+                        <input type="text" name="nit" id="nit" placeholder="NIT o RUT">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-envelope icon"></i>
+                <input type="email" name="email" placeholder="Correo electrónico" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fas fa-lock icon"></i>
+                <input type="password" name="password" id="password" placeholder="Contraseña" required>
+                <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+            
+            <button type="submit" id="main-submit-btn" class="btn-registrar">
+                <i class="fas fa-arrow-right"></i> Regístrate gratis
+            </button>
+
+            <div class="divider">
+                <span class="divider-text">O CONTINÚA CON</span>
+            </div>
+
+            <a href="{{ url_for('google_login') }}" class="btn-google">
+                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google">
+                Acceder con Google
+            </a>
+
+            <p class="login-link">¿Ya tienes cuenta? 
+                <a href="{{ url_for('login') }}" class="login-link-cta">Iniciar Sesión</a>
+            </p>
+        </form>
+    </div>
+</section>
+
+<script>
+    function setRole(role) {
+        const btnComprador = document.getElementById('btn-comprador');
+        const btnVendedor = document.getElementById('btn-vendedor');
+        const vendorFields = document.getElementById('vendedor-fields');
+        const rolInput = document.getElementById('rol_input');
+        const submitBtn = document.getElementById('main-submit-btn');
+        const empInput = document.getElementById('nombre_empresa');
+        const nitInput = document.getElementById('nit');
+
+        if(role === 'vendedor') {
+            btnComprador.classList.remove('active');
+            btnVendedor.classList.add('active');
+            vendorFields.style.display = 'block';
+            rolInput.value = 'vendedor'; 
+            empInput.required = true;
+            nitInput.required = true;
+            submitBtn.innerHTML = '<i class="fas fa-store"></i> Crear cuenta de Concesionario';
+        } else {
+            btnVendedor.classList.remove('active');
+            btnComprador.classList.add('active');
+            vendorFields.style.display = 'none';
+            rolInput.value = 'comprador'; 
+            empInput.required = false;
+            nitInput.required = false;
+            empInput.value = '';
+            nitInput.value = '';
+            submitBtn.innerHTML = '<i class="fas fa-arrow-right"></i> Regístrate gratis';
+        }
+    }
+
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+</script>
+{% endblock %}
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

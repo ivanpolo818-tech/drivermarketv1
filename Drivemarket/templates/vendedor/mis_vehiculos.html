@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+{% block title %}Mis Vehículos | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/vendedor_inventory.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.default.min.css" rel="stylesheet">
+  <style>
+    /* --- PRO MODAL SYSTEM --- */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 17, 23, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-pro { background: #FFFFFF; border: 2px solid #000000; border-radius: 20px; width: 440px; padding: 35px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); transform: translateY(25px); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
+    .modal-pro-ico { width: 60px; height: 60px; border-radius: 18px; background: #000000; color: #FF6A00; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin: 0 auto 20px; }
+    .modal-pro-title { font-size: 1.3rem; font-weight: 800; color: #000000; margin-bottom: 10px; }
+    .modal-pro-desc { font-size: 0.95rem; color: #4B5563; margin-bottom: 25px; line-height: 1.6; }
+    .modal-input-group { position: relative; margin-bottom: 25px; }
+    .modal-input-ico { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #FF6A00; font-size: 1.1rem; }
+    .modal-input { width: 100%; background: #F3F4F6; border: 2px solid #E5E7EB; border-radius: 12px; padding: 14px 16px 14px 45px; color: #000000; font-family: 'Inter'; font-weight: 700; font-size: 1rem; outline: none; transition: 0.3s; }
+    .modal-input:focus { border-color: #FF6A00; background: #FFFFFF; }
+    .modal-btns { display: flex; gap: 15px; }
+    .modal-btns button { flex: 1; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.5px; }
+    .db-btn-ghost-modal { background: #FFFFFF; color: #000000; border-color: #000000 !important; }
+    .db-btn-ghost-modal:hover { background: #000000; color: #FFFFFF; }
+    .db-btn-primary-modal { background: #FF6A00; color: #FFFFFF; box-shadow: 0 4px 15px rgba(255,106,0,0.3); }
+    .db-btn-primary-modal:hover { background: #E55D00; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,106,0,0.4); }
+    
+    /* Toast System */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10000; }
+    .toast-pro { background: rgba(15,23,42,0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px 20px; display: flex; align-items: center; gap: 12px; color: #fff; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); transform: translateX(100px); opacity: 0; transition: 0.4s; }
+    .toast-pro.show { transform: translateX(0); opacity: 1; }
+  </style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'mis_vehiculos' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <div class="db-page-header">
+      <div>
+        <h1><i class="fas fa-car-side" style="color:var(--am);margin-right:10px;font-size:1.3rem;"></i>Mis Vehículos</h1>
+        <p>Gestiona todo tu inventario de vehículos publicados</p>
+      </div>
+      <div class="db-header-actions" style="display:flex; align-items:center; gap:12px;">
+        <!-- Notification Center -->
+        <div class="notif-box" style="position: relative;">
+          <button class="db-btn db-btn-ghost" style="padding:10px; border-radius:50%; width:42px; height:42px; display:flex; align-items:center; justify-content:center; position:relative;" id="notifBtn">
+            <i class="far fa-bell" style="font-size:1.2rem;"></i>
+            {% if notificaciones %}
+            <span class="pulse-dot" style="position:absolute; top:8px; right:8px; width:10px; height:10px; background:var(--er); border-radius:50%; border:2px solid var(--card);"></span>
+            {% endif %}
+          </button>
+          
+          <div class="notif-dropdown" id="notifDropdown" style="display:none; position:absolute; top:50px; right:0; z-index:9999; background:white; border:1px solid #E2E8F0; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:320px;">
+            <div class="notif-header" style="padding:15px; border-bottom:1px solid var(--bd); display:flex; justify-content:space-between; align-items:center;">
+              <h4 style="margin:0; font-size:.9rem; font-weight:800;">Notificaciones</h4>
+              <span style="font-size:.7rem; color:var(--pr); font-weight:700; cursor:pointer;" onclick="marcarTodasLeidas()">Marcar todas como leídas</span>
+            </div>
+            <div class="notif-list" style="max-height:320px; overflow-y:auto;">
+              {% if notificaciones %}
+                {% for n in notificaciones %}
+                <div class="notif-item" onclick="window.location.href='{{ n.url_accion or '#' }}'">
+                  <div class="notif-icon" style="width:36px; height:36px; border-radius:10px; background:var(--pr-l); color:var(--pr); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i class="fas {% if n.tipo == 'mensaje' %}fa-comment-alt{% elif n.tipo == 'verificacion' %}fa-check-circle{% else %}fa-bell{% endif %}"></i>
+                  </div>
+                  <div class="notif-content">
+                    <p class="notif-title" style="margin:0; font-size:.8rem; font-weight:700; color:var(--t1);">{{ n.titulo }}</p>
+                    <p class="notif-msg" style="margin:2px 0 0; font-size:.72rem; color:var(--t2);">{{ n.mensaje }}</p>
+                    <span class="notif-time" style="font-size:.65rem; color:var(--t3);">{{ n.fecha_creacion.strftime('%H:%M') if n.fecha_creacion else '--:--' }}</span>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="notif-empty" style="padding:40px 20px; text-align:center; color:var(--t3);">
+                  <i class="far fa-bell" style="font-size:2rem; margin-bottom:10px; opacity:.3;"></i>
+                  <p style="font-size:.8rem; margin:0;">No tienes notificaciones nuevas</p>
+                </div>
+              {% endif %}
+            </div>
+            <a href="{{ url_for('vendedor.notificaciones') }}" class="notif-footer" style="display:block; padding:12px; text-align:center; font-size:.8rem; font-weight:700; color:var(--pr); text-decoration:none; background:var(--bd-l);">Ver todas</a>
+          </div>
+        </div>
+
+        <div style="position:relative; display:none;" class="md-flex">
+          <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);"></i>
+          <input type="text" id="searchVehicles" placeholder="Buscar vehículo..." style="padding:10px 14px 10px 36px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--t1);font-size:.84rem;outline:none;width:220px;font-family:'Inter',sans-serif;transition:border-color .2s;">
+        </div>
+        <a href="{{ url_for('vendedor.publicar') }}" class="db-btn db-btn-primary"><i class="fas fa-plus"></i> Publicar Vehículo</a>
+      </div>
+    </div>
+
+    <!-- Market Insight Section (Premium) -->
+    {% if market_insight %}
+    <div class="db-card market-insight-card" id="mi-main-card" style="border-left: 4px solid {% if market_insight.competitivo %}var(--ok){% else %}var(--am){% endif %}; margin-bottom: 24px; transition: border-color 0.3s ease;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap:wrap; gap:10px;">
+        <h3 style="font-size: 1rem; font-weight: 700; color: var(--t1); margin: 0; display:flex; align-items:center;">
+          <i class="fas fa-brain" style="color: var(--pr); margin-right: 8px;"></i>
+          Market Intelligence: 
+          <select id="mi-vehicle-select" class="db-select" onchange="loadMarketInsight(this.value)" style="margin-left:8px; border:1px solid var(--bd); border-radius:6px; padding:6px 12px; font-size:.9rem; font-family:'Inter',sans-serif; outline:none; background:var(--card); color:var(--t1); cursor:pointer; font-weight:600; min-width:250px;">
+            <option value="">Selecciona un vehículo...</option>
+            {% for v in ultimos_vehiculos if v.estado == 'activo' %}
+            <option value="{{ v.id }}" {% if v.id == market_insight.id_vehiculo %}selected{% endif %}>{{ v.marca_nombre }} {{ v.modelo_nombre }}</option>
+            {% endfor %}
+          </select>
+        </h3>
+        <span class="db-profile-badge" style="background: var(--pr-l); color: var(--pr);">Vendedor Premium</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+        <div class="mi-stat">
+          <p style="font-size: .75rem; color: var(--t2); margin: 0;">Tu Precio</p>
+          <strong id="mi-tu-precio" style="font-size: 1.1rem; color: var(--t1);">$ {{ market_insight.precio_actual | int }}</strong>
+        </div>
+        <div class="mi-stat">
+          <p style="font-size: .75rem; color: var(--t2); margin: 0;">Promedio del Mercado</p>
+          <strong id="mi-promedio" style="font-size: 1.1rem; color: var(--t1);">$ {{ market_insight.precio_mercado | int }}</strong>
+        </div>
+        <div class="mi-stat">
+          <p style="font-size: .75rem; color: var(--t2); margin: 0;">Posición</p>
+          <strong id="mi-posicion" style="font-size: 1.1rem; color: {% if market_insight.diferencia <= 0 %}var(--ok){% else %}var(--er){% endif %};">
+            {% if market_insight.diferencia > 0 %}+{% endif %}{{ market_insight.diferencia }}% 
+            <i class="fas fa-arrow-{% if market_insight.diferencia <= 0 %}down{% else %}up{% endif %}"></i>
+          </strong>
+        </div>
+      </div>
+      <div style="margin-top: 15px; padding-top: 12px; border-top: 1px dashed var(--bd); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i id="mi-icon" class="fas {% if market_insight.diferencia <= 5 %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}" style="color: {% if market_insight.diferencia <= 5 %}var(--ok){% else %}var(--am){% endif %};"></i>
+          <p id="mi-msg" style="font-size: .8rem; color: var(--t2); margin: 0;">{{ market_insight.msg | safe }}</p>
+        </div>
+        <div style="display:flex; gap:8px;" id="mi-action-btns">
+          <button id="mi-btn-sync" class="db-btn db-btn-ghost" style="padding:6px 12px; font-size:.75rem; {% if market_insight.diferencia <= 0 %}display:none;{% endif %}" onclick="syncPrice('{{ market_insight.id_vehiculo }}', {{ market_insight.precio_mercado }})">
+            <i class="fas fa-sync-alt" style="margin-right:5px;"></i> Sincronizar
+          </button>
+          <button id="mi-btn-manual" class="db-btn db-btn-primary" style="padding:6px 12px; font-size:.75rem;" onclick="editManual('{{ market_insight.id_vehiculo }}', {{ market_insight.precio_actual }})">
+            <i class="fas fa-edit" style="margin-right:5px;"></i> Manual
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="db-card" style="padding:14px 20px; margin-bottom: 20px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+        <div style="display:flex;gap:6px;" id="vehicleFilters">
+          {% for f, label in [('all','Todos'),('activo','Activos'),('pausado','Pausados'),('vendido','Vendidos')] %}
+          <button class="v-filter {% if f == 'all' %}v-filter-on{% endif %}" data-filter="{{f}}">
+            {{label}}
+          </button>
+          {% endfor %}
+        </div>
+        <select class="db-select" style="padding:7px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--t1);font-size:.8rem;font-weight:600;cursor:pointer;outline:none;">
+          <option>Más recientes primero</option>
+          <option>Mayor precio</option>
+          <option>Menor precio</option>
+          <option>Más vistas</option>
+        </select>
+      </div>
+    </div>
+
+    {% if ultimos_vehiculos %}
+    <div id="vehiclesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;">
+      {% for v in ultimos_vehiculos %}
+      {% set estado = v.estado or 'activo' %}
+      {% set vehicle_slug = v.slug if v.slug else v.id %}
+      <div class="db-card vehicle-card" id="card_{{ v.id }}" data-status="{{ estado }}" style="{% if estado != 'activo' %}opacity:.65;{% endif %}">
+
+        <div style="position:relative;">
+          {% if v.imagen %}
+          <img src="{{ url_for('static', filename=v.imagen) }}" alt="{{ v.marca }} {{ v.modelo }}" class="v-card-img">
+          {% else %}
+          <div style="height:160px;background:linear-gradient(135deg,#1a1d27 0%,#2d3142 100%);display:flex;align-items:center;justify-content:center;">
+            <i class="fas fa-car-side" style="font-size:3rem;color:rgba(255,255,255,.15);"></i>
+          </div>
+          {% endif %}
+
+          <button {% if not v.plan_destacado and v.estado_pago != 'pendiente' %}onclick="abrirModalPromover({{ v.id }}, '{{ v.marca_nombre }} {{ v.modelo_nombre }}')"{% endif %} id="star_{{ v.id }}" class="featured-toggle {% if v.plan_destacado %}active{% endif %}" title="{% if v.plan_destacado %}Anuncio Destacado{% elif v.estado_pago == 'pendiente' %}Pago en revisión{% else %}Destacar anuncio{% endif %}" {% if v.plan_destacado or v.estado_pago == 'pendiente' %}style="cursor:default;"{% endif %}>
+            <i class="{% if v.plan_destacado %}fas{% else %}far{% endif %} fa-star"></i>
+          </button>
+
+          <span id="badge_{{ v.id }}" class="v-badge" style="background: {% if estado == 'activo' %}#10B981{% elif estado == 'vendido' %}#F59E0B{% elif estado == 'bloqueado' %}#EF4444{% else %}#6B7280{% endif %};">
+            {% if estado == 'activo' %}● ACTIVO{% elif estado == 'vendido' %}✔ VENDIDO{% elif estado == 'bloqueado' %}🚫 BLOQUEADO{% else %}⏸ PAUSADO{% endif %}
+          </span>
+          {% if v.plan_destacado %}
+          <span class="v-badge" style="background: #F59E0B; top:10px; right: 10px; left: auto; padding: 4px 8px; font-weight: 800;">
+            ⭐ DESTACADO
+          </span>
+          {% elif v.estado_pago == 'pendiente' %}
+          <span class="v-badge" style="background: #64748B; top:10px; right: 10px; left: auto; padding: 4px 8px;">
+            ⏳ Pago en revisión
+          </span>
+          {% endif %}
+
+          <span class="v-date-tag">
+            {{ v.fecha_publicacion.strftime('%d %b %Y') if v.fecha_publicacion else 'Hoy' }}
+          </span>
+        </div>
+
+        <div class="v-card-body">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;">
+            <h3 class="v-card-title">{{ v.marca_nombre }} {{ v.modelo_nombre }}</h3>
+            <div style="position:relative;" id="menu_wrap_{{ v.id }}">
+              <button onclick="toggleMenu({{ v.id }})" class="v-menu-btn" title="Opciones">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div id="ddmenu_{{ v.id }}" class="v-menu-dropdown">
+                <a href="{{ url_for('vendedor.editar_vehiculo', vid=v.id) }}" class="v-menu-item">
+                  <i class="fas fa-pen" style="color:#3B82F6;"></i> Editar publicación
+                </a>
+                <hr style="margin:0;border:none;border-top:1px solid var(--bd);">
+                {% if estado == 'activo' %}
+                <button onclick="cambiarEstado({{ v.id }},'pausado')" class="v-menu-item">
+                  <i class="fas fa-pause-circle" style="color:#6B7280;"></i> Pausar publicación
+                </button>
+                {% else %}
+                <button onclick="cambiarEstado({{ v.id }},'activo')" class="v-menu-item">
+                  <i class="fas fa-play-circle" style="color:#10B981;"></i> Reactivar publicación
+                </button>
+                {% endif %}
+                {% if estado != 'vendido' %}
+                <button onclick="cambiarEstado({{ v.id }},'vendido')" class="v-menu-item" style="color:#10B981;">
+                  <i class="fas fa-check-circle"></i> Marcar como vendido
+                </button>
+                {% endif %}
+                <hr style="margin:0;border:none;border-top:1px solid var(--bd);">
+                {% if not v.plan_destacado and v.estado_pago != 'pendiente' %}
+                <button onclick="abrirModalPromover({{ v.id }}, '{{ v.marca_nombre }} {{ v.modelo_nombre }}')" class="v-menu-item" style="color:#F59E0B; font-weight:700;">
+                  <i class="fas fa-star"></i> Destacar anuncio
+                </button>
+                {% endif %}
+                <button onclick="shareWhatsApp({{ v.id }}, '{{ v.marca_nombre }} {{ v.modelo_nombre }}', '{{ v.precio }}', '{{ v.slug }}')" class="v-menu-item" style="color:#25D366;">
+                  <i class="fab fa-whatsapp"></i> Compartir en WhatsApp
+                </button>
+                <button onclick="cambiarEstado({{ v.id }},'eliminado')" class="v-menu-item" style="color:var(--er);">
+                  <i class="fas fa-trash-alt"></i> Eliminar publicación
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p style="margin:0 0 10px;font-size:.76rem;color:var(--t3);">{{ v.anio or '' }} · {{ "{:,.0f}".format(v.kilometraje|float) if v.kilometraje else '—' }} km</p>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <span class="v-price">${{ "{:,.0f}".format(v.precio|float) }}</span>
+            <div style="display:flex;gap:12px;font-size:.74rem;color:var(--t3);">
+              <span><i class="fas fa-eye"></i> {{ v.vistas or 0 }}</span>
+              <span><i class="fas fa-heart"></i> {{ v.num_favoritos or 0 }}</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;">
+            <a href="{{ url_for('vendedor.editar_vehiculo', vid=v.id) }}" class="db-btn db-btn-ghost" style="flex:1; gap:5px; font-size:.78rem;">
+              <i class="fas fa-pen"></i> Editar
+            </a>
+            <a href="{{ url_for('detalle', slug=vehicle_slug) if v.slug else url_for('detalle_por_id', vid=v.id) }}" target="_blank" class="db-btn db-btn-primary" style="flex:1; gap:5px; font-size:.78rem;">
+              <i class="fas fa-eye"></i> Ver anuncio
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="db-card" style="text-align:center;padding:60px 20px;">
+      <div style="width:72px;height:72px;border-radius:20px;background:var(--am-l);color:var(--am);display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 16px;">
+        <i class="fas fa-car-side"></i>
+      </div>
+      <h3 style="margin:0 0 8px;font-size:1.1rem;font-weight:700;color:var(--t1);">No tienes vehículos publicados</h3>
+      <p style="margin:0 0 20px;color:var(--t2);font-size:.88rem;">Comienza a vender publicando tu primer vehículo en Drive Market.</p>
+      <a href="{{ url_for('vendedor.publicar') }}" class="db-btn db-btn-primary"><i class="fas fa-plus"></i> Publicar ahora</a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+
+<!-- Modal Destacar Anuncio (Pago Manual) -->
+<div id="modalPromover" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:18px;width:90%;max-width:450px;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.2);position:relative;">
+        <button onclick="document.getElementById('modalPromover').style.display='none'" style="position:absolute;top:15px;right:15px;background:none;border:none;font-size:1.2rem;color:#94a3b8;cursor:pointer;"><i class="fas fa-times"></i></button>
+        
+        <div style="text-align:center;margin-bottom:20px;">
+            <div style="width:50px;height:50px;border-radius:50%;background:#FFFBEB;color:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 12px;">
+                <i class="fas fa-star"></i>
+            </div>
+            <h2 style="margin:0;font-size:1.2rem;color:#1e293b;font-weight:800;">Destacar Anuncio</h2>
+            <p style="margin:5px 0 0;font-size:.85rem;color:#64748b;">Aparece entre los primeros lugares y vende más rápido.</p>
+        </div>
+
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:15px;margin-bottom:20px;">
+            <h3 style="margin:0 0 10px;font-size:.9rem;color:#334155;font-weight:700;">💳 Datos de Transferencia</h3>
+            <p style="margin:0 0 8px;font-size:.8rem;color:#475569;">Valor a pagar: <strong style="color:#FF5722;font-size:1rem;">$20.000 COP</strong></p>
+            <ul style="margin:0;padding-left:20px;font-size:.8rem;color:#475569;line-height:1.6;">
+                <li>Bancolombia (Ahorros): <strong>000-000000-00</strong></li>
+                <li>Nequi: <strong>3000000000</strong></li>
+                <li>Daviplata: <strong>3000000000</strong></li>
+            </ul>
+        </div>
+
+        <form id="formPromover" method="POST" action="" enctype="multipart/form-data">
+            <label style="display:block;margin-bottom:8px;font-size:.85rem;font-weight:700;color:#1e293b;">Sube el comprobante de pago</label>
+            <input type="file" name="comprobante" required accept="image/*" style="width:100%;padding:10px;border:2px dashed #CBD5E1;border-radius:10px;background:#F8FAFC;margin-bottom:20px;cursor:pointer;">
+            
+            <button type="submit" style="width:100%;padding:12px;background:linear-gradient(135deg,#FF7043,#FF5722);border:none;border-radius:10px;color:#fff;font-weight:800;font-size:.9rem;cursor:pointer;transition:transform 0.2s;box-shadow:0 4px 12px rgba(255,87,34,0.3);">
+                Enviar Comprobante
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ MODALES LUXURY (Glassmorphism) ═══ -->
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal-pro">
+    <div id="modalIcon" class="modal-pro-ico"><i class="fas fa-brain"></i></div>
+    <h3 id="modalTitle" class="modal-pro-title">Título Modal</h3>
+    <p id="modalDesc" class="modal-pro-desc">Descripción detallada para el usuario.</p>
+    
+    <div id="modalInputContainer" class="modal-input-group" style="display:none;">
+      <i class="fas fa-dollar-sign modal-input-ico"></i>
+      <input type="number" id="modalInput" class="modal-input" placeholder="0.00">
+    </div>
+
+    <div class="modal-btns">
+      <button id="modalBtnCancel" class="db-btn-ghost-modal">Cancelar</button>
+      <button id="modalBtnConfirm" class="db-btn-primary-modal">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="{{ url_for('static', filename='js/vendedor_inventory.js') }}"></script>
+<script>
+    function abrirModalPromover(id, nombre) {
+        document.getElementById('formPromover').action = '/vendedor/solicitar-destacado/' + id;
+        document.getElementById('modalPromover').style.display = 'flex';
+    }
+
+    // Variables for Luxury Modal State
+    let activeVid = null;
+    let activeValue = null;
+    const modal = document.getElementById('modalOverlay');
+    const modalInputContainer = document.getElementById('modalInputContainer');
+    const modalInput = document.getElementById('modalInput');
+    const modalBtnConfirm = document.getElementById('modalBtnConfirm');
+    const modalBtnCancel = document.getElementById('modalBtnCancel');
+
+    window.syncPrice = function(vid, price) {
+        if(!vid || vid === 'null') {
+            Swal.fire("Atención", "Selecciona un vehículo primero.", "error");
+            return;
+        }
+        activeVid = vid;
+        activeValue = price;
+
+        document.getElementById('modalTitle').innerText = "Sincronización Inteligente";
+        document.getElementById('modalDesc').innerHTML = `¿Ajustar precio al promedio sugerido del mercado?<br aria-hidden="true"><strong style="color:var(--pr);font-size:1.1rem;">NUEVO PRECIO: $${price.toLocaleString()}</strong>`;
+        document.getElementById('modalIcon').innerHTML = '<i class="fas fa-magic"></i>';
+        document.getElementById('modalIcon').style.background = "rgba(255,106,0,0.1)";
+        modalInputContainer.style.display = 'none';
+        
+        openModal(() => updatePriceAJAX(activeVid, activeValue));
+    };
+
+    window.editManual = function(vid, current) {
+        if(!vid || vid === 'null') {
+            Swal.fire("Atención", "Selecciona un vehículo primero.", "error");
+            return;
+        }
+        activeVid = vid;
+        
+        document.getElementById('modalTitle').innerText = "Ajuste Profesional";
+        document.getElementById('modalDesc').innerText = "Ingresa el valor exacto que deseas establecer para este vehículo.";
+        document.getElementById('modalIcon').innerHTML = '<i class="fas fa-edit"></i>';
+        document.getElementById('modalIcon').style.background = "rgba(59,130,246,0.1)";
+        modalInputContainer.style.display = 'block';
+        modalInput.value = current;
+        
+        openModal(() => {
+            const val = modalInput.value;
+            if(val && !isNaN(val)) updatePriceAJAX(activeVid, val);
+            else Swal.fire("Atención", "Ingresa un precio válido", "error");
+        });
+    };
+
+    function openModal(confirmCallback) {
+        modal.classList.add('active');
+        modalBtnConfirm.onclick = () => { confirmCallback(); closeModal(); };
+        modalBtnCancel.onclick = closeModal;
+    }
+
+    function closeModal() { modal.classList.remove('active'); }
+
+    function updatePriceAJAX(vid, newPrice) {
+        // Usa la ruta que instalamos recientemente /api/sync-price
+        fetch('/vendedor/api/sync-price', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vid: vid, precio: newPrice })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.ok) {
+                showToast("¡Precio actualizado de forma profesional!", "success");
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast("Error estratégico: " + (data.msg || data.error), "error");
+            }
+        }).catch(() => showToast("Fallo de conexión", "error"));
+    }
+
+    function showToast(msg, type = "success") {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast-pro ${type}`;
+        toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}" style="color:${type === 'success' ? '#10B981' : '#EF4444'};font-size:1.2rem;"></i><div><p style="margin:0;font-size:0.85rem;font-weight:700;">${type==='success'?'Actualizado':'Error'}</p><p style="margin:2px 0 0;font-size:0.75rem;color:#94a3b8;">${msg}</p></div>`;
+        container.appendChild(toast);
+        
+        // Reflow for transition
+        toast.offsetHeight;
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
+
+    // Funcionalidad extra de Notificaciones para Mis Vehículos
+    function marcarTodasLeidas() {
+        // Asumiendo que la ruta real exista o simplemente simulando el clic visual
+        fetch('/notificaciones/marcar-todas-leidas', { method: 'POST' })
+        .then(r => r.json())
+        .catch(() => {}) // Ignorar si falla, actualizamos visual
+        .finally(() => {
+            document.querySelectorAll('.pulse-dot').forEach(el => el.style.display = 'none');
+            document.querySelector('#notifDropdown').style.display = 'none';
+        });
+    }
+
+    // Funcionalidad dinámica para cargar nuevo vehículo en Market Intelligence
+    function loadMarketInsight(vid) {
+        if (!vid) return; // ignore empty value
+        fetch(`/vendedor/api/market-insight?vid=${vid}`)
+        .then(res => res.json())
+        .then(r => {
+            if (r.ok && r.data) {
+                const d = r.data;
+                const card = document.getElementById('mi-main-card');
+                const isCompetitive = d.competitivo;
+                
+                // Update border and icon colors
+                const c_ok = 'var(--ok)', c_am = 'var(--am)', c_er = 'var(--er)';
+                card.style.borderLeftColor = isCompetitive ? c_ok : c_am;
+                
+                document.getElementById('mi-tu-precio').innerText = '$ ' + Math.floor(d.precio_actual);
+                document.getElementById('mi-promedio').innerText = '$ ' + Math.floor(d.precio_mercado);
+                
+                const posStr = (d.diferencia > 0 ? '+' : '') + d.diferencia + '%';
+                const posIcon = d.diferencia <= 0 ? 'fa-arrow-down' : 'fa-arrow-up';
+                document.getElementById('mi-posicion').innerHTML = `${posStr} <i class="fas ${posIcon}"></i>`;
+                document.getElementById('mi-posicion').style.color = d.diferencia <= 0 ? c_ok : c_er;
+                
+                const icn = document.getElementById('mi-icon');
+                icn.className = d.diferencia <= 5 ? "fas fa-check-circle" : "fas fa-exclamation-circle";
+                icn.style.color = d.diferencia <= 5 ? c_ok : c_am;
+                
+                document.getElementById('mi-msg').innerHTML = d.msg;
+                
+                // Botones
+                const btnSync = document.getElementById('mi-btn-sync');
+                if (d.diferencia > 0) {
+                    btnSync.style.display = 'inline-flex';
+                    btnSync.setAttribute('onclick', `syncPrice('${d.id_vehiculo}', ${d.precio_mercado})`);
+                } else {
+                    btnSync.style.display = 'none';
+                }
+                document.getElementById('mi-btn-manual').setAttribute('onclick', `editManual('${d.id_vehiculo}', ${d.precio_actual})`);
+            } else {
+                Swal.fire('Atención', r.msg || 'Error al obtener datos', 'warning');
+            }
+        });
+    }
+
+    // Inicializar Tom Select para búsqueda en Market Intelligence
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('mi-vehicle-select')) {
+            new TomSelect('#mi-vehicle-select', {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                placeholder: 'Selecciona o busca un vehículo...'
+            });
+        }
+    });
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+{% endblock %}
+
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

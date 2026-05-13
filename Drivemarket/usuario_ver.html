@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+{% block title %}Admin · Ver Usuario · {{ usuario.nombre }}{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- DELETE MODAL -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+    <h3>¿Eliminar usuario?</h3>
+    <p>¿Eliminar a <strong>{{ usuario.nombre }}</strong>? Esta acción es <strong>irreversible</strong>.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-confirm" id="modalConfirmBtn">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="{{ url_for('admin.admin_usuarios') }}">Usuarios</a>
+          <i class="fas fa-chevron-right"></i>
+          <span>{{ usuario.nombre }}</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <a href="{{ url_for('admin.editar_usuario', id=usuario.id) }}" class="btn-edit-top">
+          <i class="fas fa-user-edit"></i> Editar
+        </a>
+        <a href="{{ url_for('admin.admin_usuarios') }}" class="btn-back-top">
+          <i class="fas fa-arrow-left"></i> Volver
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- PROFILE HERO -->
+      <div class="profile-hero">
+        <div class="hero-bg"></div>
+        <div class="hero-body">
+          <div class="hero-avatar" id="heroAvatar">
+            {{ usuario.nombre[0]|upper }}
+          </div>
+          <div class="hero-info">
+            <h1>{{ usuario.nombre }}</h1>
+            <div class="hero-meta">
+              <span class="meta-item"><i class="fas fa-at"></i> {{ usuario.username }}</span>
+              <span class="meta-item"><i class="fas fa-envelope"></i> {{ usuario.email }}</span>
+            </div>
+            <div class="hero-badges">
+              <span class="badge-role role-{{ usuario.rol }}">
+                <i class="fas fa-{{ 'crown' if usuario.rol == 'superadmin' else ('shield-alt' if usuario.rol == 'admin' else ('gavel' if usuario.rol == 'moderador' else ('edit' if usuario.rol == 'editor' else ('store' if usuario.rol == 'vendedor' else 'user')))) }}"></i>
+                {{ usuario.rol|capitalize }}
+              </span>
+              <span class="badge-status st-{{ usuario.estado }}">
+                <span class="st-dot"></span>
+                {{ usuario.estado|capitalize }}
+              </span>
+              <span class="badge-id">#{{ usuario.id }}</span>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <a href="{{ url_for('admin.editar_usuario', id=usuario.id) }}" class="ha-btn ha-edit">
+              <i class="fas fa-user-edit"></i> Editar
+            </a>
+            <a href="{{ url_for('admin.admin_vehiculos_usuario', id=usuario.id) }}" class="ha-btn ha-car">
+              <i class="fas fa-car"></i> Publicaciones
+            </a>
+            {% if usuario.estado == 'bloqueado' %}
+            <form method="POST" action="{{ url_for('admin.desbloquear_usuario', id=usuario.id) }}" class="if">
+              <button class="ha-btn ha-green"><i class="fas fa-unlock"></i> Desbloquear</button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('admin.bloquear_usuario', id=usuario.id) }}" class="if">
+              <button class="ha-btn ha-warn"><i class="fas fa-lock"></i> Bloquear</button>
+            </form>
+            {% endif %}
+            <button class="ha-btn ha-del" onclick="openModal()">
+              <i class="fas fa-trash-alt"></i> Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- STATS ROW -->
+      <div class="stats-row">
+        <div class="stat-mini" style="--acc:#6366f1">
+          <i class="fas fa-calendar-plus"></i>
+          <div>
+            <div class="sm-val">{{ usuario.fecha_registro.strftime('%d/%m/%Y') if usuario.fecha_registro else '—' }}</div>
+            <div class="sm-lbl">Fecha de registro</div>
+          </div>
+        </div>
+        <div class="stat-mini" style="--acc:#10b981">
+          <i class="fas fa-clock"></i>
+          <div>
+            <div class="sm-val">{{ usuario.ultima_sesion.strftime('%d/%m/%Y, %H:%M') if usuario.ultima_sesion else 'Sin registro' }}</div>
+            <div class="sm-lbl">Última sesión</div>
+          </div>
+        </div>
+        <div class="stat-mini" style="--acc:#f59e0b">
+          <i class="fas fa-car"></i>
+          <div>
+            <div class="sm-val" id="pubCount">{{ pub_count|default(0) }}</div>
+            <div class="sm-lbl">Publicaciones</div>
+          </div>
+        </div>
+        <div class="stat-mini" style="--acc:#a855f7">
+          <i class="fas fa-heart"></i>
+          <div>
+            <div class="sm-val" id="favCount">{{ fav_count|default(0) }}</div>
+            <div class="sm-lbl">Favoritos</div>
+          </div>
+        </div>
+      </div>
+      <!-- CONTENT ROW -->
+      <div class="content-row">
+        <!-- INFO CARD -->
+        <div class="info-card">
+          <div class="card-hd">
+            <h2><i class="fas fa-id-card"></i> Datos de Cuenta</h2>
+          </div>
+          <div class="info-list">
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-hashtag"></i> ID</div>
+              <div class="il-val badge-id">#{{ usuario.id }}</div>
+            </div>
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-user"></i> Nombre</div>
+              <div class="il-val">{{ usuario.nombre }}</div>
+            </div>
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-at"></i> Username</div>
+              <div class="il-val">@{{ usuario.username }}</div>
+            </div>
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-envelope"></i> Email</div>
+              <div class="il-val copyable" onclick="copyText('{{ usuario.email }}','email')">
+                {{ usuario.email }}
+                <i class="fas fa-copy copy-ic"></i>
+              </div>
+            </div>
+            {% if usuario.telefono %}
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-phone"></i> Teléfono</div>
+              <div class="il-val copyable" onclick="copyText('{{ usuario.telefono }}','teléfono')">
+                {{ usuario.telefono }}
+                <i class="fas fa-copy copy-ic"></i>
+              </div>
+            </div>
+            {% endif %}
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-shield-alt"></i> Rol</div>
+              <div class="il-val">
+                <span class="badge-role role-{{ usuario.rol }}">
+                  <i class="fas fa-{{ 'crown' if usuario.rol == 'superadmin' else ('shield-alt' if usuario.rol == 'admin' else ('gavel' if usuario.rol == 'moderador' else ('edit' if usuario.rol == 'editor' else ('store' if usuario.rol == 'vendedor' else 'user')))) }}"></i>
+                  {{ usuario.rol|capitalize }}
+                </span>
+              </div>
+            </div>
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-circle"></i> Estado</div>
+              <div class="il-val">
+                <span class="badge-status st-{{ usuario.estado }}">
+                  <span class="st-dot"></span>
+                  {{ usuario.estado|capitalize }}
+                </span>
+              </div>
+            </div>
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-calendar-alt"></i> Registro</div>
+              <div class="il-val">{{ usuario.fecha_registro.strftime('%d/%m/%Y, %H:%M') if usuario.fecha_registro else 'N/A' }}</div>
+            </div>
+            <div class="il-row">
+              <div class="il-label"><i class="fas fa-clock"></i> Última sesión</div>
+              <div class="il-val">{{ usuario.ultima_sesion.strftime('%d/%m/%Y, %H:%M') if usuario.ultima_sesion else 'Sin registro' }}</div>
+            </div>
+          </div>
+          <!-- Change role inline -->
+          <div class="card-hd" style="margin-top:1.5rem;">
+            <h2><i class="fas fa-user-tag"></i> Cambiar Rol</h2>
+          </div>
+          <form method="POST" action="{{ url_for('admin.cambiar_rol', id=usuario.id) }}" class="role-form">
+              <label class="src {{ 'src-active' if usuario.rol == 'user' else '' }}" data-val="user">
+                <input type="radio" name="rol" value="user" {{ 'checked' if usuario.rol == 'user' else '' }}>
+                <i class="fas fa-user"></i> Usuario
+              </label>
+              <label class="src {{ 'src-active' if usuario.rol == 'vendedor' else '' }}" data-val="vendedor">
+                <input type="radio" name="rol" value="vendedor" {{ 'checked' if usuario.rol == 'vendedor' else '' }}>
+                <i class="fas fa-store"></i> Vendedor
+              </label>
+              <label class="src {{ 'src-active' if usuario.rol == 'editor' else '' }}" data-val="editor">
+                <input type="radio" name="rol" value="editor" {{ 'checked' if usuario.rol == 'editor' else '' }}>
+                <i class="fas fa-edit"></i> Editor
+              </label>
+              <label class="src {{ 'src-active' if usuario.rol == 'moderador' else '' }}" data-val="moderador">
+                <input type="radio" name="rol" value="moderador" {{ 'checked' if usuario.rol == 'moderador' else '' }}>
+                <i class="fas fa-gavel"></i> Mod
+              </label>
+              <label class="src src-admin {{ 'src-active src-admin-active' if usuario.rol == 'admin' else '' }}" data-val="admin">
+                <input type="radio" name="rol" value="admin" {{ 'checked' if usuario.rol == 'admin' else '' }}>
+                <i class="fas fa-shield-alt"></i> Admin
+              </label>
+              <label class="src src-admin {{ 'src-active src-admin-active' if usuario.rol == 'superadmin' else '' }}" data-val="superadmin">
+                <input type="radio" name="rol" value="superadmin" {{ 'checked' if usuario.rol == 'superadmin' else '' }}>
+                <i class="fas fa-crown"></i> Super
+              </label>
+            <button type="submit" class="btn-role-save">
+              <i class="fas fa-save"></i> Guardar cambio de rol
+            </button>
+          </form>
+        </div>
+        <!-- ACTIVITY TIMELINE -->
+        <div class="timeline-card">
+          <div class="card-hd">
+            <h2><i class="fas fa-stream"></i> Actividad Reciente</h2>
+          </div>
+          <ul class="timeline">
+            <li class="tl-item">
+              <div class="tl-dot" style="--c:#6366f1"><i class="fas fa-user-plus"></i></div>
+              <div class="tl-body">
+                <b>Cuenta creada</b>
+                <p>El usuario fue registrado en el sistema</p>
+                <small>{{ usuario.fecha_registro.strftime('%d/%m/%Y, %H:%M') if usuario.fecha_registro else 'Fecha desconocida' }}</small>
+              </div>
+            </li>
+            <li class="tl-item">
+              <div class="tl-dot" style="--c:#10b981"><i class="fas fa-sign-in-alt"></i></div>
+              <div class="tl-body">
+                <b>Último acceso</b>
+                <p>Inició sesión en la plataforma</p>
+                <small>{{ usuario.ultima_sesion.strftime('%d/%m/%Y, %H:%M') if usuario.ultima_sesion else 'Sin registro' }}</small>
+              </div>
+            </li>
+            <li class="tl-item">
+              <div class="tl-dot" style="--c:#f59e0b"><i class="fas fa-shield-alt"></i></div>
+              <div class="tl-body">
+                <b>Rol asignado</b>
+                <p>Rol actual: <strong>{{ usuario.rol|capitalize }}</strong></p>
+                <small>Configuración actual</small>
+              </div>
+            </li>
+            <li class="tl-item">
+              <div class="tl-dot" style="--c:{{ '#10b981' if usuario.estado == 'activo' else '#ef4444' }}">
+                <i class="fas fa-{{ 'check' if usuario.estado == 'activo' else 'ban' }}"></i>
+              </div>
+              <div class="tl-body">
+                <b>Estado actual</b>
+                <p>La cuenta está <strong>{{ usuario.estado }}</strong></p>
+                <small>Estado del sistema</small>
+              </div>
+            </li>
+          </ul>
+          <!-- Quick actions -->
+          <div class="card-hd" style="margin-top:1.5rem;">
+            <h2><i class="fas fa-bolt"></i> Acciones Rápidas</h2>
+          </div>
+          <div class="quick-acts">
+            <a href="{{ url_for('admin.editar_usuario', id=usuario.id) }}" class="qa" style="--qc:#6366f1">
+              <i class="fas fa-user-edit"></i><span>Editar perfil</span>
+            </a>
+            <a href="{{ url_for('admin.admin_vehiculos_usuario', id=usuario.id) }}" class="qa" style="--qc:#10b981">
+              <i class="fas fa-car"></i><span>Ver vehículos</span>
+            </a>
+            <button class="qa" style="--qc:#f59e0b" onclick="copyText('{{ usuario.email }}','email')">
+              <i class="fas fa-copy"></i><span>Copiar email</span>
+            </button>
+            <button class="qa" style="--qc:#ef4444" onclick="openModal()">
+              <i class="fas fa-trash-alt"></i><span>Eliminar</span>
+            </button>
+          </div>
+        </div>
+      </div><!-- /content-row -->
+    </div><!-- /page-content -->
+    <!-- Hidden delete form -->
+    <form method="POST" action="{{ url_for('admin.borrar_usuario', id=usuario.id) }}" id="deleteForm" style="display:none"></form>
+  </main>
+</div>
+<div class="toast-cont" id="toastCont"></div>
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e5e7eb;--text:#0f172a;--text2:#64748b;
+  --primary:#ff7043;--primary2:#e8520a;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#162032;
+  --border:#334155;--text:#f1f5f9;--text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+/* Layout */
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.8rem;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-edit-top{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .25s;box-shadow:0 3px 10px rgba(255,112,67,.3);}
+.btn-edit-top:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(255,112,67,.4);}
+.btn-back-top{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-back-top:hover{border-color:var(--primary);color:var(--primary);}
+/* Page */
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.5rem;}
+/* Profile hero */
+.profile-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;position:relative;}
+.hero-bg{position:absolute;top:0;left:0;right:0;height:90px;background:linear-gradient(135deg,var(--primary) 0%,var(--primary2) 100%);opacity:.9;}
+.hero-body{position:relative;padding:1.5rem 2rem;display:flex;align-items:flex-end;gap:1.5rem;flex-wrap:wrap;}
+.hero-avatar{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.4);border:4px solid var(--surface);margin-top:40px;flex-shrink:0;}
+.hero-info{flex:1;min-width:0;padding-top:50px;}
+.hero-info h1{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;}
+.hero-meta{display:flex;align-items:center;gap:1.2rem;margin:.3rem 0 .7rem;flex-wrap:wrap;}
+.meta-item{display:flex;align-items:center;gap:.35rem;font-size:.82rem;color:var(--text2);}
+.meta-item i{font-size:.75rem;color:var(--primary);}
+.hero-badges{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.hero-actions{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding-top:50px;}
+.ha-btn{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:none;border-radius:9px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .25s;text-decoration:none;}
+.ha-edit{background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);border:1px solid color-mix(in srgb,var(--primary) 22%,transparent);}
+.ha-edit:hover{background:var(--primary);color:#fff;}
+.ha-car{background:rgba(6,182,212,.1);color:#0891b2;border:1px solid rgba(6,182,212,.22);}
+.ha-car:hover{background:#06b6d4;color:#fff;}
+.ha-green{background:rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.22);}
+.ha-green:hover{background:#10b981;color:#fff;}
+.ha-warn{background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.22);}
+.ha-warn:hover{background:#f59e0b;color:#fff;}
+.ha-del{background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.22);}
+.ha-del:hover{background:#ef4444;color:#fff;}
+.if{display:inline-flex;}
+/* Badges */
+.badge-id{padding:.25rem .6rem;background:rgba(99,102,241,.1);color:var(--primary);border-radius:6px;font-weight:700;font-size:.78rem;}
+.badge-role{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:700;}
+.role-admin{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.role-user{background:rgba(99,102,241,.12);color:var(--primary);border:1px solid rgba(99,102,241,.2);}
+.role-vendedor{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.badge-status{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:700;}
+.st-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.st-activo{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.st-activo .st-dot{background:#10b981;animation:pulse 2s infinite;}
+.st-inactivo{background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.st-inactivo .st-dot{background:#f59e0b;}
+.st-bloqueado{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.st-bloqueado .st-dot{background:#ef4444;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4);}50%{box-shadow:0 0 0 4px rgba(16,185,129,0);}}
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.stat-mini{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.3rem;display:flex;align-items:center;gap:.9rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .3s;}
+.stat-mini::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc,#6366f1);}
+.stat-mini:hover{transform:translateY(-3px);}
+.stat-mini > i{font-size:1.3rem;color:var(--acc,#6366f1);flex-shrink:0;}
+.sm-val{font-size:.95rem;font-weight:700;letter-spacing:-.01em;}
+.sm-lbl{font-size:.72rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:.1rem;}
+/* Content row */
+.content-row{display:grid;grid-template-columns:1.1fr 1fr;gap:1.5rem;align-items:start;}
+/* Cards */
+.info-card,.timeline-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.card-hd{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);}
+.card-hd h2{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:.55rem;}
+.card-hd h2 i{color:var(--primary);}
+/* Info list */
+.info-list{display:flex;flex-direction:column;}
+.il-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.4rem;border-bottom:1px solid var(--border);gap:1rem;}
+.il-row:last-child{border-bottom:none;}
+.il-label{display:flex;align-items:center;gap:.5rem;font-size:.78rem;font-weight:600;color:var(--text2);white-space:nowrap;}
+.il-label i{font-size:.75rem;color:var(--primary);}
+.il-val{font-size:.85rem;font-weight:500;text-align:right;}
+.copyable{display:flex;align-items:center;gap:.4rem;cursor:pointer;transition:color .2s;}
+.copyable:hover{color:var(--primary);}
+.copy-ic{font-size:.72rem;opacity:.5;}
+.copyable:hover .copy-ic{opacity:1;}
+/* Small role cards */
+.role-form{padding:1rem 1.4rem;}
+.small-role-cards{display:flex;gap:.6rem;margin-bottom:.9rem;flex-wrap:wrap;}
+.src{display:flex;align-items:center;gap:.45rem;padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:9px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .22s;color:var(--text2);background:var(--surface2);}
+.src input[type="radio"]{display:none;}
+.src:hover{border-color:var(--primary);color:var(--primary);}
+.src-active{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent);color:var(--primary);}
+.src-admin:hover{border-color:#dc2626;color:#dc2626;}
+.src-admin-active{border-color:#dc2626;background:rgba(239,68,68,.08);color:#dc2626;}
+.btn-role-save{display:flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border:none;border-radius:9px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .25s;box-shadow:0 3px 10px rgba(255,112,67,.25);}
+.btn-role-save:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(255,112,67,.35);}
+/* Timeline */
+.timeline{list-style:none;padding:1.2rem 1.4rem;display:flex;flex-direction:column;gap:1.1rem;}
+.tl-item{display:flex;gap:.85rem;align-items:flex-start;}
+.tl-dot{width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--c,#6366f1) 15%,transparent);color:var(--c,#6366f1);display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;}
+.tl-body b{font-size:.85rem;font-weight:700;}
+.tl-body p{font-size:.78rem;color:var(--text2);margin:.12rem 0;}
+.tl-body small{font-size:.7rem;color:var(--text2);}
+/* Quick actions */
+.quick-acts{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;padding:1rem 1.4rem;}
+.qa{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.9rem;border-radius:11px;background:color-mix(in srgb,var(--qc,#6366f1) 8%,transparent);color:var(--qc,#6366f1);border:1px solid color-mix(in srgb,var(--qc,#6366f1) 18%,transparent);font-size:.75rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .22s;}
+.qa i{font-size:1.1rem;}
+.qa:hover{background:var(--qc,#6366f1);color:#fff;transform:translateY(-2px);}
+/* Modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:20px;padding:2rem;width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-icon{width:58px;height:58px;border-radius:16px;background:rgba(239,68,68,.12);color:#ef4444;font-size:1.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;}
+.modal-box h3{font-size:1.15rem;font-weight:800;margin-bottom:.4rem;}
+.modal-box p{color:var(--text2);font-size:.85rem;margin-bottom:1.4rem;}
+.modal-actions{display:flex;gap:.7rem;}
+.modal-btn{flex:1;padding:.65rem;border-radius:10px;border:none;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.modal-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.modal-cancel:hover{background:var(--border);}
+.modal-confirm{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 4px 12px rgba(239,68,68,.3);}
+.modal-confirm:hover{transform:translateY(-1px);}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+/* Responsive */
+@media(max-width:1100px){.content-row{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .hero-body{flex-direction:column;align-items:flex-start;}
+  .hero-actions{padding-top:0;width:100%;}
+  .btn-edit-top{display:none;}
+}
+@media(max-width:480px){.stats-row{grid-template-columns:1fr;}.quick-acts{grid-template-columns:1fr 1fr;}}
+</style>
+<script>
+/* Theme */
+const ROOT = document.getElementById('adminRoot');
+const saved = localStorage.getItem('adminTheme')||'light';
+if(saved==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  var dark=ROOT.getAttribute('data-theme')==='dark';
+  var next=dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Avatar color by role */
+var rolColors={'admin':'linear-gradient(135deg,#ef4444,#dc2626)','vendedor':'linear-gradient(135deg,#10b981,#059669)','user':'linear-gradient(135deg,#6366f1,#a855f7)'};
+var userRol='{{ usuario.rol }}';
+document.getElementById('heroAvatar').style.background=rolColors[userRol]||rolColors['user'];
+/* Role card toggle */
+document.querySelectorAll('.src').forEach(function(card){
+  card.addEventListener('click',function(){
+    document.querySelectorAll('.src').forEach(function(c){c.classList.remove('src-active','src-admin-active');});
+    card.classList.add('src-active');
+    var val=card.getAttribute('data-val');
+    if(val==='admin') card.classList.add('src-admin-active');
+    card.querySelector('input[type="radio"]').checked=true;
+  });
+});
+/* Modal */
+function openModal(){document.getElementById('deleteModal').classList.add('open');}
+function closeModal(){document.getElementById('deleteModal').classList.remove('open');}
+document.getElementById('modalConfirmBtn').addEventListener('click',function(){document.getElementById('deleteForm').submit();});
+document.getElementById('deleteModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+/* Copy text */
+function copyText(text,label){
+  navigator.clipboard.writeText(text).then(function(){
+    showToast(label.charAt(0).toUpperCase()+label.slice(1)+' copiado al portapapeles','#10b981');
+  });
+}
+/* Toast */
+function showToast(msg,color){
+  color=color||'#6366f1';
+  var t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(function(){t.remove();},3500);
+}
+</script>
+{% endblock %}
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

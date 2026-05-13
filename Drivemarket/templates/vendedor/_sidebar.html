@@ -1,0 +1,241 @@
+{% set active_page = active_page | default('dashboard') %}
+<style>
+:root {
+  --pr: #FF6A00; --pr-l: #FFF0E6; --pr-d: #E55D00;
+  --bg: #F4F5F7; --card: #FFFFFF;
+  --t1: #111827; --t2: #6B7280; --t3: #9CA3AF;
+  --bd: #E5E7EB; --bd-l: #F3F4F6;
+  --ok: #10B981; --ok-l: #D1FAE5;
+  --er: #EF4444; --er-l: #FEE2E2;
+  --bl: #3B82F6; --bl-l: #DBEAFE;
+  --am: #F59E0B; --am-l: #FEF3C7;
+  --vi: #8B5CF6; --vi-l: #EDE9FE;
+  --sh: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --sh-md: 0 4px 16px rgba(0,0,0,.08);
+  --r: 14px;
+  font-family: 'Inter', sans-serif;
+}
+[data-dark] {
+  --bg: #0F1117; --card: #1A1D27;
+  --t1: #F9FAFB; --t2: #9CA3AF; --t3: #6B7280;
+  --bd: #2D3142; --bd-l: #262938;
+  --pr-l: rgba(255,106,0,.15);
+  --ok-l: rgba(16,185,129,.15);
+  --er-l: rgba(239,68,68,.15);
+  --bl-l: rgba(59,130,246,.15);
+  --am-l: rgba(245,158,11,.15);
+  --vi-l: rgba(139,92,246,.15);
+  --sh: 0 1px 3px rgba(0,0,0,.3);
+  --sh-md: 0 4px 16px rgba(0,0,0,.4);
+}
+*, *::before, *::after { box-sizing: border-box; }
+body.db-page { background: var(--bg); margin: 0; transition: background .3s; }
+.db-wrap {
+  width: 100%; padding: 0; display: grid;
+  grid-template-columns: 260px 1fr; gap: 0;
+  align-items: stretch; min-height: calc(100vh - 70px);
+}
+.db-sidebar {
+  background: var(--card); border-right: 1px solid var(--bd);
+  border-radius: 0; padding: 0; position: sticky; top: 70px;
+  height: calc(100vh - 70px); overflow-y: auto;
+  box-shadow: var(--sh); transition: background .3s, border-color .3s;
+  scrollbar-width: thin;
+}
+.db-sidebar::-webkit-scrollbar { width: 4px; }
+.db-sidebar::-webkit-scrollbar-thumb { background: var(--bd); border-radius: 4px; }
+.db-profile {
+  padding: 24px 20px 20px;
+  background: linear-gradient(135deg, var(--pr) 0%, var(--pr-d) 100%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.db-avatar {
+  width: 64px; height: 64px; border-radius: 16px;
+  background: rgba(255,255,255,.2); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.6rem;
+  border: 3px solid rgba(255,255,255,.35);
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+}
+.db-profile-name { color: #fff; font-weight: 700; font-size: .95rem; margin: 0; }
+.db-profile-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.2); color: #fff;
+  font-size: .7rem; font-weight: 700; padding: 3px 10px;
+  border-radius: 20px; border: 1px solid rgba(255,255,255,.3);
+}
+.db-stats-strip { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid var(--bd); }
+.db-stat-pill { display: flex; flex-direction: column; align-items: center; padding: 12px 8px; gap: 2px; border-right: 1px solid var(--bd); transition: background .2s; }
+.db-stat-pill:last-child { border-right: none; }
+.db-stat-pill:hover { background: var(--bd-l); }
+.db-stat-num { font-size: 1.1rem; font-weight: 800; color: var(--t1); }
+.db-stat-lbl { font-size: .62rem; color: var(--t3); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.db-nav { padding: 12px; }
+.db-nav-section { font-size: .6rem; font-weight: 800; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; padding: 10px 8px 6px; }
+.db-nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 10px;
+  color: var(--t2); font-size: .84rem; font-weight: 500;
+  text-decoration: none; transition: all .2s; position: relative; margin-bottom: 2px;
+}
+.db-nav-item i { width: 16px; text-align: center; font-size: .95rem; }
+.db-nav-item:hover { background: var(--bd-l); color: var(--t1); }
+.db-nav-item.active { background: var(--pr-l); color: var(--pr); font-weight: 700; }
+.db-nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+  width: 3px; background: var(--pr); border-radius: 0 3px 3px 0;
+}
+.db-badge { margin-left: auto; background: var(--pr); color: #fff; font-size: .65rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; }
+.db-badge.green { background: var(--ok); }
+.db-dark-toggle {
+  margin: 12px; padding: 10px 12px; border: 1px solid var(--bd); border-radius: 10px;
+  display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: all .2s;
+}
+.db-dark-toggle:hover { border-color: var(--pr); }
+.db-dark-toggle span { font-size: .8rem; font-weight: 600; color: var(--t2); display: flex; align-items: center; gap: 8px; }
+.toggle-pill { width: 36px; height: 20px; background: var(--bd); border-radius: 10px; position: relative; transition: background .3s; flex-shrink: 0; }
+.toggle-pill::after { content: ''; position: absolute; left: 3px; top: 3px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: transform .3s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+[data-dark] .toggle-pill { background: var(--pr); }
+[data-dark] .toggle-pill::after { transform: translateX(16px); }
+/* Main content area */
+.db-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; padding: 24px 28px 48px; background: var(--bg); transition: background .3s; }
+.db-page-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+.db-page-header h1 { margin: 0 0 4px; font-size: 1.55rem; font-weight: 800; color: var(--t1); letter-spacing: -.5px; }
+.db-page-header p { margin: 0; color: var(--t2); font-size: .88rem; }
+.db-card { background: var(--card); border: 1px solid var(--bd); border-radius: var(--r); padding: 22px; box-shadow: var(--sh); transition: background .3s, border-color .3s; }
+.db-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.db-card-head h2 { margin: 0 0 3px; font-size: .95rem; font-weight: 700; color: var(--t1); }
+.db-card-head p { margin: 0; font-size: .73rem; color: var(--t3); }
+.db-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; font-size: .84rem; font-weight: 700; text-decoration: none; cursor: pointer; transition: all .2s; border: none; }
+.db-btn-primary { background: var(--pr); color: #fff; box-shadow: 0 4px 14px rgba(255,106,0,.35); }
+.db-btn-primary:hover { background: var(--pr-d); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,106,0,.45); }
+.db-btn-ghost { background: var(--card); color: var(--t1); border: 1px solid var(--bd); }
+.db-btn-ghost:hover { border-color: var(--pr); color: var(--pr); background: var(--pr-l); }
+.chip { padding: 3px 10px; border-radius: 20px; font-size: .68rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+.chip-green { background: var(--ok-l); color: var(--ok); }
+.chip-amber { background: var(--am-l); color: var(--am); }
+.chip-red { background: var(--er-l); color: var(--er); }
+.chip-blue { background: var(--bl-l); color: var(--bl); }
+.chip-purple { background: var(--vi-l); color: var(--vi); }
+/* Responsive */
+@media (max-width: 1024px) {
+  .db-wrap { grid-template-columns: 1fr; min-height: auto; }
+  .db-sidebar { position: static; height: auto; overflow-y: visible; border-right: none; border-bottom: 1px solid var(--bd); display: grid; grid-template-columns: auto 1fr; }
+  .db-stats-strip { border-bottom: none; border-left: 1px solid var(--bd); grid-template-columns: 1fr; }
+  .db-stat-pill { border-right: none; border-bottom: 1px solid var(--bd); }
+  .db-stat-pill:last-child { border-bottom: none; }
+}
+@media (max-width: 768px) {
+  .db-main { padding: 14px 14px 40px; }
+  .db-sidebar { grid-template-columns: 1fr; }
+  .db-page-header { flex-direction: column; align-items: flex-start; }
+  /* Mobile sidebar toggle */
+  .db-sidebar-toggle-btn {
+    display: flex !important;
+    align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--card);
+    border: none; border-bottom: 1px solid var(--bd);
+    width: 100%; cursor: pointer;
+    font-weight: 700; font-size: .9rem; color: var(--t1);
+  }
+  .db-sidebar-toggle-btn i { transition: transform .3s; }
+  .db-sidebar-toggle-btn.open i { transform: rotate(180deg); }
+  /* Collapsible nav */
+  .db-nav-collapsible { display: none; }
+  .db-nav-collapsible.open { display: block; }
+}
+@media (min-width: 769px) {
+  .db-sidebar-toggle-btn { display: none !important; }
+  .db-nav-collapsible { display: block !important; }
+}
+</style>
+
+<!-- Mobile Sidebar Toggle Button (only shows on mobile) -->
+<button class="db-sidebar-toggle-btn" id="dbSidebarToggle" aria-expanded="false" aria-controls="dbNavCollapsible">
+  <span><i class="fas fa-bars" style="margin-right:10px;color:var(--pr);"></i> Menú del Panel</span>
+  <i class="fas fa-chevron-down"></i>
+</button>
+
+<aside class="db-sidebar">
+  <div class="db-profile">
+    {% set logo = perfil_vend.logo_tienda if perfil_vend and perfil_vend.logo_tienda else '' %}
+    <div class="db-avatar" style="overflow:hidden; padding:0;">
+      {% if logo %}
+        <img src="{{ url_for('static', filename='uploads/vendedores/' ~ logo) }}" alt="Logo" style="width:100%; height:100%; object-fit:cover; border-radius:13px;">
+      {% else %}
+        <span style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-weight:800; font-size:1.6rem;">{{ vendedor.nombre_empresa[:2]|upper if vendedor.nombre_empresa else vendedor.nombre[:2]|upper }}</span>
+      {% endif %}
+    </div>
+    <p class="db-profile-name">{% if vendedor.nombre_empresa %}{{ vendedor.nombre_empresa }}{% elif vendedor.nombre %}{{ vendedor.nombre.split()[0] }}{% else %}Vendedor{% endif %}</p>
+    {% if estado_verificacion == 'aprobado' %}
+    <span class="db-profile-badge" style="background:rgba(16,185,129,.25);border-color:rgba(16,185,129,.4);"><i class="fas fa-shield-check"></i> Verificado</span>
+    {% elif estado_verificacion == 'pendiente' %}
+    <span class="db-profile-badge" style="background:rgba(245,158,11,.25);border-color:rgba(245,158,11,.4);"><i class="fas fa-clock"></i> En Revisión</span>
+    {% else %}
+    <span class="db-profile-badge" style="background:rgba(156,163,175,.2);border-color:rgba(156,163,175,.3);"><i class="fas fa-user"></i> Particular</span>
+    {% endif %}
+
+    <a href="{{ url_for('perfil_publico', id=session['usuario_id']) }}" target="_blank" class="db-profile-badge" style="margin-top:8px; background:var(--bl); border-color:var(--bl-l); color:#fff; text-decoration:none;">
+      <i class="fas fa-external-link-alt"></i> Ver perfil público
+    </a>
+  </div>
+  <div class="db-stats-strip">
+    <div class="db-stat-pill"><div class="db-stat-num">{{ total_vehiculos or 0 }}</div><div class="db-stat-lbl">Vehículos</div></div>
+    <div class="db-stat-pill"><div class="db-stat-num">{{ rating_promedio|default('0.0') }}</div><div class="db-stat-lbl">Rating</div></div>
+    <div class="db-stat-pill"><div class="db-stat-num">{{ tasa_respuesta|default('100') }}%</div><div class="db-stat-lbl">Resp.</div></div>
+  </div>
+  <div class="db-nav-collapsible" id="dbNavCollapsible">
+  <nav class="db-nav">
+    <div class="db-nav-section">Overview</div>
+    <a href="{{ url_for('vendedor.dashboard') }}" class="db-nav-item {% if active_page == 'dashboard' %}active{% endif %}"><i class="fas fa-th-large"></i> Dashboard</a>
+    <a href="{{ url_for('vendedor.analytics') }}" class="db-nav-item {% if active_page == 'analytics' %}active{% endif %}"><i class="fas fa-chart-line"></i> Analytics</a>
+
+    <div class="db-nav-section">Comercio</div>
+    <a href="{{ url_for('vendedor.publicar') }}" class="db-nav-item {% if active_page == 'publicar' %}active{% endif %}"><i class="fas fa-plus-circle"></i> Publicar <span class="db-badge">Nuevo</span></a>
+    <a href="{{ url_for('vendedor.mis_vehiculos') }}" class="db-nav-item {% if active_page == 'mis_vehiculos' %}active{% endif %}"><i class="fas fa-car-side"></i> Mis Vehículos</a>
+    <a href="{{ url_for('vendedor.pedidos') }}" class="db-nav-item {% if active_page == 'pedidos' %}active{% endif %}"><i class="fas fa-box"></i> Pedidos {% if consultas_no_leidas is defined and consultas_no_leidas > 0 %}<span class="db-badge green">{{ consultas_no_leidas }}</span>{% endif %}</a>
+    <a href="{{ url_for('vendedor.clientes') }}" class="db-nav-item {% if active_page == 'clientes' %}active{% endif %}"><i class="fas fa-users"></i> Clientes</a>
+    <a href="{{ url_for('vendedor.facturacion') }}" class="db-nav-item {% if active_page == 'facturacion' %}active{% endif %}"><i class="fas fa-file-invoice-dollar"></i> Facturación</a>
+
+    <div class="db-nav-section">Herramientas</div>
+    <a href="{{ url_for('vendedor.mensajes') }}" class="db-nav-item {% if active_page == 'mensajes' %}active{% endif %}"><i class="far fa-envelope"></i> Mensajes</a>
+    <a href="{{ url_for('vendedor.notificaciones') }}" class="db-nav-item {% if active_page == 'notificaciones' %}active{% endif %}"><i class="far fa-bell"></i> Notificaciones</a>
+    {% if estado_verificacion != 'aprobado' %}
+    <a href="{{ url_for('vendedor.verificacion') }}" class="db-nav-item {% if active_page == 'verificacion' %}active{% endif %}"><i class="fas fa-shield-check"></i> Verificación {% if not estado_verificacion %}<span class="db-badge" style="background:var(--pr);">!</span>{% endif %}</a>
+    {% endif %}
+    <a href="{{ url_for('vendedor.ajustes') }}" class="db-nav-item {% if active_page == 'ajustes' %}active{% endif %}"><i class="fas fa-cog"></i> Ajustes</a>
+    
+    {% if session.get('rol') in ['admin', 'moderador', 'superadmin'] %}
+    <div class="db-nav-section" style="color:var(--vi);margin-top:20px;">Control Maestro</div>
+    <a href="{{ url_for('admin.admin_dashboard') }}" class="db-nav-item" style="color:var(--vi);"><i class="fas fa-shield-alt"></i> Panel Admin</a>
+    {% endif %}
+  </nav>
+  <div class="db-dark-toggle" id="darkToggle">
+    <span><i class="fas fa-moon"></i> Modo oscuro</span>
+    <div class="toggle-pill"></div>
+  </div>
+  </nav></div>
+</aside>
+
+<script>
+(function(){
+  const root = document.documentElement;
+  let isDark = localStorage.getItem('dashDark') === '1';
+  function applyDark(d){ d ? root.setAttribute('data-dark','') : root.removeAttribute('data-dark'); isDark=d; localStorage.setItem('dashDark',d?'1':'0'); }
+  applyDark(isDark);
+  const t = document.getElementById('darkToggle');
+  if(t) t.addEventListener('click', () => applyDark(!isDark));
+
+  // Mobile sidebar toggle
+  const sideToggle = document.getElementById('dbSidebarToggle');
+  const sideNav    = document.getElementById('dbNavCollapsible');
+  if(sideToggle && sideNav){
+    sideToggle.addEventListener('click', function(){
+      const open = sideNav.classList.toggle('open');
+      sideToggle.classList.toggle('open', open);
+      sideToggle.setAttribute('aria-expanded', open.toString());
+    });
+  }
+})();
+</script>

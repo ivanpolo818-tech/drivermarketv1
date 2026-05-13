@@ -1,0 +1,1386 @@
+{% extends "base.html" %}
+{% block title %}{{ vehiculo.marca }} {{ vehiculo.modelo }} {{ vehiculo.anio }} | Drive Market{% endblock %}
+
+{% block meta_description %}Comprar {{ vehiculo.marca }} {{ vehiculo.modelo }} {{ vehiculo.anio }} en {{ vehiculo.ciudad_venta }}. Precio: $ {{ "{:,.0f}".format(vehiculo.precio|float) }}. {{ (vehiculo.descripcion or '')|truncate(150) }}{% endblock %}
+
+{% block og_image %}
+    {% if imagenes and imagenes|length > 0 %}
+        {{ url_for('static', filename=imagenes[0].url_imagen, _external=True) }}
+    {% else %}
+        {{ url_for('static', filename='img/default_car.jpg', _external=True) }}
+    {% endif %}
+{% endblock %}
+
+{% block meta %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ vehiculo.marca }} {{ vehiculo.modelo }} {{ vehiculo.anio }}",
+  "description": "{{ (vehiculo.descripcion or '')|replace('\n', ' ')|truncate(200) }}",
+  "brand": { "@type": "Brand", "name": "{{ vehiculo.marca }}" },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.url }}",
+    "priceCurrency": "COP",
+    "price": "{{ vehiculo.precio }}",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vehiculos/detalles.css') }}?v={{ range(1, 100000) | random }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --color-primary: #0f172a;
+        --color-accent: #2563eb;
+        --color-green: #10b981;
+        --color-surface: #ffffff;
+        --color-bg: #f8fafc;
+        --color-text: #1e293b;
+        --color-text-muted: #64748b;
+        --color-border: #e2e8f0;
+        --radius-lg: 16px;
+        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+        --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.07);
+    }
+
+    body.vehiculo-detalle-page {
+        background-color: var(--color-bg);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--color-text);
+    }
+
+    .detalles-container {
+        max-width: 1280px;
+        margin: 30px auto 60px;
+        padding: 0 24px;
+        box-sizing: border-box;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb-ml {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: var(--color-text-muted); text-decoration: none;
+        font-size: 14px; margin-bottom: 24px; font-weight: 600;
+        background: white; padding: 8px 16px; border-radius: 20px;
+        border: 1px solid var(--color-border); transition: color 0.2s, border-color 0.2s;
+    }
+    .breadcrumb-ml:hover { color: var(--color-accent); border-color: var(--color-accent); }
+
+    /* LAYOUT */
+    .premium-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 32px;
+        align-items: start;
+    }
+
+    .content-module {
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--color-border);
+        margin-bottom: 24px;
+        box-sizing: border-box;
+        width: 100%;
+    }
+
+    /* GALERÍA */
+    .gallery-container { display: flex; gap: 20px; height: 520px; }
+    .thumbnails {
+        display: flex; flex-direction: column; gap: 12px;
+        width: 80px; overflow-y: auto; padding-right: 4px;
+    }
+    .thumbnails::-webkit-scrollbar { width: 4px; }
+    .thumbnails::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .thumbnail {
+        width: 72px; height: 72px; object-fit: cover; cursor: pointer;
+        border: 2px solid transparent; border-radius: 10px; opacity: 0.55; transition: all 0.2s;
+        flex-shrink: 0;
+    }
+    .thumbnail:hover { opacity: 0.8; }
+    .thumbnail.active { opacity: 1; border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+    .main-image-container {
+        flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
+        background: #f8fafc; border-radius: 12px; overflow: hidden;
+        border: 1px solid var(--color-border); cursor: zoom-in;
+    }
+    #mainImage { max-width: 100%; max-height: 100%; object-fit: contain; transition: opacity 0.25s; }
+    .image-counter {
+        position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+        background: rgba(15,23,42,0.7); color: white;
+        padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .nav-gallery-btn {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        background: rgba(255,255,255,0.9); border: 1px solid var(--color-border);
+        width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; cursor: pointer; opacity: 0; transition: all 0.2s;
+        color: var(--color-primary); font-size: 1rem; z-index: 5;
+    }
+    .main-image-container:hover .nav-gallery-btn { opacity: 1; }
+    .nav-gallery-btn:hover { background: white; color: var(--color-accent); }
+    .nav-gallery-btn.prev { left: 12px; }
+    .nav-gallery-btn.next { right: 12px; }
+
+    /* COLLAPSIBLE TABS */
+    .collapsible-wrapper { position: relative; }
+    .collapsible-content { overflow: hidden; transition: max-height 0.3s ease; position: relative; }
+    .collapsible-content.expanded { max-height: none !important; }
+    .collapsible-fade {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+        background: linear-gradient(to bottom, rgba(255,255,255,0), var(--color-surface) 90%);
+        pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .collapsible-wrapper.expanded .collapsible-fade { opacity: 0; }
+    .btn-read-more {
+        display: flex; align-items: center; justify-content: center; margin: 16px auto 0;
+        background: #f8fafc; color: var(--color-primary); border: 1px solid var(--color-border);
+        padding: 8px 24px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .btn-read-more:hover { background: #f1f5f9; color: var(--color-accent); }
+    .btn-read-more i { margin-right: 6px; }
+
+    /* SPECS */
+    .specs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 28px; }
+    .spec-item { display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); align-items: center; }
+    .spec-label { color: var(--color-text-muted); font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+    .spec-value { color: var(--color-primary); font-weight: 700; font-size: 14px; text-align: right; }
+
+    /* SIDEBAR */
+    .sticky-sidebar { position: sticky; top: 24px; }
+    .price-tag { font-size: 38px; font-weight: 800; color: var(--color-primary); margin: 0 0 24px; letter-spacing: -1px; }
+    .pub-date { font-size: 13px; color: var(--color-text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 20px; font-weight: 500; }
+
+    /* SELLER CARD */
+    .seller-profile-card {
+        background: #f8fafc; border: 1px solid var(--color-border);
+        border-radius: 12px; padding: 18px; margin-bottom: 20px;
+    }
+    .seller-avatar {
+        width: 48px; height: 48px; background: #e2e8f0;
+        border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; overflow: hidden; flex-shrink: 0;
+    }
+
+    /* ---- BOTONES PREMIUM ---- */
+    .action-buttons { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .action-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .action-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+    .btn-premium {
+        display: flex; align-items: center; justify-content: center;
+        padding: 14px 12px; border-radius: 12px; font-weight: 700; font-size: 14px;
+        font-family: inherit; text-decoration: none; border: none; cursor: pointer;
+        gap: 8px; transition: transform 0.2s, box-shadow 0.2s;
+        width: 100%; box-sizing: border-box;
+    }
+    .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .btn-premium:active { transform: translateY(0); }
+
+    .btn-whatsapp { background: #10b981; color: white; font-size: 16px; padding: 18px; box-shadow: 0 4px 12px rgba(16,185,129,0.2); }
+    .btn-whatsapp:hover { background: #059669; }
+    .btn-secondary { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .btn-outline { background: white; color: #1e293b; border: 1px solid #e2e8f0; }
+    .btn-outline:hover { background: #f8fafc; }
+    .btn-fav-active { color: #ef4444 !important; border-color: #fecaca !important; background: #fff1f2 !important; }
+    .btn-alert-active { color: #f59e0b !important; border-color: #fde68a !important; background: #fffbeb !important; }
+
+    .btn-utility { flex-direction: column; padding: 10px 4px; font-size: 11px; gap: 4px; }
+    .btn-utility i { font-size: 18px; }
+
+    .btn-report-link {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 9px; font-size: 12px; font-weight: 600; cursor: pointer;
+        color: #94a3b8; border: 1px dashed #e2e8f0; border-radius: 10px;
+        background: #f8fafc; width: 100%; box-sizing: border-box;
+        transition: color 0.2s, border-color 0.2s, background 0.2s; font-family: inherit;
+    }
+    .btn-report-link:hover { color: #ef4444; border-color: #fecaca; background: #fff5f5; }
+
+    /* SHARE FEEDBACK */
+    .share-feedback { background: #ecfdf5 !important; color: #059669 !important; border-color: #6ee7b7 !important; }
+
+    /* SAFETY */
+    .safety-banner {
+        display: flex; gap: 12px; font-size: 13px; color: #64748b;
+        background: #f1f5f9; padding: 16px; border-radius: 12px;
+        border: 1px dashed #cbd5e1; margin-bottom: 16px;
+    }
+
+    /* WHY DRIVEMARKET */
+    .why-dm-box { padding: 18px; background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border-radius: 12px; border: 1px solid #bfdbfe; }
+    .why-dm-box h5 { margin: 0 0 12px; font-size: 12px; font-weight: 800; color: var(--color-primary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .why-dm-box ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .why-dm-box li { font-size: 13px; color: #475569; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+
+    /* BARRA COMPLETITUD DUEÑO */
+    .owner-progress { margin-bottom: 20px; padding: 14px 18px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; }
+    .owner-progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .owner-progress-label { font-size: 12px; font-weight: 700; color: #92400e; }
+    .owner-progress-pct { font-size: 14px; font-weight: 800; color: #f59e0b; }
+    .owner-progress-track { background: #fde68a; border-radius: 99px; height: 7px; overflow: hidden; margin-bottom: 6px; }
+    .owner-progress-fill { height: 100%; background: linear-gradient(to right, #f59e0b, #10b981); border-radius: 99px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+    .owner-progress-tip { font-size: 11.5px; color: #78350f; margin: 0; }
+    .owner-progress-tip a { color: #d97706; font-weight: 600; }
+
+    /* RELACIONADOS */
+    .related-section { margin-top: 48px; }
+    .vehicle-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+    }
+    .vehicle-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+    /* Imagen: object-fit contain + fondo gris para ver carro completo y marca de agua */
+    .card-img {
+        width: 100%;
+        height: 160px;
+        object-fit: contain;
+        background: #f3f4f6;
+        display: block;
+    }
+    .card-content { padding: 12px 14px 14px; }
+    .card-title {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        color: var(--color-primary);
+        line-height: 1.35;
+    }
+    .card-price {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--color-primary);
+        margin-bottom: 6px;
+        letter-spacing: -0.02em;
+    }
+    .card-meta {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 3px;
+    }
+    .card-city {
+        font-size: 12px;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .card-city i { color: var(--color-accent); font-size: 10px; }
+
+    /* Ajustes móviles para carrusel de recomendados */
+    @media (max-width: 576px) {
+        .card-img { height: 115px; }
+        .card-content { padding: 10px 10px 12px; }
+        .card-title { font-size: 12px; margin: 0 0 5px; line-height: 1.25; }
+        .card-price { font-size: 15px; margin-bottom: 4px; }
+        .card-meta, .card-city { font-size: 11px; }
+        .related-section { margin-top: 32px; }
+    }
+
+    /* COOKIE BANNER */
+    #dm-cookie-banner {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 20px 24px;
+        z-index: 9998;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.25);
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.25,0.8,0.25,1);
+    }
+    #dm-cookie-banner.show { transform: translateY(0); }
+    #dm-cookie-banner p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    #dm-cookie-banner a {
+        color: #60a5fa;
+        text-decoration: underline;
+    }
+    #dm-cookie-accept {
+        background: #FF5722;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 13px 24px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+        width: 100%;
+    }
+    #dm-cookie-accept:hover { background: #E64A19; }
+
+    /* LIGHTBOX */
+    .lb-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.93);
+        z-index: 99999; display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .lb-overlay.lb-active { opacity: 1; pointer-events: all; }
+    .lb-overlay img { max-width: 92vw; max-height: 92vh; object-fit: contain; border-radius: 10px; }
+    .lb-close {
+        position: fixed; top: 20px; right: 24px; color: white; font-size: 26px;
+        cursor: pointer; z-index: 100000; background: rgba(255,255,255,0.1);
+        border-radius: 50%; width: 44px; height: 44px; display: flex;
+        align-items: center; justify-content: center; border: none; transition: background 0.2s;
+    }
+    .lb-close:hover { background: rgba(255,255,255,0.2); }
+    .lb-nav { position: fixed; top: 50%; transform: translateY(-50%); color: white;
+        cursor: pointer; z-index: 100000; background: rgba(255,255,255,0.1);
+        width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; border: none; font-size: 20px; transition: background 0.2s;
+    }
+    .lb-nav:hover { background: rgba(255,255,255,0.25); }
+    .lb-prev { left: 16px; } .lb-next { right: 16px; }
+    .lb-count { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600;
+        background: rgba(0,0,0,0.4); padding: 5px 16px; border-radius: 20px;
+    }
+
+    /* FLOATING WA (MÓVIL) */
+    .floating-wa-bar { display: none; }
+    @media (max-width: 768px) {
+        .floating-wa-bar {
+            display: block; position: fixed; bottom: 0; left: 0; right: 0;
+            z-index: 998; padding: 10px 14px 14px;
+            background: white; border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+        }
+        .floating-wa-bar a {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: #10b981; color: white; padding: 14px; border-radius: 12px;
+            font-weight: 700; font-size: 16px; text-decoration: none;
+        }
+        body.vehiculo-detalle-page { padding-bottom: 84px; }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+        .premium-layout { grid-template-columns: 1fr 360px; }
+    }
+    @media (max-width: 860px) {
+        .detalles-container { padding: 0; margin-top: 15px; }
+        .breadcrumb-ml { margin: 0 0 16px 16px; }
+
+        .premium-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        /* Desacoplar columnas para reordenar los módulos individualmente */
+        .left-column, .right-column { display: contents; }
+        
+        /* 1. Galería primero */
+        .left-column .content-module:nth-child(1) { order: 1; }
+        /* 2. Precio, Vendedor y Acciones (Sidebar) */
+        .right-column .content-module { order: 2; }
+        /* 3. Ficha Técnica */
+        .left-column .content-module:nth-child(2) { order: 3; }
+        /* 4. Descripción (si existe) */
+        .left-column .content-module:nth-child(3) { order: 4; }
+
+        .sticky-sidebar { position: static; }
+        
+        /* Ajustes de Galería en mobile para usar todo el ancho y centrar */
+        .gallery-container { flex-direction: column-reverse; height: auto; gap: 12px; }
+        .thumbnails { flex-direction: row; width: 100%; height: 80px; padding: 0 16px 4px; overflow-x: auto; justify-content: center; }
+        .thumbnail { width: 70px; height: 70px; }
+        .main-image-container { height: 280px; border-radius: 0; border-left: none; border-right: none; }
+
+        /* Limpiando padding excesivo de los modulos izquierdos */
+        .left-column .content-module {
+            border-radius: 0; border-left: none; border-right: none;
+            padding: 24px 16px !important; box-shadow: none; margin-bottom: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        /* Galería (sin padding, borde a borde) */
+        .left-column .content-module:first-child {
+            padding: 0 0 18px 0 !important; border-top: none;
+        }
+
+        .specs-grid { grid-template-columns: 1fr; }
+
+        /* Sidebar en mobile: quitar padding excesivo, se ve compacto */
+        .right-column .content-module {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
+            box-shadow: none;
+            border-top: 1px solid #e2e8f0;
+            margin-bottom: 0;
+            padding: 20px 16px;
+        }
+
+        /* Precio más compacto en mobile */
+        .price-tag {
+            font-size: 28px !important;
+            margin-bottom: 16px !important;
+        }
+
+        /* Ocultar el botón WhatsApp del sidebar en mobile
+           porque la barra flotante inferior ya lo tiene */
+        .action-buttons .btn-whatsapp {
+            display: none !important;
+        }
+
+        /* Ocultar los bloques "Por qué DriveMarket" y seguridad en mobile 
+           para no saturar — el usuario ve lo esencial */
+        .why-dm-box { display: none; }
+        .safety-banner { display: none; }
+    }
+
+    /* INNER ZOOM PRO */
+    .img-zoom-lens {
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        cursor: crosshair;
+        visibility: hidden;
+        z-index: 10;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
+        box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.1); /* Efecto máscara suave */
+        opacity: 0; /* Lo hacemos invisible pero sigue funcionando como tracker */
+    }
+    .img-zoom-result {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        visibility: hidden;
+        background-repeat: no-repeat;
+        z-index: 4;
+        background-color: #fff;
+        transition: visibility 0.2s, opacity 0.2s;
+        opacity: 0;
+    }
+    .main-image-container:hover .img-zoom-result {
+        opacity: 1;
+    }
+    @media (max-width: 1024px) {
+        .img-zoom-result, .img-zoom-lens { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<script>document.addEventListener('DOMContentLoaded', function() { document.body.classList.add('vehiculo-detalle-page'); });</script>
+
+<div class="detalles-container">
+
+    {# BREADCRUMB INTELIGENTE #3 #}
+    <a href="{{ url_for('buscar') }}" class="breadcrumb-ml" id="backBtn">
+        <i class="fas fa-arrow-left"></i> <span id="backBtnText">Volver a resultados</span>
+    </a>
+    <script>
+    (function(){
+        var saved = sessionStorage.getItem('dm_search_url');
+        var ref = document.referrer;
+        var btn = document.getElementById('backBtn');
+        var lbl = document.getElementById('backBtnText');
+        if (saved && saved.includes('/buscar')) {
+            btn.href = saved; lbl.textContent = 'Volver a búsqueda';
+        } else if (ref && ref.includes('/buscar')) {
+            btn.href = ref; lbl.textContent = 'Volver a búsqueda';
+        }
+        if (ref && ref.includes('/buscar')) sessionStorage.setItem('dm_search_url', ref);
+    })();
+    </script>
+
+    <div class="premium-layout">
+
+        {# ===== COLUMNA IZQUIERDA ===== #}
+        <div class="left-column">
+
+            {# GALERÍA #}
+            <div class="content-module" style="padding: 20px;">
+                {% if imagenes %}
+                <div class="gallery-container">
+                    <div class="thumbnails" id="thumbnailsContainer">
+                        {% for img in imagenes %}
+                        <img src="{{ url_for('static', filename=img.url_imagen) }}"
+                             class="thumbnail {% if loop.first %}active{% endif %}"
+                             onclick="changeImage('{{ url_for('static', filename=img.url_imagen) }}', this, {{ loop.index0 }})"
+                             alt="Foto {{ loop.index }}">
+                        {% endfor %}
+                    </div>
+                    <div class="main-image-container" id="mainImageContainer">
+                        <button class="nav-gallery-btn prev" onclick="event.stopPropagation(); navImage(-1)"><i class="fas fa-chevron-left"></i></button>
+                        <div id="zoomLens" class="img-zoom-lens"></div>
+                        <img id="mainImage" src="{{ url_for('static', filename=imagenes[0].url_imagen) }}" alt="{{ vehiculo.marca }} {{ vehiculo.modelo }}">
+                        <div id="zoomResult" class="img-zoom-result"></div>
+                        <button class="nav-gallery-btn next" onclick="event.stopPropagation(); navImage(1)"><i class="fas fa-chevron-right"></i></button>
+                        <div class="image-counter" id="imageCounter">1/{{ imagenes|length }}</div>
+                    </div>
+                </div>
+                {% else %}
+                <div style="height:300px; background:#f8fafc; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#94a3b8;">
+                    <i class="fas fa-image" style="font-size:48px;"></i>
+                </div>
+                {% endif %}
+            </div>
+
+            {# FICHA TÉCNICA — solo muestra campos con datos #2 #}
+            <div class="content-module">
+                <h2 style="font-size:20px; font-weight:700; margin:0 0 24px; display:flex; align-items:center; gap:8px;">
+                    <i class="fas fa-list-ul" style="color:var(--color-accent);"></i> Ficha Técnica
+                </h2>
+                <div class="collapsible-wrapper" data-limit="260">
+                    <div class="collapsible-content" style="max-height: 260px;">
+                        <div class="specs-grid">
+                            <div class="spec-item"><span class="spec-label"><i class="fas fa-copyright" style="color:var(--color-accent);"></i> Marca</span><span class="spec-value">{{ vehiculo.marca }}</span></div>
+                            <div class="spec-item"><span class="spec-label"><i class="fas fa-cube" style="color:var(--color-accent);"></i> Modelo</span><span class="spec-value">{{ vehiculo.modelo }}</span></div>
+                            <div class="spec-item"><span class="spec-label"><i class="fas fa-calendar-alt" style="color:var(--color-accent);"></i> Año</span><span class="spec-value">{{ vehiculo.anio }}</span></div>
+                            <div class="spec-item"><span class="spec-label"><i class="fas fa-tachometer-alt" style="color:var(--color-accent);"></i> Kilometraje</span><span class="spec-value">{{ "{:,.0f}".format(vehiculo.kilometraje|float) }} km</span></div>
+                            <div class="spec-item"><span class="spec-label"><i class="fas fa-layer-group" style="color:var(--color-accent);"></i> Tipo</span><span class="spec-value">{{ vehiculo.tipo }}</span></div>
+                            {% if vehiculo.color %}<div class="spec-item"><span class="spec-label"><i class="fas fa-palette" style="color:var(--color-accent);"></i> Color</span><span class="spec-value">{{ vehiculo.color }}</span></div>{% endif %}
+                            {% if vehiculo.motor %}<div class="spec-item"><span class="spec-label"><i class="fas fa-dharmachakra" style="color:var(--color-accent);"></i> Motor</span><span class="spec-value">{{ vehiculo.motor }}</span></div>{% endif %}
+                            {% if vehiculo.transmision %}<div class="spec-item"><span class="spec-label"><i class="fas fa-cogs" style="color:var(--color-accent);"></i> Transmisión</span><span class="spec-value">{{ vehiculo.transmision }}</span></div>{% endif %}
+                            {% if vehiculo.combustible %}<div class="spec-item"><span class="spec-label"><i class="fas fa-gas-pump" style="color:var(--color-accent);"></i> Combustible</span><span class="spec-value">{{ vehiculo.combustible }}</span></div>{% endif %}
+                            {% if vehiculo.traccion %}<div class="spec-item"><span class="spec-label"><i class="fas fa-truck-pickup" style="color:var(--color-accent);"></i> Tracción</span><span class="spec-value">{{ vehiculo.traccion }}</span></div>{% endif %}
+                            {% if vehiculo.puertas %}<div class="spec-item"><span class="spec-label"><i class="fas fa-door-open" style="color:var(--color-accent);"></i> Puertas</span><span class="spec-value">{{ vehiculo.puertas }}</span></div>{% endif %}
+                            {% if vehiculo.version %}<div class="spec-item"><span class="spec-label"><i class="fas fa-tag" style="color:var(--color-accent);"></i> Versión</span><span class="spec-value">{{ vehiculo.version }}</span></div>{% endif %}
+                            {% if vehiculo.placa %}<div class="spec-item" style="grid-column:1/-1;"><span class="spec-label"><i class="fas fa-id-card" style="color:var(--color-accent);"></i> Placa</span><span class="spec-value" style="text-transform:uppercase;">{{ vehiculo.placa }}{% if vehiculo.ciudad_placa %} <span style="font-size:11px; color:var(--color-text-muted);">({{ vehiculo.ciudad_placa }})</span>{% endif %}</span></div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="collapsible-fade"></div>
+                    <button class="btn-read-more" data-text="Ver ficha completa"><i class="fas fa-chevron-down"></i> Ver ficha completa</button>
+                </div>
+            </div>
+
+            {# DESCRIPCIÓN #}
+            {% if vehiculo.descripcion %}
+            <div class="content-module">
+                <h2 style="font-size:20px; font-weight:700; margin:0 0 16px; display:flex; align-items:center; gap:8px;">
+                    <i class="far fa-file-alt" style="color:var(--color-accent);"></i> Descripción del vendedor
+                </h2>
+                <div class="collapsible-wrapper" data-limit="120">
+                    <div class="collapsible-content" style="max-height: 120px;">
+                        <p style="white-space:pre-wrap; line-height:1.7; color:#475569; font-size:15px; margin:0;">{{ vehiculo.descripcion }}</p>
+                    </div>
+                    <div class="collapsible-fade"></div>
+                    <button class="btn-read-more" data-text="Lee la descripción entera"><i class="fas fa-chevron-down"></i> Lee la descripción entera</button>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        {# ===== COLUMNA DERECHA (SIDEBAR) ===== #}
+        <div class="right-column">
+            <div class="content-module sticky-sidebar">
+
+                {# BARRA DE COMPLETITUD — solo para el dueño #12 #}
+                {% if 'usuario_id' in session and vehiculo.id_usuario == session.usuario_id %}
+                {% set ns = namespace(score=0) %}
+                {% if vehiculo.descripcion %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% if vehiculo.motor %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% if vehiculo.transmision %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% if vehiculo.combustible %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% if vehiculo.traccion %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% if vehiculo.puertas %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% if imagenes|length > 2 %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% if vehiculo.version %}{% set ns.score = ns.score + 1 %}{% endif %}
+                {% set pct = (ns.score / 8 * 100)|int %}
+                <div class="owner-progress">
+                    <div class="owner-progress-top">
+                        <span class="owner-progress-label"><i class="fas fa-chart-line"></i> Completitud del anuncio</span>
+                        <span class="owner-progress-pct">{{ pct }}%</span>
+                    </div>
+                    <div class="owner-progress-track"><div class="owner-progress-fill" style="width:{{ pct }}%;"></div></div>
+                    {% if pct < 100 %}
+                    <p class="owner-progress-tip">
+                        {% if not vehiculo.descripcion %}📝 Añade descripción. {% endif %}
+                        {% if not vehiculo.motor %}⚙️ Especifica el motor. {% endif %}
+                        {% if not vehiculo.transmision %}🔧 Indica la transmisión. {% endif %}
+                        {% if imagenes|length <= 2 %}📷 Sube más fotos. {% endif %}
+                        <a href="{{ url_for('vendedor.editar_vehiculo', vid=vehiculo.id) }}">Completar →</a>
+                    </p>
+                    {% else %}
+                    <p class="owner-progress-tip">🎉 ¡Anuncio completamente optimizado!</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {# PILLS DE ESTADO #}
+                <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+                    <span style="background:#eff6ff; color:var(--color-accent); padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #bfdbfe;">{{ vehiculo.estado|capitalize if vehiculo.estado else 'Usado' }}</span>
+                    <span style="background:#f1f5f9; color:#475569; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #e2e8f0;">{{ vehiculo.anio }}</span>
+                    <span style="background:#f1f5f9; color:#475569; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:700; border:1px solid #e2e8f0;">{{ "{:,.0f}".format(vehiculo.kilometraje|float) }} km</span>
+                </div>
+
+                <h1 style="font-size:26px; font-weight:800; margin:0 0 8px; line-height:1.2;">{{ vehiculo.marca }} {{ vehiculo.modelo }}</h1>
+
+                {# PUBLICADO HACE X DÍAS #9 #}
+                <div class="pub-date" id="pubDateDisplay">
+                    <i class="far fa-clock"></i>
+                    <span id="pubDateText">Publicado recientemente</span>
+                    {% if vehiculo.vistas is defined and vehiculo.vistas > 0 %}
+                    &nbsp;·&nbsp;<i class="far fa-eye"></i>&nbsp;{{ vehiculo.vistas }} vistas
+                    {% endif %}
+                </div>
+
+                <div class="price-tag">$ {{ "{:,.0f}".format(vehiculo.precio|float) }}</div>
+
+                {# VENDEDOR #}
+                <div class="seller-profile-card">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div class="seller-avatar">
+                            {% if vehiculo.logo_tienda %}
+                            <img src="{{ url_for('static', filename='uploads/vendedores/' ~ vehiculo.logo_tienda) }}" style="width:100%;height:100%;object-fit:cover;">
+                            {% else %}
+                            <i class="far fa-user" style="color:#94a3b8;"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div style="font-weight:700; font-size:15px;">{{ vehiculo.dueno or 'Vendedor DriveMarket' }}</div>
+                            {% if vehiculo.estado_verificacion == 'aprobado' %}
+                            <div style="font-size:12px; color:#10b981; display:flex; align-items:center; gap:4px;"><i class="fas fa-check-circle"></i> Vendedor verificado</div>
+                            {% else %}
+                            <div style="font-size:12px; color:var(--color-text-muted);">Vendedor particular</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:14px; padding-top:14px; border-top:1px solid var(--color-border); font-size:13px; color:var(--color-text-muted);">
+                        <i class="fas fa-map-marker-alt" style="color:var(--color-accent);"></i> {{ vehiculo.ciudad_venta }}
+                    </div>
+                    {% if vehiculo.id_dueno and vehiculo.rol_dueno == 'vendedor' %}
+                    <a href="{{ url_for('perfil_publico', id=vehiculo.id_dueno) }}" style="display:flex; justify-content:center; align-items:center; gap:6px; margin-top:12px; padding:9px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; background:white; border:1px solid var(--color-border); color:var(--color-text);">
+                        <i class="fas fa-store"></i> Ver perfil de la tienda
+                    </a>
+                    {% endif %}
+                </div>
+
+                {# BOTONES DE ACCIÓN ORGANIZADOS #}
+                <div class="action-buttons">
+
+                    {# 1 - WhatsApp (solo si el vendedor tiene teléfono) #}
+                    {% if vehiculo.telefono %}
+                        {% if 'usuario_id' in session %}
+                        {# Usuario logueado: registra click y va directo a WhatsApp #}
+                        <button type="button" 
+                            onclick="registrarYAbrirWhatsApp('57{{ vehiculo.telefono }}', '{{ vehiculo.marca|urlencode }} {{ vehiculo.modelo|urlencode }}', {{ vehiculo.id }})"
+                            class="btn-premium btn-whatsapp">
+                            <i class="fab fa-whatsapp"></i> Contactar al vendedor
+                        </button>
+                        {% else %}
+                        {# Sin sesión: abre modal para iniciar sesión / registrarse #}
+                        <button type="button" onclick="openAuthModal()" class="btn-premium btn-whatsapp">
+                            <i class="fab fa-whatsapp"></i> Contactar al vendedor
+                        </button>
+                        {% endif %}
+                    {% endif %}
+
+                    {# 2 - Chat y Favoritos #}
+                    {# Si el usuario está logueado y no es el dueño → Grid 50/50 con Chat #}
+                    {# Si no → Favorito (o botón login) ocupa el 100% #}
+                    {% if 'usuario_id' in session and vehiculo.id_usuario != session.usuario_id %}
+                    <div class="action-grid-2">
+                        <a href="{{ url_for('mensajes.iniciar_chat', vehiculo_id=vehiculo.id) }}" class="btn-premium btn-secondary">
+                            <i class="far fa-comment-alt"></i> Chat
+                        </a>
+                        <div style="width:100%;">
+                            <button type="button" 
+                                onclick="toggleFavoriteDetalle(this, {{ vehiculo.id }})"
+                                class="btn-premium btn-outline {% if es_favorito %}btn-fav-active{% endif %}"
+                                id="btnFavDetalle">
+                                <i class="{% if es_favorito %}fas{% else %}far{% endif %} fa-heart"></i>
+                                <span id="textFavDetalle">{% if es_favorito %}Guardado{% else %}Favorito{% endif %}</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% elif 'usuario_id' in session and vehiculo.id_usuario == session.usuario_id %}
+                    {# Es el propio dueño: solo muestra favorito deshabilitado / nada #}
+                    <div></div>
+                    {% else %}
+                    {# No logueado: botón de favoritos a ancho completo → redirige a login #}
+                    <a href="{{ url_for('login') }}" class="btn-premium btn-outline" style="justify-content:center;">
+                        <i class="far fa-heart"></i> <span>Guardar en favoritos</span>
+                    </a>
+                    {% endif %}
+
+                    {# 3 - Utilidades: Alerta / Comparar / Compartir #}
+                    {# Ajustamos el grid según cuántos botones hay visibles #}
+                    {% if 'usuario_id' in session and vehiculo.id_usuario != session.usuario_id %}
+                    {# Usuario logueado, no dueño → 3 columnas (Alerta, Comparar, Compartir) #}
+                    <div class="action-grid-3">
+                        <form action="{{ url_for('toggle_alerta_precio', id=vehiculo.id) }}" method="POST" style="width:100%;">
+                            <button type="submit" class="btn-premium btn-outline btn-utility {% if tiene_alerta %}btn-alert-active{% endif %}">
+                                <i class="fas {% if tiene_alerta %}fa-bell-slash{% else %}fa-bell{% endif %}"></i>
+                                <span>Alerta</span>
+                            </button>
+                        </form>
+                        <a href="{{ url_for('comparador.comparador', vehiculo_id=vehiculo.id) }}" class="btn-premium btn-outline btn-utility">
+                            <i class="fas fa-exchange-alt"></i><span>Comparar</span>
+                        </a>
+                        <button class="btn-premium btn-outline btn-utility" id="shareBtn" onclick="sharePage()">
+                            <i class="fas fa-share-alt" id="shareIcon"></i><span id="shareText">Compartir</span>
+                        </button>
+                    </div>
+                    {% elif 'usuario_id' in session %}
+                    {# Es el dueño (logueado) → va directo al comparador, sin modal #}
+                    <div class="action-grid-2">
+                        <a href="{{ url_for('comparador.comparador', vehiculo_id=vehiculo.id) }}" class="btn-premium btn-outline btn-utility">
+                            <i class="fas fa-exchange-alt"></i><span>Comparar</span>
+                        </a>
+                        <button class="btn-premium btn-outline btn-utility" id="shareBtn" onclick="sharePage()">
+                            <i class="fas fa-share-alt" id="shareIcon"></i><span id="shareText">Compartir</span>
+                        </button>
+                    </div>
+                    {% else %}
+                    {# No logueado → modal para iniciar sesión #}
+                    <div class="action-grid-2">
+                        <button type="button" onclick="openComparadorModal()" class="btn-premium btn-outline btn-utility">
+                            <i class="fas fa-exchange-alt"></i><span>Comparar</span>
+                        </button>
+                        <button class="btn-premium btn-outline btn-utility" id="shareBtn" onclick="sharePage()">
+                            <i class="fas fa-share-alt" id="shareIcon"></i><span id="shareText">Compartir</span>
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    {# 4 - Reporte (sutil, al final) #}
+                    <button type="button" onclick="openReportModal()" class="btn-report-link">
+                        <i class="far fa-flag"></i> Reportar anuncio
+                    </button>
+
+                </div>
+
+                {# BANNER SEGURIDAD #}
+                <div class="safety-banner">
+                    <i class="fas fa-shield-alt" style="font-size:22px; color:var(--color-accent); flex-shrink:0;"></i>
+                    <div>
+                        <strong style="display:block; margin-bottom:4px; color:var(--color-primary); font-size:13px;">Tu seguridad es primero</strong>
+                        Nunca transfieras dinero ni des anticipos sin ver el vehículo física y legalmente.
+                    </div>
+                </div>
+
+                {# ¿POR QUÉ DRIVEMARKET? #11 #}
+                <div class="why-dm-box">
+                    <h5><i class="fas fa-star" style="color:#f59e0b;"></i>&nbsp; ¿Por qué DriveMarket?</h5>
+                    <ul>
+                        <li><i class="fas fa-check-circle" style="color:#10b981;"></i> Vendedores verificados y con reputación</li>
+                        <li><i class="fas fa-comments" style="color:#3b82f6;"></i> Chat directo con el vendedor</li>
+                        <li><i class="fas fa-bell" style="color:#f59e0b;"></i> Alertas de bajada de precio</li>
+                        <li><i class="fas fa-exchange-alt" style="color:#8b5cf6;"></i> Comparador de vehículos integrado</li>
+                        <li><i class="fas fa-shield-alt" style="color:#ef4444;"></i> Sistema de reporte de fraudes</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    {# ===== TAMBIÉN PODRÍA INTERESARTE #1 ===== #}
+    {% if vehiculos_relacionados and vehiculos_relacionados|length > 0 %}
+    <div class="related-section">
+        <h2 style="font-size:22px; font-weight:800; margin-bottom:24px;">También podría interesarte</h2>
+        <div style="position:relative;">
+            <div class="swiper relatedSwiper">
+                <div class="swiper-wrapper">
+                    {% for rel in vehiculos_relacionados %}
+                    <div class="swiper-slide">
+                        <div class="vehicle-card">
+                            <a href="{{ url_for('vehiculo_detalle', slug=rel.id) }}" style="text-decoration:none; color:inherit; display:block;">
+                                <img src="{{ url_for('static', filename=rel.url_imagen) if rel.url_imagen else url_for('static', filename='img/default_car.jpg') }}"
+                                     class="card-img" alt="{{ rel.marca }} {{ rel.modelo }}">
+                                <div class="card-content">
+                                    <h3 class="card-title">{{ rel.marca }} {{ rel.modelo }}{% if rel.version %} {{ rel.version }}{% endif %}</h3>
+                                    <div class="card-price">$ {{ "{:,.0f}".format(rel.precio|float) }}</div>
+                                    <div class="card-meta">{{ rel.anio }} | {{ "{:,.0f}".format(rel.kilometraje|float) }} Km</div>
+                                    <div class="card-city"><i class="fas fa-map-marker-alt"></i> {{ rel.ciudad_venta }}</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{# FLOATING WHATSAPP barra móvil - solo si el vendedor tiene teléfono #}
+{% if vehiculo.telefono %}
+<div class="floating-wa-bar">
+    {% if 'usuario_id' in session %}
+    <a href="https://wa.me/57{{ vehiculo.telefono }}?text=Hola,%20me%20interesa%20el%20{{ vehiculo.marca|urlencode }}%20{{ vehiculo.modelo|urlencode }}" target="_blank">
+        <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i> Contactar al vendedor
+    </a>
+    {% else %}
+    <button type="button" onclick="openAuthModal()" style="display:flex; align-items:center; justify-content:center; gap:10px; background:#10b981; color:white; padding:14px; border-radius:12px; font-weight:700; font-size:16px; border:none; cursor:pointer; width:100%;">
+        <i class="fab fa-whatsapp" style="font-size:1.3rem;"></i> Contactar al vendedor
+    </button>
+    {% endif %}
+</div>
+{% endif %}
+
+{# LIGHTBOX #5 #}
+<div class="lb-overlay" id="lbOverlay" onclick="lbClose()">
+    <button class="lb-close" onclick="lbClose()"><i class="fas fa-times"></i></button>
+    <button class="lb-nav lb-prev" onclick="event.stopPropagation(); lbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+    <img id="lbImg" src="" alt="Foto ampliada" onclick="event.stopPropagation()">
+    <button class="lb-nav lb-next" onclick="event.stopPropagation(); lbNav(1)"><i class="fas fa-chevron-right"></i></button>
+    <div class="lb-count" id="lbCount"></div>
+</div>
+
+{# MODAL DE REPORTE #}
+<div id="reportVehicleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center; padding:1rem;" onclick="if(event.target===this) closeReportModal()">
+    <div style="background:white; border-radius:20px; width:100%; max-width:500px; box-shadow:0 25px 50px rgba(0,0,0,0.2); overflow:hidden;" onclick="event.stopPropagation()">
+        <div style="padding:1.5rem; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:1.1rem; display:flex; align-items:center; gap:.5rem;"><i class="far fa-flag" style="color:#ef4444;"></i> Reportar vehículo</h3>
+            <button onclick="closeReportModal()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:#94a3b8;"><i class="fas fa-times"></i></button>
+        </div>
+        <form action="{{ url_for('crear_reporte', id=vehiculo.id) }}" method="POST">
+            <div style="padding:1.5rem;">
+                <p style="font-size:.85rem; color:#64748b; margin:0 0 1rem;">Tu reporte será revisado de forma confidencial por nuestro equipo.</p>
+                <label style="display:block; font-size:.85rem; font-weight:700; margin-bottom:.4rem;">Motivo del reporte</label>
+                <select name="motivo" required style="width:100%; padding:.75rem 1rem; border:1px solid #e2e8f0; border-radius:10px; font-family:inherit; font-size:.9rem; background:#f8fafc; box-sizing:border-box;">
+                    <option value="">Selecciona un motivo...</option>
+                    <option>Fraude o estafa</option>
+                    <option>Vehículo ya vendido</option>
+                    <option>Precio falso</option>
+                    <option>Fotografías falsas</option>
+                    <option>Vehículo ilegal</option>
+                    <option>Otro</option>
+                </select>
+                <label style="display:block; font-size:.85rem; font-weight:700; margin:1rem 0 .4rem;">Detalles (opcional)</label>
+                <textarea name="descripcion" rows="3" placeholder="Describe el problema..." style="width:100%; padding:.75rem 1rem; border:1px solid #e2e8f0; border-radius:10px; font-family:inherit; font-size:.9rem; background:#f8fafc; box-sizing:border-box; resize:vertical;"></textarea>
+            </div>
+            <div style="padding:1rem 1.5rem; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; justify-content:flex-end; gap:.75rem;">
+                <button type="button" onclick="closeReportModal()" style="background:transparent; border:1px solid #e2e8f0; padding:.5rem 1.25rem; border-radius:8px; font-weight:600; cursor:pointer; color:#64748b;">Cancelar</button>
+                <button type="submit" style="background:#ef4444; color:white; border:none; padding:.5rem 1.25rem; border-radius:8px; font-weight:600; cursor:pointer;">Enviar Reporte</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# MODAL: Iniciar sesión para contactar #}
+<div id="authModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(4px);" onclick="if(event.target===this) closeAuthModal()">
+    <div style="background:white; border-radius:20px; width:100%; max-width:420px; box-shadow:0 25px 50px rgba(0,0,0,0.25); overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#10b981,#059669); padding:28px 28px 24px; text-align:center; color:white; position:relative;">
+            <button onclick="closeAuthModal()" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.2); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-times"></i>
+            </button>
+            <div style="background:rgba(255,255,255,0.2); width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+                <i class="fab fa-whatsapp" style="font-size:32px;"></i>
+            </div>
+            <h3 style="margin:0 0 6px; font-size:1.2rem; font-weight:800;">Contactar al vendedor</h3>
+            <p style="margin:0; font-size:.85rem; opacity:.9;">Inicia sesión para ver el número de WhatsApp y comunicarte directamente</p>
+        </div>
+        <div style="padding:24px; display:flex; flex-direction:column; gap:12px;">
+            <a href="{{ url_for('login') }}" style="display:flex; align-items:center; justify-content:center; gap:10px; background:#0f172a; color:white; padding:14px; border-radius:12px; font-weight:700; font-size:15px; text-decoration:none;">
+                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </a>
+            <a href="{{ url_for('registro') }}" style="display:flex; align-items:center; justify-content:center; gap:10px; background:#eff6ff; color:#1d4ed8; padding:14px; border-radius:12px; font-weight:700; font-size:15px; text-decoration:none; border:1px solid #bfdbfe;">
+                <i class="fas fa-user-plus"></i> Crear cuenta gratis
+            </a>
+            <p style="text-align:center; font-size:12px; color:#94a3b8; margin:4px 0 0;">Es gratis y toma menos de 1 minuto</p>
+        </div>
+    </div>
+</div>
+
+{# MODAL: Iniciar sesión para comparar #}
+<div id="comparadorModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:9999; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(4px);" onclick="if(event.target===this) closeComparadorModal()">
+    <div style="background:white; border-radius:20px; width:100%; max-width:420px; box-shadow:0 25px 50px rgba(0,0,0,0.25); overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#6366f1,#4f46e5); padding:28px 28px 24px; text-align:center; color:white; position:relative;">
+            <button onclick="closeComparadorModal()" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.2); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-times"></i>
+            </button>
+            <div style="background:rgba(255,255,255,0.2); width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+                <i class="fas fa-exchange-alt" style="font-size:28px;"></i>
+            </div>
+            <h3 style="margin:0 0 6px; font-size:1.2rem; font-weight:800;">Comparar vehículos</h3>
+            <p style="margin:0; font-size:.85rem; opacity:.9;">Inicia sesión para usar el comparador y poner este vehículo junto a otros</p>
+        </div>
+        <div style="padding:24px; display:flex; flex-direction:column; gap:12px;">
+            <a href="{{ url_for('login') }}" style="display:flex; align-items:center; justify-content:center; gap:10px; background:#0f172a; color:white; padding:14px; border-radius:12px; font-weight:700; font-size:15px; text-decoration:none;">
+                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </a>
+            <a href="{{ url_for('registro') }}" style="display:flex; align-items:center; justify-content:center; gap:10px; background:#eff6ff; color:#1d4ed8; padding:14px; border-radius:12px; font-weight:700; font-size:15px; text-decoration:none; border:1px solid #bfdbfe;">
+                <i class="fas fa-user-plus"></i> Crear cuenta gratis
+            </a>
+            <p style="text-align:center; font-size:12px; color:#94a3b8; margin:4px 0 0;">Es gratis y toma menos de 1 minuto</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+// ---- GALERÍA ----
+let allImages = [];
+{% for img in imagenes %}allImages.push("{{ url_for('static', filename=img.url_imagen) }}");{% endfor %}
+let currentIdx = 0;
+
+function changeImage(url, el, idx) {
+    currentIdx = idx;
+    let img = document.getElementById('mainImage');
+    img.style.opacity = '0.3';
+    setTimeout(() => { 
+        img.src = url; 
+        img.style.opacity = '1'; 
+        // Reiniciar zoom al cambiar imagen
+        initZoom();
+    }, 150);
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('imageCounter').textContent = (idx + 1) + '/' + allImages.length;
+}
+
+// ---- INNER ZOOM PRO ----
+function initZoom() {
+    const img = document.getElementById("mainImage");
+    const lens = document.getElementById("zoomLens");
+    const result = document.getElementById("zoomResult");
+    const container = document.getElementById("mainImageContainer");
+
+    if (!img || !lens || !result || window.innerWidth <= 1024) return;
+
+    // Aumentamos el factor de zoom para el modo interno
+    const zoomScale = 2.5; 
+
+    result.style.backgroundImage = "url('" + img.src + "')";
+    result.style.backgroundSize = (img.width * zoomScale) + "px " + (img.height * zoomScale) + "px";
+
+    container.onmouseenter = function() {
+        result.style.visibility = "visible";
+        result.style.opacity = "1";
+    };
+
+    container.onmouseleave = function() {
+        result.style.visibility = "hidden";
+        result.style.opacity = "0";
+    };
+
+    container.onmousemove = function(e) {
+        e.preventDefault();
+        const pos = getCursorPos(e);
+        
+        // Calculamos la posición del background
+        // El centro del zoom debe ser el cursor
+        let x = pos.x;
+        let y = pos.y;
+
+        // Limitar coordenadas al tamaño de la imagen
+        if (x > img.width) x = img.width;
+        if (x < 0) x = 0;
+        if (y > img.height) y = img.height;
+        if (y < 0) y = 0;
+
+        // Cálculo de posición de fondo para centrar el zoom
+        // (pos_x * escala) - (mitad_del_visor)
+        let bgX = (x * zoomScale) - (result.offsetWidth / 2);
+        let bgY = (y * zoomScale) - (result.offsetHeight / 2);
+
+        // Ajuste de límites del fondo para no mostrar bordes vacíos
+        if (bgX < 0) bgX = 0;
+        if (bgY < 0) bgY = 0;
+        if (bgX > (img.width * zoomScale) - result.offsetWidth) bgX = (img.width * zoomScale) - result.offsetWidth;
+        if (bgY > (img.height * zoomScale) - result.offsetHeight) bgY = (img.height * zoomScale) - result.offsetHeight;
+
+        result.style.backgroundPosition = "-" + bgX + "px -" + bgY + "px";
+    };
+
+    function getCursorPos(e) {
+        let a, x = 0, y = 0;
+        e = e || window.event;
+        a = img.getBoundingClientRect();
+        x = e.pageX - a.left - window.pageXOffset;
+        y = e.pageY - a.top - window.pageYOffset;
+        return {x : x, y : y};
+    }
+}
+window.addEventListener('load', initZoom);
+window.addEventListener('resize', initZoom);
+
+function navImage(dir) {
+    if (!allImages.length) return;
+    currentIdx = (currentIdx + dir + allImages.length) % allImages.length;
+    let thumbs = document.querySelectorAll('.thumbnail');
+    if (thumbs[currentIdx]) changeImage(allImages[currentIdx], thumbs[currentIdx], currentIdx);
+}
+
+// ---- SWIPE PARA MÓVILES (Main Gallery) ----
+let touchstartX = 0;
+let touchendX = 0;
+
+const mainImageContainer = document.getElementById('mainImageContainer');
+mainImageContainer.addEventListener('touchstart', e => {
+    touchstartX = e.changedTouches[0].screenX;
+}, {passive: true});
+
+mainImageContainer.addEventListener('touchend', e => {
+    touchendX = e.changedTouches[0].screenX;
+    handleSwipe();
+});
+
+function handleSwipe() {
+    let diff = touchstartX - touchendX;
+    // Umbral de 40px para evitar swipes accidentales (toques)
+    if (Math.abs(diff) > 40) {
+        if (diff > 0) {
+            navImage(1); // Deslizó a la izquierda (siguiente)
+        } else {
+            navImage(-1); // Deslizó a la derecha (anterior)
+        }
+    }
+}
+
+// Clic en imagen abre lightbox
+mainImageContainer.addEventListener('click', function(e) {
+    if (!e.target.closest('.nav-gallery-btn')) lbOpen(currentIdx);
+});
+
+// ---- LIGHTBOX #5 ----
+function lbOpen(idx) {
+    currentIdx = idx;
+    document.getElementById('lbImg').src = allImages[idx];
+    document.getElementById('lbCount').textContent = (idx + 1) + ' / ' + allImages.length;
+    document.getElementById('lbOverlay').classList.add('lb-active');
+    document.body.style.overflow = 'hidden';
+}
+function lbClose() {
+    document.getElementById('lbOverlay').classList.remove('lb-active');
+    document.body.style.overflow = '';
+}
+function lbNav(dir) {
+    currentIdx = (currentIdx + dir + allImages.length) % allImages.length;
+    document.getElementById('lbImg').src = allImages[currentIdx];
+    document.getElementById('lbCount').textContent = (currentIdx + 1) + ' / ' + allImages.length;
+}
+document.addEventListener('keydown', function(e) {
+    if (!document.getElementById('lbOverlay').classList.contains('lb-active')) return;
+    if (e.key === 'Escape') lbClose();
+    if (e.key === 'ArrowLeft') lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
+});
+
+// ---- SWIPER ----
+document.addEventListener('DOMContentLoaded', function() {
+    new Swiper('.relatedSwiper', {
+        slidesPerView: 2.15, spaceBetween: 12,
+        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+        breakpoints: { 576: { slidesPerView: 2.5, spaceBetween: 15 }, 768: { slidesPerView: 3, spaceBetween: 20 }, 1024: { slidesPerView: 4, spaceBetween: 20 } }
+    });
+
+    // ---- PUBLICADO HACE X DÍAS #9 ----
+    var rawDate = '{{ vehiculo.created_at or vehiculo.fecha_publicacion or "" }}';
+    if (rawDate && rawDate !== 'None') {
+        try {
+            var d = new Date(rawDate), now = new Date(), diff = Math.floor((now - d) / 86400000);
+            var txt = diff === 0 ? 'Publicado hoy'
+                : diff === 1 ? 'Publicado ayer'
+                : diff < 7 ? 'Publicado hace ' + diff + ' días'
+                : diff < 30 ? 'Publicado hace ' + Math.floor(diff/7) + ' semana(s)'
+                : diff < 365 ? 'Publicado hace ' + Math.floor(diff/30) + ' mes(es)'
+                : 'Publicado hace ' + Math.floor(diff/365) + ' año(s)';
+            var el = document.getElementById('pubDateText');
+            if (el) el.textContent = txt;
+        } catch(e) {}
+    }
+
+    // ---- COLLAPSIBLES (Ver más) ----
+    document.querySelectorAll('.collapsible-wrapper').forEach(wrapper => {
+        const content = wrapper.querySelector('.collapsible-content');
+        const btn = wrapper.querySelector('.btn-read-more');
+        const fade = wrapper.querySelector('.collapsible-fade');
+        const limit = parseInt(wrapper.dataset.limit) || 160;
+
+        if (content.scrollHeight <= limit + 10) {
+            wrapper.classList.add('expanded');
+            btn.style.display = 'none';
+            if (fade) fade.style.display = 'none';
+            content.style.maxHeight = 'none';
+        } else {
+            btn.addEventListener('click', () => {
+                wrapper.classList.toggle('expanded');
+                if (wrapper.classList.contains('expanded')) {
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    if (fade) fade.style.opacity = '0';
+                    setTimeout(() => content.style.maxHeight = 'none', 300);
+                    btn.innerHTML = '<i class="fas fa-chevron-up"></i> Mostrar menos';
+                } else {
+                    content.style.maxHeight = limit + 'px';
+                    if (fade) fade.style.opacity = '1';
+                    btn.innerHTML = '<i class="fas fa-chevron-down"></i> ' + (btn.dataset.text || 'Ver más detalles');
+                }
+            });
+        }
+    });
+
+});
+
+// ---- COMPARTIR #10 ----
+function sharePage() {
+    var btn = document.getElementById('shareBtn');
+    var txt = document.getElementById('shareText');
+    var icon = document.getElementById('shareIcon');
+    if (navigator.share) {
+        navigator.share({ title: '{{ vehiculo.marca }} {{ vehiculo.modelo }} | DriveMarket', url: window.location.href }).catch(function(){});
+        return;
+    }
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        btn.classList.add('share-feedback');
+        txt.textContent = '¡Copiado!';
+        icon.className = 'fas fa-check';
+        setTimeout(function() {
+            btn.classList.remove('share-feedback');
+            txt.textContent = 'Compartir';
+            icon.className = 'fas fa-share-alt';
+        }, 2500);
+    }).catch(function() {
+        var inp = document.createElement('input');
+        inp.value = window.location.href;
+        document.body.appendChild(inp);
+        inp.select();
+        document.execCommand('copy');
+        document.body.removeChild(inp);
+        txt.textContent = '¡Copiado!';
+        setTimeout(function() { txt.textContent = 'Compartir'; }, 2500);
+    });
+}
+
+// ---- MODAL REPORTE ----
+function openReportModal() {
+    var m = document.getElementById('reportVehicleModal');
+    if (m) { m.style.display = 'flex'; }
+}
+function closeReportModal() {
+    var m = document.getElementById('reportVehicleModal');
+    if (m) { m.style.display = 'none'; }
+}
+
+// ---- MODAL AUTH (WhatsApp) ----
+function openAuthModal() {
+    var m = document.getElementById('authModal');
+    if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function closeAuthModal() {
+    var m = document.getElementById('authModal');
+    if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+// ---- MODAL COMPARADOR ----
+function openComparadorModal() {
+    var m = document.getElementById('comparadorModal');
+    if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function closeComparadorModal() {
+    var m = document.getElementById('comparadorModal');
+    if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeAuthModal();
+        closeReportModal();
+        closeComparadorModal();
+    }
+});
+
+// ---- REGISTRO DE CLICK EN WHATSAPP ----
+function registrarYAbrirWhatsApp(telefono, vehiculoInfo, vehiculoId) {
+    var waUrl = 'https://wa.me/' + telefono + '?text=Hola%2C%20me%20interesa%20el%20'
+                + vehiculoInfo + '%20que%20vi%20en%20DriveMarket';
+    window.open(waUrl, '_blank');
+    if (vehiculoId) {
+        fetch('/vendedor/api/whatsapp-click', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_vehiculo: vehiculoId })
+        }).catch(function() {});
+    }
+}
+
+/* ══════════════════════════════════════
+   AJAX FAVORITOS
+══════════════════════════════════════ */
+function showFavToast(msg, category) {
+    const container = document.getElementById('dm-toast-container');
+    if (!container) return;
+    const iconMap = {
+        success: 'fa-check-circle',
+        info:    'fa-info-circle',
+        warning: 'fa-exclamation-triangle',
+        error:   'fa-times-circle'
+    };
+    const icon = iconMap[category] || 'fa-info-circle';
+    const toast = document.createElement('div');
+    toast.className = `dm-toast ${category}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="dm-toast-icon"><i class="fas ${icon}"></i></div>
+        <div class="dm-toast-content"><span class="dm-toast-msg">${msg}</span></div>
+        <button class="dm-toast-close" onclick="this.parentElement.remove()" aria-label="Cerrar">&times;</button>
+        <div class="dm-toast-progress"><div class="dm-toast-progress-bar" style="width:100%"></div></div>
+    `;
+    container.appendChild(toast);
+    const bar = toast.querySelector('.dm-toast-progress-bar');
+    let width = 100;
+    const interval = setInterval(() => {
+        width -= 100 / 30;
+        if (width <= 0) { clearInterval(interval); toast.remove(); }
+        else { bar.style.width = width + '%'; }
+    }, 100);
+}
+
+async function toggleFavoriteDetalle(btn, vid) {
+    try {
+        const response = await fetch(`/users/api/favorito/toggle/${vid}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.status === 401) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            const icon = btn.querySelector('i');
+            const text = btn.querySelector('span');
+            if (data.state === 'added') {
+                btn.classList.add('btn-fav-active');
+                icon.className = 'fas fa-heart';
+                text.innerText = 'Guardado';
+                showFavToast('Vehículo guardado en favoritos', 'success');
+            } else {
+                btn.classList.remove('btn-fav-active');
+                icon.className = 'far fa-heart';
+                text.innerText = 'Favorito';
+                showFavToast('Eliminado de favoritos', 'remove');
+            }
+        }
+    } catch (err) {
+        console.error('Error toggling favorite:', err);
+    }
+}
+</script>
+
+<!-- ══ COOKIE CONSENT BANNER ══ -->
+<div id="dm-cookie-banner" role="dialog" aria-label="Aviso de cookies">
+    <p>Al navegar en este sitio aceptas las cookies que utilizamos para mejorar tu experiencia. <a href="#" onclick="return false;">Más información.</a></p>
+    <button id="dm-cookie-accept">Entendido</button>
+</div>
+<script>
+(function() {
+    if (localStorage.getItem('dm_cookies_accepted')) return;
+    var banner = document.getElementById('dm-cookie-banner');
+    if (!banner) return;
+    setTimeout(function() { banner.classList.add('show'); }, 1200);
+    document.getElementById('dm-cookie-accept').addEventListener('click', function() {
+        localStorage.setItem('dm_cookies_accepted', '1');
+        banner.style.transition = 'transform 0.35s ease';
+        banner.style.transform = 'translateY(110%)';
+    });
+})();
+</script>
+
+<!-- ══ LOADER PREMIUM — DETALLES.HTML ══ -->
+<div id="dm-page-loader" role="status">
+  <div class="dml-inner">
+    <div class="dml-brand">DRIVE<span>MARKET</span></div>
+    <div class="dml-scene">
+      <div class="dml-car-wrap">
+        <div class="dml-exhaust"><span></span><span></span><span></span></div>
+        <svg class="dml-car" viewBox="0 0 160 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="80" cy="73" rx="62" ry="4" fill="rgba(0,0,0,0.1)"/>
+          <rect x="10" y="36" width="136" height="28" rx="7" fill="#0f172a"/>
+          <path d="M35 36 C40 18 54 12 72 11 L106 11 C120 11 135 20 142 36Z" fill="#1e293b"/>
+          <rect x="10" y="48" width="136" height="3" rx="1.5" fill="#FF5722" opacity="0.55"/>
+          <path d="M42 35 C45 22 55 15 68 15 L96 15 C106 15 114 21 118 35Z" fill="#7dd3fc" opacity="0.75"/>
+          <path d="M120 35 C122 25 130 18 140 20 L148 26 L148 35Z" fill="#7dd3fc" opacity="0.55"/>
+          <rect x="142" y="40" width="12" height="8" rx="3" fill="#FF8C00"/>
+          <rect x="8" y="42" width="8" height="6" rx="2" fill="#ef4444" opacity="0.9"/>
+          <circle class="dml-wheel" cx="118" cy="64" r="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+          <circle cx="118" cy="64" r="5" fill="#FF5722"/>
+          <line class="dml-spoke" x1="118" y1="52" x2="118" y2="76" stroke="#64748b" stroke-width="1.5"/>
+          <line class="dml-spoke" x1="106" y1="64" x2="130" y2="64" stroke="#64748b" stroke-width="1.5"/>
+          <circle class="dml-wheel" cx="44" cy="64" r="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+          <circle cx="44" cy="64" r="5" fill="#FF5722"/>
+          <line class="dml-spoke" x1="44" y1="52" x2="44" y2="76" stroke="#64748b" stroke-width="1.5"/>
+          <line class="dml-spoke" x1="32" y1="64" x2="56" y2="64" stroke="#64748b" stroke-width="1.5"/>
+          <line x1="2" y1="76" x2="158" y2="76" stroke="#e2e8f0" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="dml-road-strip"></div>
+    </div>
+    <div class="dml-text-wrap">
+      <p class="dml-headline" id="dmlHeadline">Preparando los detalles del vehiculo</p>
+      <p class="dml-sub">Drive Market — Tu mercado automotor de confianza</p>
+    </div>
+    <div class="dml-progress-track"><div class="dml-progress-bar"></div></div>
+  </div>
+</div>
+<style>
+#dm-page-loader{position:fixed;inset:0;z-index:99999;background:linear-gradient(160deg,#f8fafc 0%,#f1f5f9 70%,#e8edf4 100%);display:flex;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s ease;opacity:1;visibility:visible}
+#dm-page-loader.dml-hide{opacity:0;visibility:hidden;pointer-events:none}
+.dml-inner{display:flex;flex-direction:column;align-items:center;width:100%;max-width:220px;padding:0 20px}
+.dml-brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1rem;font-weight:900;color:#0f172a;letter-spacing:-.03em;margin-bottom:22px}
+.dml-brand span{color:#FF5722}
+.dml-scene{position:relative;width:100%}
+.dml-car-wrap{position:relative;width:100%;animation:dmlBounce .45s ease-in-out infinite alternate}
+@keyframes dmlBounce{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+.dml-car{width:100%}
+.dml-wheel{transform-box:fill-box;transform-origin:center;animation:dmlSpin .5s linear infinite}
+.dml-spoke{transform-box:fill-box;transform-origin:center;animation:dmlSpin .5s linear infinite}
+@keyframes dmlSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.dml-exhaust{position:absolute;left:-8px;bottom:12px;display:flex;flex-direction:row-reverse;gap:4px;align-items:center}
+.dml-exhaust span{border-radius:50%;background:#94a3b8;animation:dmlPuff .7s ease-in-out infinite alternate}
+.dml-exhaust span:nth-child(1){width:10px;height:10px;animation-delay:0s;opacity:.5}
+.dml-exhaust span:nth-child(2){width:7px;height:7px;animation-delay:.18s;opacity:.3}
+.dml-exhaust span:nth-child(3){width:5px;height:5px;animation-delay:.32s;opacity:.15}
+@keyframes dmlPuff{from{transform:scale(.5) translateY(0)}to{transform:scale(1.4) translateY(-10px) translateX(-6px)}}
+.dml-road-strip{height:3px;background:repeating-linear-gradient(90deg,#FF5722 0,#FF5722 16px,transparent 16px,transparent 32px);border-radius:2px;opacity:.3;margin-top:2px}
+.dml-text-wrap{text-align:center;margin:20px 0 14px}
+.dml-headline{font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:700;color:#0f172a;margin:0 0 5px;letter-spacing:-.01em;transition:opacity .35s ease}
+.dml-sub{font-family:'Plus Jakarta Sans',sans-serif;font-size:.7rem;font-weight:500;color:#94a3b8;margin:0}
+.dml-progress-track{width:100%;height:3px;background:#e2e8f0;border-radius:4px;overflow:hidden}
+.dml-progress-bar{height:100%;width:40%;background:linear-gradient(90deg,#FF5722,#FF8C00);border-radius:4px;animation:dmlProgress 1.4s ease-in-out infinite}
+@keyframes dmlProgress{0%{transform:translateX(-100%);width:40%}50%{width:60%}100%{transform:translateX(280%);width:40%}}
+</style>
+<script>
+(function(){
+var loader=document.getElementById('dm-page-loader');
+var headline=document.getElementById('dmlHeadline');
+if(!loader)return;
+var msgs=['Preparando los detalles del vehiculo','Cargando fotos e informacion completa','Calculando el mejor precio de mercado','Obteniendo datos del vendedor'];
+var mi=0;
+var rot=setInterval(function(){mi=(mi+1)%msgs.length;if(headline){headline.style.opacity='0';setTimeout(function(){headline.textContent=msgs[mi];headline.style.opacity='1';},300);}},2200);
+function hide(){clearInterval(rot);loader.classList.add('dml-hide');}
+if(document.readyState==='complete'){hide();}else{window.addEventListener('load',hide);setTimeout(hide,4500);}
+})();
+</script>
+{% endblock %}

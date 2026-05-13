@@ -1,0 +1,243 @@
+/* Layout general */
+.admin-container {
+    display: flex;
+}
+
+.admin-main {
+    flex: 1;
+    padding: 30px;
+}
+
+/* Header */
+.header-vehiculos .title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+.subtitle {
+    color: #6c6c6c;
+    margin-top: -5px;
+}
+
+/* FILTROS */
+.filters-card {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 20px;
+}
+
+.filters-grid label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.filters-grid select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.btn-filtrar {
+    background: #0984e3;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin-top: 24px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-filtrar:hover {
+    background: #0761a8;
+}
+
+
+/* TABLA */
+.card-table {
+    background: white;
+    padding: 0;
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.table-vehiculos {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-vehiculos thead {
+    background: #f5f7fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-vehiculos th {
+    padding: 14px;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #555;
+}
+
+.table-vehiculos td {
+    padding: 15px;
+    border-bottom: 1px solid #ececec;
+}
+
+/* Hover */
+.row-vehiculo:hover {
+    background: #f9fbff;
+    transition: 0.15s;
+}
+
+/* Imagen */
+.veh-img {
+    width: 85px;
+    height: 55px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* Badges */
+.badge-price {
+    background: #00b894;
+    padding: 6px 10px;
+    color: white;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.badge-activo {
+    background: #00b894;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.badge-inactivo {
+    background: #fdcb6e;
+    color: #5a4500;
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.badge-user {
+    background: #6c5ce7;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* BOTONES */
+.td-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-action {
+    border: none;
+    padding: 7px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 17px;
+    transition: 0.18s;
+}
+
+.btn-action:hover {
+    transform: scale(1.15);
+}
+
+.blue { background: #0984e3; color: white; }
+.green { background: #00b894; color: white; }
+.yellow { background: #fdcb6e; color: #333; }
+.purple { background: #6c5ce7; color: white; }
+.red { background: #d63031; color: white; }
+
+.no-img {
+    color: #777;
+    font-size: 0.85rem;
+}
+
+
+/* === FILTROS === */
+.filtros-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    background: #ffffff;
+    padding: 18px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.filtro-item label {
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.filtro-item input,
+.filtro-item select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #dcdde1;
+    outline: none;
+}
+
+.btn-filtrar {
+    background: #0984e3;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-filtrar:hover {
+    background: #0761a8;
+}
+
+.btn-limpiar {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    background: #b2bec3;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: .2s;
+}
+
+.btn-limpiar:hover {
+    background: #636e72;
+}
+
+
+.btn-action.dark {
+    background: #2d3436;
+    color: white;
+}
+.btn-action.dark:hover {
+    background: #000;
+}

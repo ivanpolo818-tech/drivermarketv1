@@ -1,0 +1,302 @@
+/* ---------------------------------------------------- */
+/* === LAYOUT GENERAL V4 === */
+/* ---------------------------------------------------- */
+
+/* --- Variables de Color (para fácil mantenimiento) --- */
+:root {
+    --color-primary: #0d47a1;     /* Azul profundo (Main Brand Color) */
+    --color-accent: #ff5722;      /* Naranja/Ámbar (CTA/Highlight) */
+    --color-text-dark: #2d3436;
+    --color-text-light: #7f8c8d;
+    --color-background: #f4f7f9;
+    --color-card-bg: #ffffff;
+    --color-border: #dfe6e9;
+}
+
+.publicar-container-v4 {
+    max-width: 850px; /* Ancho cómodo para formularios */
+    margin: 40px auto;
+    padding: 20px;
+    background: var(--color-background);
+    border-radius: 15px;
+}
+
+.header-publicar-v4 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.title-v4 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--color-text-dark);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.title-v4 i {
+    margin-right: 12px;
+    color: var(--color-accent); /* Naranja para la atención */
+}
+.sub-v4 {
+    color: var(--color-text-light);
+    font-size: 1.1rem;
+}
+
+/* ---------------------------------------------------- */
+/* === TARJETA DE SECCIÓN (PASOS) === */
+/* ---------------------------------------------------- */
+.form-publicar-v4 {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-section-card {
+    background: var(--color-card-bg);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    border-top: 5px solid var(--color-primary); /* Color de acento de marca */
+}
+
+.section-header-v4 {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #ecf0f1;
+    padding-bottom: 15px;
+}
+.section-header-v4 h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+.section-header-v4 h3 i {
+    color: var(--color-primary); /* Iconos de paso en color Primario */
+}
+
+.step-badge {
+    display: inline-block;
+    background: var(--color-primary);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 40px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* ---------------------------------------------------- */
+/* === FORMULARIO Y GRIDS === */
+/* ---------------------------------------------------- */
+.form-grid-2-col-v4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+.form-grid-3-col-v4 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+.grid-full-row-v4 {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+}
+.sub-section-title {
+    font-size: 1.2rem;
+    color: #333;
+    margin: 30px 0 15px;
+    font-weight: 600;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #f1f2f6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sub-section-title i { color: #1dd1a1; } /* Color para las características/extras */
+
+
+/* Inputs y Selects */
+.form-group-v4 label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    color: #555;
+    font-size: 0.95rem;
+}
+.form-group-v4 input, .form-group-v4 select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: 0.2s ease;
+    background-color: #fcfcfc;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+.form-group-v4 input:focus, .form-group-v4 select:focus {
+    border-color: var(--color-primary); 
+    box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.15);
+    outline: none;
+    background-color: white;
+}
+.optional {
+    font-weight: 400;
+    color: #95a5a6;
+    font-size: 0.85rem;
+}
+.owner-info label i {
+    color: #f39c12; /* Icono de usuario en naranja */
+}
+
+
+/* Caracteristicas (Checkboxes) */
+.caracteristicas-grid-v4 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.check-item-v4 {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: #fcfcfc;
+}
+.check-item-v4 input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+}
+.check-item-v4:hover {
+    background: #f1f2f6;
+    border-color: #c8d6e5;
+}
+
+
+/* ---------------------------------------------------- */
+/* === SUBIDA DE IMÁGENES === */
+/* ---------------------------------------------------- */
+.photo-tip {
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+    margin-top: 10px;
+}
+
+.image-upload-area {
+    margin-bottom: 20px;
+}
+.hidden-file-input {
+    display: none;
+}
+.btn-upload-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 25px;
+    background: var(--color-accent); /* Naranja para el botón de subida */
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+    font-size: 1rem;
+    box-shadow: 0 4px 10px rgba(255, 87, 34, 0.3);
+}
+.btn-upload-trigger:hover {
+    background: #e64a19;
+}
+
+.preview-container-v4 {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    border: 2px dashed #c8d6e5;
+    border-radius: 10px;
+    min-height: 150px;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    background: #fafafa;
+}
+.preview-container-v4.has-images {
+    justify-content: flex-start;
+}
+
+.placeholder-v4 {
+    text-align: center;
+    color: #95a5a6;
+    width: 100%;
+    padding: 30px 0;
+}
+.placeholder-v4 i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    color: #c8d6e5;
+}
+
+.preview-img-wrapper {
+    position: relative;
+    width: 150px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.preview-img-v4 {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ---------------------------------------------------- */
+/* === BOTÓN FINAL (CTA) === */
+/* ---------------------------------------------------- */
+.btn-publicar-final-v4 {
+    padding: 15px 30px;
+    background: var(--color-accent); /* Naranja/Ámbar */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.btn-publicar-final-v4:hover {
+    background: #e64a19;
+    transform: translateY(-2px);
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+    .form-grid-2-col-v4, .form-grid-3-col-v4 {
+        grid-template-columns: 1fr;
+    }
+    .caracteristicas-grid-v4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .publicar-container-v4 {
+        margin: 20px auto;
+        padding: 15px;
+    }
+    .title-v4 {
+        font-size: 28px;
+    }
+}

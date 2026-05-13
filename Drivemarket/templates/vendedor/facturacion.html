@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Facturación | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'facturacion' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <div class="db-page-header">
+      <div>
+        <h1><i class="fas fa-file-invoice-dollar" style="color:var(--ok);margin-right:10px;font-size:1.3rem;"></i>Facturación</h1>
+        <p>Historial de ingresos, publicaciones y rendimiento comercial</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="db-btn db-btn-ghost" onclick="window.print()"><i class="fas fa-download"></i> Exportar PDF</button>
+      </div>
+    </div>
+
+    <!-- Revenue summary -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+      <div class="db-card" style="border-left:4px solid #FF6A00;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:var(--pr-l);color:#FF6A00;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;"><i class="fas fa-dollar-sign"></i></div>
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">Ingresos totales</span>
+        </div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--t1);margin-bottom:3px;">${{ "{:,.0f}".format(ingresos_totales|float) }}</div>
+        <div style="font-size:.72rem;color:var(--t3);">Vehículos vendidos</div>
+      </div>
+      <div class="db-card" style="border-left:4px solid #3B82F6;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:var(--bl-l);color:#3B82F6;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;"><i class="fas fa-file-invoice"></i></div>
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">Publicaciones totales</span>
+        </div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--t1);margin-bottom:3px;">{{ facturas_emitidas }}</div>
+        <div style="font-size:.72rem;color:var(--t3);">Activas + vendidas</div>
+      </div>
+      <div class="db-card" style="border-left:4px solid #10B981;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:var(--ok-l);color:#10B981;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;"><i class="fas fa-check-double"></i></div>
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">Vendidos</span>
+        </div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--t1);margin-bottom:3px;">{{ facturas_cobradas }}</div>
+        <div style="font-size:.72rem;color:var(--t3);">Transacciones completadas</div>
+      </div>
+      <div class="db-card" style="border-left:4px solid #F59E0B;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:9px;background:var(--am-l);color:#F59E0B;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;"><i class="fas fa-hourglass-half"></i></div>
+          <span style="font-size:.75rem;font-weight:600;color:var(--t2);">Potencial por cobrar</span>
+        </div>
+        <div style="font-size:1.6rem;font-weight:800;color:var(--t1);margin-bottom:3px;">${{ "{:,.0f}".format(por_cobrar|float) }}</div>
+        <div style="font-size:.72rem;color:var(--t3);">{{ vehiculos_activos_count }} vehículos activos</div>
+      </div>
+    </div>
+
+    <!-- Revenue chart + Plan info -->
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;">
+      <div class="db-card">
+        <div class="db-card-head"><div><h2>Ingresos por mes</h2><p>Último año</p></div></div>
+        <div style="height:250px;"><canvas id="revenueChart"></canvas></div>
+      </div>
+      <div class="db-card">
+        <div class="db-card-head"><div><h2>Resumen</h2><p>Tu actividad comercial</p></div></div>
+        <div style="background:linear-gradient(135deg,var(--pr),var(--pr-d));border-radius:12px;padding:18px;color:#fff;margin-bottom:16px;">
+          <div style="font-size:.7rem;font-weight:700;opacity:.8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Vendedor</div>
+          <div style="font-size:1.3rem;font-weight:800;margin-bottom:4px;">{{ vendedor.nombre_empresa or vendedor.nombre }}</div>
+          <div style="font-size:.82rem;opacity:.85;">
+            {% if estado_verificacion == 'aprobado' %}
+              <i class="fas fa-shield-check"></i> Verificado
+            {% else %}
+              <i class="fas fa-user"></i> {{ estado_verificacion|capitalize if estado_verificacion else 'Sin verificar' }}
+            {% endif %}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          {% for label, val in [
+            ('Publicaciones activas', vehiculos_activos_count),
+            ('Vehículos vendidos', facturas_cobradas),
+            ('Total publicaciones', total_publicaciones)
+          ] %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd-l);">
+            <span style="font-size:.82rem;color:var(--t2);">{{ label }}</span>
+            <span style="font-size:.82rem;font-weight:700;color:var(--t1);">{{ val }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="db-card">
+      <div class="db-card-head">
+        <div><h2>Historial de Transacciones</h2><p>Tus vehículos publicados y vendidos</p></div>
+        <div style="display:flex;gap:8px;">
+          <select id="statusFilter" style="padding:7px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--t1);font-size:.8rem;outline:none;cursor:pointer;">
+            <option value="all">Todos los estados</option>
+            <option value="vendido">Vendido</option>
+            <option value="activo">Activo</option>
+            <option value="pausado">Pausado</option>
+          </select>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              {% for h in ['#ID','Vehículo','Cliente','Fecha','Monto','Estado',''] %}
+              <th style="padding:10px 14px;font-size:.67rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd-l);text-align:left;">{{ h }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody id="txTable">
+            {% if vehiculos_vendidos %}
+            {% for v in vehiculos_vendidos %}
+            <tr style="border-bottom:1px solid var(--bd-l);" data-status="{{ v.estado or 'activo' }}">
+              <td style="padding:13px 14px;font-weight:700;color:var(--bl);font-size:.84rem;">VEH-{{ v.id }}</td>
+              <td style="padding:13px 14px;font-size:.84rem;font-weight:600;color:var(--t1);">{{ v.marca or '' }} {{ v.modelo or '' }} {{ v.anio or '' }}</td>
+              <td style="padding:13px 14px;font-size:.82rem;color:var(--t2);">{{ v.cliente_nombre }}</td>
+              <td style="padding:13px 14px;font-size:.78rem;color:var(--t2);">{{ v.fecha_publicacion.strftime('%d %b %Y') if v.fecha_publicacion else '' }}</td>
+              <td style="padding:13px 14px;font-weight:700;font-size:.84rem;color:var(--t1);">${{ "{:,.0f}".format(v.precio|float) if v.precio else '—' }}</td>
+              <td style="padding:13px 14px;">
+                {% if v.estado == 'vendido' %}<span class="chip chip-green"><i class="fas fa-check" style="font-size:.5rem;"></i> Vendido</span>
+                {% elif v.estado == 'pausado' %}<span class="chip chip-amber"><i class="fas fa-pause" style="font-size:.5rem;"></i> Pausado</span>
+                {% else %}<span class="chip chip-blue"><i class="fas fa-circle" style="font-size:.5rem;"></i> Activo</span>{% endif %}
+              </td>
+              <td style="padding:13px 14px;">
+                <a href="{{ url_for('detalle', id=v.id) }}" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--bd);background:var(--card);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:.75rem;text-decoration:none;" title="Ver detalle"><i class="fas fa-eye"></i></a>
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr><td colspan="7" style="padding:40px;text-align:center;">
+              <div style="color:var(--t3);font-size:.9rem;"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:10px;"></i>No hay transacciones aún.</div>
+            </td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Revenue chart with real data
+  const ipm = {{ ingresos_por_mes | tojson | safe }};
+  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  let chartLabels, chartData;
+  
+  if(ipm && ipm.length > 0) {
+    chartLabels = ipm.map(d => {
+      const parts = d.mes.split('-');
+      return months[parseInt(parts[1])-1] + ' ' + parts[0].slice(2);
+    });
+    chartData = ipm.map(d => d.total / 1000);
+  } else {
+    chartLabels = months;
+    chartData = Array(12).fill(0);
+  }
+  
+  const grad = document.getElementById('revenueChart').getContext('2d').createLinearGradient(0,0,0,250);
+  grad.addColorStop(0,'rgba(16,185,129,.15)');grad.addColorStop(1,'rgba(16,185,129,0)');
+  new Chart(document.getElementById('revenueChart'),{
+    type:'line',
+    data:{labels:chartLabels,
+      datasets:[{label:'Ingresos',data:chartData,
+        borderColor:'#10B981',borderWidth:2.5,backgroundColor:grad,fill:true,tension:.45,
+        pointRadius:4,pointHoverRadius:7,pointBackgroundColor:'#fff',pointBorderColor:'#10B981',pointBorderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{backgroundColor:'rgba(17,24,39,.9)',cornerRadius:10,padding:10,
+        callbacks:{label:c=>'  $'+c.raw.toFixed(1)+'k'}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#9CA3AF',font:{family:'Inter',size:11}}},
+        y:{grid:{color:'#E5E7EB'},ticks:{color:'#9CA3AF',font:{family:'Inter',size:11},callback:v=>'$'+v+'k'},border:{display:false}}}}
+  });
+  
+  // Filter table by status
+  document.getElementById('statusFilter').addEventListener('change', function(){
+    const filter = this.value;
+    document.querySelectorAll('#txTable tr').forEach(row => {
+      if(filter === 'all' || row.dataset.status === filter) row.style.display = '';
+      else row.style.display = 'none';
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

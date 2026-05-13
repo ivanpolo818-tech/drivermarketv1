@@ -1,0 +1,660 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Editar Vehículo · {{ vehiculo.marca_nombre }} {{ vehiculo.modelo_nombre }}{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="{{ url_for('admin.admin_vehiculos') }}">Vehículos</a>
+          <i class="fas fa-chevron-right"></i>
+          <span>{{ vehiculo.marca_nombre }} {{ vehiculo.modelo_nombre }} {{ vehiculo.anio }}</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="unsaved-pill" id="unsavedPill" style="display:none">
+          <i class="fas fa-circle"></i> Sin guardar
+        </div>
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <a href="{{ url_for('detalle', id=vehiculo.id) }}" target="_blank" class="btn-preview">
+          <i class="fas fa-external-link-alt"></i> Ver publicación
+        </a>
+        <a href="{{ url_for('admin.admin_vehiculos') }}" class="btn-back-top">
+          <i class="fas fa-arrow-left"></i> Volver
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas fa-car-side"></i></div>
+        <div>
+          <h1>{{ vehiculo.marca_nombre }} {{ vehiculo.modelo_nombre }} &mdash; {{ vehiculo.anio }}</h1>
+          <p class="subtext">
+            Vehículo ID #{{ vehiculo.id }}
+            &nbsp;·&nbsp;
+            <span class="badge-status st-{{ vehiculo.estado }}">
+              <span class="st-dot"></span>{{ vehiculo.estado|capitalize }}
+            </span>
+          </p>
+        </div>
+        {% if vehiculo.id_usuario %}
+        <div class="heading-right">
+          <a href="{{ url_for('admin.admin_vehiculos_usuario', id=vehiculo.id_usuario) }}" class="chip-link">
+            <i class="fas fa-user"></i> Ver publicaciones del propietario
+          </a>
+        </div>
+        {% endif %}
+      </div>
+      <!-- FLASH -->
+      <!-- FORM -->
+      <form method="POST" enctype="multipart/form-data" id="editForm" novalidate>
+        <div class="form-layout">
+          <!-- LEFT: Image + Status -->
+          <div class="left-col">
+            <!-- Image card -->
+            <div class="panel-card">
+              <div class="panel-hd amber">
+                <i class="fas fa-image"></i>
+                <h3>Imagen del Vehículo</h3>
+              </div>
+              <div class="panel-body">
+                <div class="img-preview-wrap" id="imgWrap">
+                  {% if vehiculo.imagen %}
+                    <img src="{{ url_for('static', filename=vehiculo.imagen) }}"
+                         alt="{{ vehiculo.marca_nombre }}" id="imgPreview" class="img-preview">
+                    <div class="img-overlay">
+                      <i class="fas fa-image"></i>
+                      <span id="imgName">{{ vehiculo.imagen }}</span>
+                    </div>
+                  {% else %}
+                    <div class="no-img-ph" id="noImgPh">
+                      <i class="fas fa-camera"></i>
+                      <p>Sin imagen cargada</p>
+                      <small>Sube una foto del vehículo</small>
+                    </div>
+                  {% endif %}
+                </div>
+                <label class="file-lbl">Cambiar imagen</label>
+                <div class="file-wrap" onclick="document.getElementById('imagen').click()">
+                  <input type="file" id="imagen" name="imagen" accept="image/*" style="display:none" onchange="markDirty();previewImg(this)">
+                  <div class="file-btn">
+                    <i class="fas fa-upload"></i>
+                    <span id="fileNameDisplay">Seleccionar archivo…</span>
+                  </div>
+                </div>
+                <p class="file-hint"><i class="fas fa-info-circle"></i> JPG, PNG o WEBP · Máx. 5 MB. Si no seleccionás ninguno, se conserva la imagen actual.</p>
+              </div>
+            </div>
+            <!-- Status card -->
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-toggle-on"></i>
+                <h3>Estado de Publicación</h3>
+              </div>
+              <div class="panel-body">
+                <!-- Hidden real select -->
+                <select name="estado" id="estadoHidden" style="display:none" required>
+                  <option value="activo"   {% if vehiculo.estado=='activo'   %}selected{% endif %}>Activo</option>
+                  <option value="inactivo" {% if vehiculo.estado=='inactivo' %}selected{% endif %}>Inactivo</option>
+                  <option value="vendido"  {% if vehiculo.estado=='vendido'  %}selected{% endif %}>Vendido</option>
+                </select>
+                <!-- Visual radio cards -->
+                <div class="estado-cards">
+                  <label class="ec ec-green {{ 'ec-active' if vehiculo.estado=='activo' else '' }}">
+                    <input type="radio" name="estado_v" value="activo" {{ 'checked' if vehiculo.estado=='activo' else '' }} onchange="markDirty();syncEstado('activo')">
+                    <i class="fas fa-check-circle"></i>
+                    <div><b>Activo</b><p>Visible en catálogo</p></div>
+                  </label>
+                  <label class="ec ec-gray {{ 'ec-active' if vehiculo.estado=='inactivo' else '' }}">
+                    <input type="radio" name="estado_v" value="inactivo" {{ 'checked' if vehiculo.estado=='inactivo' else '' }} onchange="markDirty();syncEstado('inactivo')">
+                    <i class="fas fa-pause-circle"></i>
+                    <div><b>Inactivo</b><p>Oculto temporalmente</p></div>
+                  </label>
+                  <label class="ec ec-amber {{ 'ec-active' if vehiculo.estado=='vendido' else '' }}">
+                    <input type="radio" name="estado_v" value="vendido" {{ 'checked' if vehiculo.estado=='vendido' else '' }} onchange="markDirty();syncEstado('vendido')">
+                    <i class="fas fa-tag"></i>
+                    <div><b>Vendido</b><p>No disponible</p></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- Quick stats -->
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Resumen</h3>
+              </div>
+              <div class="panel-body">
+                <div class="qs-list">
+                  <div class="qs-row">
+                    <span class="qs-lbl"><i class="fas fa-hashtag"></i> ID Vehículo</span>
+                    <span class="qs-val">#{{ vehiculo.id }}</span>
+                  </div>
+                  <div class="qs-row">
+                    <span class="qs-lbl"><i class="fas fa-calendar-alt"></i> Publicado</span>
+                    <span class="qs-val">{{ vehiculo.fecha_publicacion|default('N/A') }}</span>
+                  </div>
+                  <div class="qs-row">
+                    <span class="qs-lbl"><i class="fas fa-eye"></i> Vistas</span>
+                    <span class="qs-val">{{ vehiculo.vistas|default('—') }}</span>
+                  </div>
+                  <div class="qs-row">
+                    <span class="qs-lbl"><i class="fas fa-heart"></i> Favoritos</span>
+                    <span class="qs-val">{{ vehiculo.favoritos|default('—') }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- /left-col -->
+          <!-- RIGHT: Form fields -->
+          <div class="right-col">
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-edit"></i>
+                <h3>Datos del Vehículo</h3>
+              </div>
+              <div class="panel-body">
+                <!-- Identification -->
+                <div class="fsec">
+                  <div class="fsec-hd">
+                    <span class="fsec-chip">01</span>
+                    <h4>Identificación</h4>
+                  </div>
+                  <div class="fgrid cols2">
+                    <div class="fg">
+                      <label for="id_marca">Marca <span class="req">*</span></label>
+                      <div class="iw iw-sel">
+                        <i class="fas fa-copyright"></i>
+                        <select id="id_marca" name="id_marca" required class="sel" onchange="markDirty()">
+                          <option value="">Seleccioná una marca</option>
+                          {% for marca in marcas %}
+                          <option value="{{ marca.id }}" {{ 'selected' if marca.id == vehiculo.id_marca else '' }}>{{ marca.nombre }}</option>
+                          {% endfor %}
+                        </select>
+                        <i class="fas fa-chevron-down sel-arrow"></i>
+                      </div>
+                    </div>
+                    <div class="fg">
+                      <label for="id_modelo">Modelo <span class="req">*</span></label>
+                      <div class="iw iw-sel">
+                        <i class="fas fa-car"></i>
+                        <select id="id_modelo" name="id_modelo" required class="sel" onchange="markDirty()">
+                          <option value="">Seleccioná un modelo</option>
+                          {% for modelo in modelos %}
+                          <option value="{{ modelo.id }}" data-marca-id="{{ modelo.id_marca }}"
+                            {{ 'selected' if modelo.id == vehiculo.id_modelo else '' }}>{{ modelo.nombre }}</option>
+                          {% endfor %}
+                        </select>
+                        <i class="fas fa-chevron-down sel-arrow"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="fgrid" style="margin-top:.9rem;">
+                    <div class="fg">
+                      <label for="version">Versión / Acabado</label>
+                      <div class="iw">
+                        <i class="fas fa-layer-group"></i>
+                        <input type="text" id="version" name="version"
+                               value="{{ vehiculo.version }}"
+                               placeholder="Ej. Sport, Premium, Turbo…"
+                               oninput="markDirty()">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Technical -->
+                <div class="fsec">
+                  <div class="fsec-hd">
+                    <span class="fsec-chip">02</span>
+                    <h4>Detalles Técnicos</h4>
+                  </div>
+                  <div class="fgrid cols3">
+                    <div class="fg">
+                      <label for="anio">Año <span class="req">*</span></label>
+                      <div class="iw">
+                        <i class="fas fa-calendar"></i>
+                        <input type="number" id="anio" name="anio"
+                               value="{{ vehiculo.anio }}" min="1900" max="2030"
+                               required placeholder="2024" oninput="markDirty()">
+                      </div>
+                    </div>
+                    <div class="fg">
+                      <label for="kilometraje">Kilometraje <span class="req">*</span></label>
+                      <div class="iw">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <input type="number" id="kilometraje" name="kilometraje"
+                               value="{{ vehiculo.kilometraje }}" min="0"
+                               required placeholder="0" oninput="markDirty();formatKm()">
+                      </div>
+                      <small class="field-hint" id="kmHint"></small>
+                    </div>
+                    <div class="fg">
+                      <label for="precio">Precio (USD) <span class="req">*</span></label>
+                      <div class="iw">
+                        <i class="fas fa-dollar-sign"></i>
+                        <input type="number" step="0.01" id="precio" name="precio"
+                               value="{{ vehiculo.precio }}" min="0"
+                               required placeholder="0.00" oninput="markDirty();formatPrice()">
+                      </div>
+                      <small class="field-hint" id="priceHint"></small>
+                    </div>
+                  </div>
+                </div>
+                <div class="fsec">
+                  <div class="fsec-hd">
+                    <span class="fsec-chip">03</span>
+                    <h4>Ficha Mecánica</h4>
+                  </div>
+                  <div class="fgrid cols3">
+                    <div class="fg">
+                      <label for="transmision">Transmisión</label>
+                      <div class="iw iw-sel">
+                        <i class="fas fa-cogs"></i>
+                        <select id="transmision" name="transmision" class="sel" onchange="markDirty()">
+                          <option value="">Sin especificar</option>
+                          <option value="Automática" {{ 'selected' if vehiculo.transmision == 'Automática' }}>Automática</option>
+                          <option value="Manual" {{ 'selected' if vehiculo.transmision == 'Manual' }}>Manual</option>
+                        </select>
+                        <i class="fas fa-chevron-down sel-arrow"></i>
+                      </div>
+                    </div>
+                    <div class="fg">
+                      <label for="combustible">Combustible</label>
+                      <div class="iw iw-sel">
+                        <i class="fas fa-gas-pump"></i>
+                        <select id="combustible" name="combustible" class="sel" onchange="markDirty()">
+                          <option value="">Sin especificar</option>
+                          <option value="Gasolina" {{ 'selected' if vehiculo.combustible == 'Gasolina' }}>Gasolina</option>
+                          <option value="Diésel" {{ 'selected' if vehiculo.combustible == 'Diésel' }}>Diésel</option>
+                          <option value="Híbrido" {{ 'selected' if vehiculo.combustible == 'Híbrido' }}>Híbrido</option>
+                          <option value="Eléctrico" {{ 'selected' if vehiculo.combustible == 'Eléctrico' }}>Eléctrico</option>
+                          <option value="Gas" {{ 'selected' if vehiculo.combustible == 'Gas' }}>Gas Natural</option>
+                        </select>
+                        <i class="fas fa-chevron-down sel-arrow"></i>
+                      </div>
+                    </div>
+                    <div class="fg">
+                      <label for="motor">Motor (CC / L)</label>
+                      <div class="iw">
+                        <i class="fas fa-dharmachakra"></i>
+                        <input type="text" id="motor" name="motor"
+                               value="{{ vehiculo.motor or '' }}"
+                               placeholder="Ej: 1600cc, 2.0L"
+                               oninput="markDirty()">
+                      </div>
+                    </div>
+                    <div class="fg">
+                      <label for="traccion">Tracción</label>
+                      <div class="iw iw-sel">
+                        <i class="fas fa-truck-pickup"></i>
+                        <select id="traccion" name="traccion" class="sel" onchange="markDirty()">
+                          <option value="">Sin especificar</option>
+                          <option value="4x2" {{ 'selected' if vehiculo.traccion == '4x2' }}>4x2 (FWD/RWD)</option>
+                          <option value="4x4" {{ 'selected' if vehiculo.traccion == '4x4' }}>4x4 / AWD</option>
+                        </select>
+                        <i class="fas fa-chevron-down sel-arrow"></i>
+                      </div>
+                    </div>
+                    <div class="fg">
+                      <label for="puertas">Núm. Puertas</label>
+                      <div class="iw iw-sel">
+                        <i class="fas fa-door-open"></i>
+                        <select id="puertas" name="puertas" class="sel" onchange="markDirty()">
+                          <option value="">Sin especificar</option>
+                          <option value="2" {{ 'selected' if vehiculo.puertas|string == '2' }}>2 Puertas</option>
+                          <option value="3" {{ 'selected' if vehiculo.puertas|string == '3' }}>3 Puertas</option>
+                          <option value="4" {{ 'selected' if vehiculo.puertas|string == '4' }}>4 Puertas</option>
+                          <option value="5" {{ 'selected' if vehiculo.puertas|string == '5' }}>5 Puertas</option>
+                        </select>
+                        <i class="fas fa-chevron-down sel-arrow"></i>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Description -->
+                <div class="fsec">
+                  <div class="fsec-hd">
+                    <span class="fsec-chip">04</span>
+                    <h4>Descripción</h4>
+                  </div>
+                  <div class="fg">
+                    <label for="descripcion">Descripción del vehículo</label>
+                    <div class="iw iw-ta">
+                      <textarea id="descripcion" name="descripcion" rows="5"
+                                placeholder="Describí el estado, equipamiento, historial…"
+                                oninput="markDirty();updateCharCount()">{{ vehiculo.descripcion }}</textarea>
+                    </div>
+                    <div class="char-row">
+                      <small class="field-hint">Mejor descripción = más consultas de compradores.</small>
+                      <span class="char-count" id="charCount">0 caracteres</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Form footer -->
+                <div class="form-foot">
+                  <a href="{{ url_for('admin.admin_vehiculos') }}" class="btn-cancel" id="cancelBtn">
+                    <i class="fas fa-times"></i> Cancelar
+                  </a>
+                  <button type="button" class="btn-discard" onclick="discardChanges()">
+                    <i class="fas fa-undo"></i> Descartar
+                  </button>
+                  <button type="submit" class="btn-save" id="saveBtn">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                  </button>
+                </div>
+              </div><!-- /panel-body -->
+            </div><!-- /panel-card -->
+          </div><!-- /right-col -->
+        </div><!-- /form-layout -->
+      </form>
+    </div><!-- /page-content -->
+  </main>
+</div>
+<div class="toast-cont" id="toastCont"></div>
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e5e7eb;--text:#0f172a;--text2:#64748b;
+  --primary:#6366f1;--primary2:#a855f7;
+  --amber:#f59e0b;--amber2:#d97706;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#162032;
+  --border:#334155;--text:#f1f5f9;--text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.unsaved-pill{display:flex;align-items:center;gap:.35rem;padding:.3rem .8rem;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:8px;color:#d97706;font-size:.75rem;font-weight:700;animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.55;}}
+.unsaved-pill i{font-size:.5rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-preview{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.22);color:#0891b2;border-radius:10px;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-preview:hover{background:#06b6d4;color:#fff;}
+.btn-back-top{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-back-top:hover{border-color:var(--primary);color:var(--primary);}
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.4rem;}
+.page-heading{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+.page-heading h1{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;}
+.subtext{color:var(--text2);font-size:.83rem;margin-top:.2rem;display:flex;align-items:center;gap:.6rem;}
+.heading-icon{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--amber),var(--amber2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;flex-shrink:0;box-shadow:0 5px 14px rgba(245,158,11,.3);}
+.heading-right{margin-left:auto;}
+.chip-link{display:flex;align-items:center;gap:.4rem;padding:.4rem .9rem;background:color-mix(in srgb,var(--primary) 8%,transparent);border:1px solid color-mix(in srgb,var(--primary) 20%,transparent);color:var(--primary);border-radius:20px;font-size:.77rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.chip-link:hover{background:var(--primary);color:#fff;}
+.flash{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:600;}
+.flash-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#059669;}
+.flash-danger,.flash-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+.flash-close{margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;opacity:.6;}
+/* Badge status */
+.badge-status{display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .7rem;border-radius:20px;font-size:.73rem;font-weight:700;}
+.st-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.st-activo{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.st-activo .st-dot{background:#10b981;}
+.st-inactivo{background:rgba(107,114,128,.12);color:#6b7280;border:1px solid rgba(107,114,128,.2);}
+.st-inactivo .st-dot{background:#6b7280;}
+.st-vendido{background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.st-vendido .st-dot{background:#f59e0b;}
+/* Layout */
+.form-layout{display:grid;grid-template-columns:310px 1fr;gap:1.3rem;align-items:start;}
+.left-col,.right-col{display:flex;flex-direction:column;gap:1.3rem;}
+/* Panels */
+.panel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.panel-hd{display:flex;align-items:center;gap:.65rem;padding:1rem 1.3rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+.panel-hd.amber{background:color-mix(in srgb,var(--amber) 6%,transparent);}
+.panel-hd.amber i{color:var(--amber);}
+.panel-hd i{color:var(--primary);font-size:.95rem;}
+.panel-hd h3{font-size:.9rem;font-weight:700;}
+.panel-body{padding:1.3rem;}
+/* Image preview */
+.img-preview-wrap{border:2px dashed var(--border);border-radius:11px;overflow:hidden;min-height:200px;display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:1rem;transition:border-color .2s;background:var(--surface2);}
+.img-preview-wrap:hover{border-color:var(--amber);}
+.img-preview{width:100%;height:220px;object-fit:cover;display:block;}
+.img-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.6));padding:.7rem .9rem;display:flex;align-items:center;gap:.4rem;}
+.img-overlay i{color:rgba(255,255,255,.7);font-size:.8rem;}
+.img-overlay span{font-size:.75rem;color:rgba(255,255,255,.85);word-break:break-all;}
+.no-img-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem;text-align:center;gap:.5rem;}
+.no-img-ph i{font-size:3rem;opacity:.25;}
+.no-img-ph p{font-size:.85rem;color:var(--text2);}
+.no-img-ph small{font-size:.75rem;color:var(--text2);opacity:.7;}
+.file-lbl{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:.45rem;display:block;}
+.file-wrap{cursor:pointer;}
+.file-btn{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;border:2px dashed color-mix(in srgb,var(--amber) 50%,transparent);border-radius:10px;background:color-mix(in srgb,var(--amber) 8%,transparent);color:var(--amber2);font-size:.83rem;font-weight:600;transition:background .2s;}
+.file-btn:hover{background:color-mix(in srgb,var(--amber) 14%,transparent);}
+.file-hint{font-size:.73rem;color:var(--text2);margin-top:.5rem;display:flex;align-items:flex-start;gap:.35rem;line-height:1.4;}
+.file-hint i{font-size:.7rem;margin-top:.1rem;flex-shrink:0;color:var(--primary);}
+/* Estado cards */
+.estado-cards{display:flex;flex-direction:column;gap:.55rem;}
+.ec{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .22s;background:var(--surface2);}
+.ec input[type="radio"]{display:none;}
+.ec > i{font-size:1.1rem;flex-shrink:0;transition:color .22s;}
+.ec > div b{font-size:.83rem;font-weight:700;display:block;}
+.ec > div p{font-size:.72rem;color:var(--text2);margin-top:.1rem;}
+.ec-green > i{color:#10b981;}
+.ec-gray > i{color:#9ca3af;}
+.ec-amber > i{color:#f59e0b;}
+.ec-active.ec-green{border-color:#10b981;background:rgba(16,185,129,.07);box-shadow:0 0 0 3px rgba(16,185,129,.1);}
+.ec-active.ec-gray{border-color:#6b7280;background:rgba(107,114,128,.07);box-shadow:0 0 0 3px rgba(107,114,128,.1);}
+.ec-active.ec-amber{border-color:#f59e0b;background:rgba(245,158,11,.07);box-shadow:0 0 0 3px rgba(245,158,11,.1);}
+.ec:hover{border-color:var(--primary);}
+/* Quick stats */
+.qs-list{display:flex;flex-direction:column;gap:.55rem;}
+.qs-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);}
+.qs-row:last-child{border-bottom:none;}
+.qs-lbl{font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:.4rem;}
+.qs-lbl i{font-size:.72rem;color:var(--primary);}
+.qs-val{font-size:.82rem;font-weight:700;}
+/* Form sections */
+.fsec{margin-bottom:1.6rem;padding-bottom:1.6rem;border-bottom:1px solid var(--border);}
+.fsec:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.fsec-hd{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;}
+.fsec-hd h4{font-size:.88rem;font-weight:700;}
+.fsec-chip{background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);font-size:.65rem;font-weight:800;padding:.22rem .55rem;border-radius:6px;}
+.fgrid{display:grid;gap:.9rem;}
+.fgrid.cols2{grid-template-columns:1fr 1fr;}
+.fgrid.cols3{grid-template-columns:1fr 1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;font-weight:600;color:var(--text2);}
+.req{color:#ef4444;}
+/* Input wrapper */
+.iw{position:relative;display:flex;align-items:center;}
+.iw > i:first-child{position:absolute;left:.85rem;color:var(--text2);font-size:.82rem;pointer-events:none;z-index:1;}
+.iw input{width:100%;padding:.63rem .85rem .63rem 2.35rem;border:1.5px solid var(--border);border-radius:10px;font-size:.86rem;color:var(--text);background:var(--surface);transition:all .2s;outline:none;}
+.iw input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.iw input:valid:not(:placeholder-shown){border-color:#10b981;}
+.iw-sel{position:relative;}
+.sel{width:100%;padding:.63rem 2.2rem .63rem 2.35rem;border:1.5px solid var(--border);border-radius:10px;font-size:.86rem;color:var(--text);background:var(--surface);outline:none;appearance:none;cursor:pointer;transition:all .2s;}
+.sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.sel-arrow{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);font-size:.65rem;color:var(--text2);pointer-events:none;}
+.iw-ta textarea{width:100%;padding:.65rem .85rem;border:1.5px solid var(--border);border-radius:10px;font-size:.86rem;color:var(--text);background:var(--surface);outline:none;resize:vertical;min-height:110px;transition:all .2s;line-height:1.6;}
+.iw-ta textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.field-hint{font-size:.72rem;color:var(--text2);line-height:1.4;}
+.char-row{display:flex;align-items:center;justify-content:space-between;margin-top:.3rem;}
+.char-count{font-size:.72rem;font-weight:600;color:var(--text2);}
+/* Form footer */
+.form-foot{display:flex;align-items:center;justify-content:flex-end;gap:.7rem;padding-top:1.3rem;border-top:1px solid var(--border);margin-top:1.6rem;}
+.btn-cancel{display:flex;align-items:center;gap:.4rem;padding:.6rem 1.1rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-cancel:hover{border-color:#ef4444;color:#ef4444;}
+.btn-discard{display:flex;align-items:center;gap:.4rem;padding:.6rem 1.1rem;background:none;border:1px solid var(--border);border-radius:10px;font-size:.83rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;}
+.btn-discard:hover{border-color:var(--primary);color:var(--primary);}
+.btn-save{display:flex;align-items:center;gap:.5rem;padding:.65rem 1.6rem;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(16,185,129,.3);transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,185,129,.4);}
+.btn-save.dirty{animation:savePulse 2s ease-in-out infinite;}
+@keyframes savePulse{0%,100%{box-shadow:0 4px 12px rgba(16,185,129,.3);}50%{box-shadow:0 4px 22px rgba(16,185,129,.65);}}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@media(max-width:1100px){.form-layout{grid-template-columns:1fr;}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .fgrid.cols2,.fgrid.cols3{grid-template-columns:1fr;}
+}
+</style>
+<script>
+/* Theme */
+var ROOT=document.getElementById('adminRoot');
+var savedTheme=localStorage.getItem('adminTheme')||'light';
+if(savedTheme==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  var dark=ROOT.getAttribute('data-theme')==='dark';var next=dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Dirty state */
+var isDirty=false;
+function markDirty(){
+  if(!isDirty){
+    isDirty=true;
+    document.getElementById('unsavedPill').style.display='flex';
+    document.getElementById('saveBtn').classList.add('dirty');
+  }
+}
+function discardChanges(){
+  if(!isDirty){showToast('Sin cambios que descartar','#64748b');return;}
+  document.getElementById('editForm').reset();
+  isDirty=false;
+  document.getElementById('unsavedPill').style.display='none';
+  document.getElementById('saveBtn').classList.remove('dirty');
+  document.getElementById('strengthFill') && (document.getElementById('strengthFill').style.width='0');
+  // reset estado cards
+  document.querySelectorAll('.ec').forEach(function(c){c.classList.remove('ec-active');});
+  var initialEstado='{{ vehiculo.estado }}';
+  var ecMap={activo:'ec-green',inactivo:'ec-gray',vendido:'ec-amber'};
+  document.querySelectorAll('.ec').forEach(function(c){
+    if(c.classList.contains(ecMap[initialEstado]))c.classList.add('ec-active');
+  });
+  updateCharCount();
+  formatPrice();
+  formatKm();
+  showToast('Cambios descartados','#f59e0b');
+}
+window.addEventListener('beforeunload',function(e){if(isDirty){e.preventDefault();e.returnValue='';}});
+document.getElementById('editForm').addEventListener('submit',function(){isDirty=false;});
+/* Estado cards click */
+document.querySelectorAll('.ec').forEach(function(card){
+  card.addEventListener('click',function(){
+    document.querySelectorAll('.ec').forEach(function(c){c.classList.remove('ec-active');});
+    card.classList.add('ec-active');
+    var radio=card.querySelector('input[type="radio"]');
+    radio.checked=true;
+    document.getElementById('estadoHidden').value=radio.value;
+    markDirty();
+  });
+});
+function syncEstado(val){document.getElementById('estadoHidden').value=val;}
+/* Marca → Modelo filter */
+(function(){
+  var marcaSel=document.getElementById('id_marca');
+  var modeloSel=document.getElementById('id_modelo');
+  var allModelos=Array.from(modeloSel.options).slice(1);
+  var initialModelo='{{ vehiculo.id_modelo }}';
+  function filtrar(){
+    var marcaId=marcaSel.value;
+    modeloSel.innerHTML='<option value="">Seleccioná un modelo</option>';
+    if(!marcaId)return;
+    allModelos.forEach(function(opt){
+      if(opt.dataset.marcaId===marcaId){modeloSel.appendChild(opt.cloneNode(true));}
+    });
+    var m=modeloSel.querySelector('option[value="'+initialModelo+'"]');
+    if(m) modeloSel.value=initialModelo;
+  }
+  marcaSel.addEventListener('change',filtrar);
+  filtrar();
+})();
+/* Image preview */
+function previewImg(input){
+  var file=input.files[0];
+  if(!file)return;
+  document.getElementById('fileNameDisplay').textContent=file.name;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var wrap=document.getElementById('imgWrap');
+    wrap.innerHTML='<img src="'+e.target.result+'" class="img-preview"><div class="img-overlay"><i class="fas fa-image"></i><span>'+file.name+'</span></div>';
+  };
+  reader.readAsDataURL(file);
+}
+/* Price & km hints */
+function formatPrice(){
+  var val=parseFloat(document.getElementById('precio').value)||0;
+  document.getElementById('priceHint').textContent=val>0?'→ USD '+val.toLocaleString('en-US',{minimumFractionDigits:0}):'';
+}
+function formatKm(){
+  var val=parseInt(document.getElementById('kilometraje').value)||0;
+  document.getElementById('kmHint').textContent=val>0?'→ '+val.toLocaleString('es-AR')+' km':'';
+}
+/* Char count */
+function updateCharCount(){
+  var ta=document.getElementById('descripcion');
+  var len=ta.value.length;
+  var el=document.getElementById('charCount');
+  el.textContent=len+' carácter'+(len!==1?'es':'');
+  el.style.color=len>800?'#ef4444':len>400?'#f59e0b':'var(--text2)';
+}
+/* Toast */
+function showToast(msg,color){
+  color=color||'#6366f1';
+  var t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(function(){t.remove();},3500);
+}
+/* Init */
+updateCharCount();
+formatPrice();
+formatKm();
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

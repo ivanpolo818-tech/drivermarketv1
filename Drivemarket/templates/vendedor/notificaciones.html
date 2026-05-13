@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Notificaciones | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.notif-item { display:flex;gap:14px;padding:16px 20px;border-bottom:1px solid var(--bd-l);transition:background .15s;cursor:pointer;position:relative; }
+.notif-item:hover { background:var(--bd-l); }
+.notif-item.unread { background:var(--pr-l); }
+.notif-item.unread::before { content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--pr);border-radius:0 3px 3px 0; }
+.notif-item:last-child { border-bottom:none; }
+.notif-icon { width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0; }
+.notif-title { font-size:.85rem;font-weight:700;color:var(--t1);margin-bottom:3px; }
+.notif-desc { font-size:.78rem;color:var(--t2);line-height:1.4; }
+.notif-time { font-size:.68rem;color:var(--t3);margin-top:4px;display:flex;align-items:center;gap:4px; }
+.notif-mark { margin-left:auto;font-size:.7rem;font-weight:700;color:var(--pr);cursor:pointer;flex-shrink:0;padding:4px 8px;border-radius:6px;transition:background .15s; }
+.notif-mark:hover { background:var(--pr-l); }
+</style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'notificaciones' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <div class="db-page-header">
+      <div>
+        <h1><i class="far fa-bell" style="color:var(--am);margin-right:10px;font-size:1.3rem;"></i>Notificaciones</h1>
+        <p>Mantente al día con la actividad de tu negocio</p>
+      </div>
+      <button class="db-btn db-btn-ghost" onclick="markAllRead()"><i class="fas fa-check-double"></i> Marcar todo como leído</button>
+    </div>
+
+    <!-- Summary -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      {% for icon, label, val, color, bg in [
+        ('fa-bell','Sin leer', total_no_leidas|default(0),'#FF6A00','var(--pr-l)'),
+        ('fa-comments','Total notificaciones', notificaciones|length if notificaciones else 0,'#3B82F6','var(--bl-l)'),
+        ('fa-envelope','Mensajes no leídos', mensajes_no_leidos|default(0),'#10B981','var(--ok-l)'),
+        ('fa-car-side','Tus vehículos', total_vehiculos|default(0),'#F59E0B','var(--am-l)')
+      ] %}
+      <div class="db-card" style="padding:16px;display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:{{bg}};color:{{color}};display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0;"><i class="fas {{icon}}"></i></div>
+        <div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--t1);">{{val}}</div>
+          <div style="font-size:.72rem;color:var(--t2);font-weight:500;">{{label}}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Filter + Notification List -->
+    <div class="db-card" style="padding:0;overflow:hidden;">
+      <!-- Filters header -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--bd-l);display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:.85rem;font-weight:700;color:var(--t1);margin-right:4px;">Filtrar:</span>
+        {% for f, label in [('all','Todas'),('mensaje','Mensajes'),('vista','Vistas'),('consulta','Consultas'),('sistema','Sistema')] %}
+        <button class="nf-btn" data-filter="{{f}}" onclick="filterNotifs(this,'{{f}}')"
+          style="padding:5px 14px;border-radius:7px;border:1px solid {% if f=='all' %}var(--pr){% else %}var(--bd){% endif %};background:{% if f=='all' %}var(--pr){% else %}var(--card){% endif %};color:{% if f=='all' %}#fff{% else %}var(--t2){% endif %};font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;">
+          {{label}}
+        </button>
+        {% endfor %}
+      </div>
+
+      <!-- Items -->
+      <div id="notifList">
+        {% if notificaciones %}
+        {% set icon_map = {'mensaje':'fa-comment-dots','consulta':'fa-comments','vista':'fa-eye','favorito':'fa-heart','resena':'fa-star','sistema':'fa-bell'} %}
+        {% set color_map = {'mensaje':'#3B82F6','consulta':'#8B5CF6','vista':'#10B981','favorito':'#EF4444','resena':'#F59E0B','sistema':'#6B7280'} %}
+        {% set bg_map = {'mensaje':'var(--bl-l)','consulta':'var(--vi-l)','vista':'var(--ok-l)','favorito':'var(--er-l)','resena':'var(--am-l)','sistema':'var(--bd-l)'} %}
+        {% for n in notificaciones %}
+        {% set tipo = n.tipo or 'sistema' %}
+        <div class="notif-item {% if not n.leida %}unread{% endif %}" data-type="{{ tipo }}" id="notif_{{ n.id }}">
+          <div class="notif-icon" style="background:{{ bg_map.get(tipo, 'var(--bd-l)') }};color:{{ color_map.get(tipo, '#6B7280') }};">
+            <i class="fas {{ icon_map.get(tipo, 'fa-bell') }}"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="notif-title">{{ n.titulo or 'Notificación' }}</div>
+            <div class="notif-desc">{{ n.mensaje or '' }}</div>
+            <div class="notif-time"><i class="far fa-clock"></i> {{ n.fecha_creacion.strftime('%d %b %Y, %H:%M') if n.fecha_creacion else '' }}</div>
+          </div>
+          {% if not n.leida %}
+          <span class="notif-mark" onclick="markRead(this, {{ n.id }})">Marcar leído</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="padding:60px 20px;text-align:center;color:var(--t3);">
+          <i class="far fa-bell" style="font-size:3rem;display:block;margin-bottom:12px;"></i>
+          <p style="font-size:.9rem;font-weight:500;">No tienes notificaciones todavía.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+function filterNotifs(btn, filter){
+  document.querySelectorAll('.nf-btn').forEach(b => { b.style.background='var(--card)'; b.style.color='var(--t2)'; b.style.borderColor='var(--bd)'; });
+  btn.style.background='var(--pr)'; btn.style.color='#fff'; btn.style.borderColor='var(--pr)';
+  document.querySelectorAll('.notif-item').forEach(item => {
+    item.style.display = (filter==='all' || item.dataset.type===filter) ? '' : 'none';
+  });
+}
+function markRead(span, notifId){
+  event.stopPropagation();
+  fetch(`/marcar-notificacion-leida/${notifId}`, {method:'POST', headers:{'Content-Type':'application/json'}})
+    .then(r=>r.json()).then(data=>{
+      if(data.success){
+        const item = span.closest('.notif-item');
+        if(item){ item.classList.remove('unread'); }
+        span.remove();
+      }
+    });
+}
+function markAllRead(){
+  document.querySelectorAll('.notif-item.unread').forEach(item => {
+    const notifId = item.id.replace('notif_','');
+    fetch(`/marcar-notificacion-leida/${notifId}`, {method:'POST', headers:{'Content-Type':'application/json'}});
+    item.classList.remove('unread');
+  });
+  document.querySelectorAll('.notif-mark').forEach(s => s.remove());
+}
+// Auto scroll to bottom on load
+document.addEventListener('DOMContentLoaded', () => {
+  const chat = document.getElementById('chatMessages');
+  if(chat) chat.scrollTop = chat.scrollHeight;
+});
+</script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

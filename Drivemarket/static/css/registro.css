@@ -1,0 +1,223 @@
+/* ================================================= */
+/* Variables y Estilos Base */
+/* ================================================= */
+:root {
+    --color-primary: #0d47a1;     /* Azul profundo / Drive Market Primary */
+    --color-accent: #ff5722;      /* Naranja / Botones */
+    --color-bg-dark: #123e71;     /* Degradado Oscuro */
+    --color-text-dark: #2c3e50;
+    --color-text-light: #6c757d;
+    --card-bg: #ffffff;
+    --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* ================================================= */
+/* 🌟 SECCIÓN PRINCIPAL */
+/* ================================================= */
+.registro-seccion {
+    /* Mismo fondo atractivo que el Login */
+    background: linear-gradient(135deg, var(--color-bg-dark) 0%, var(--color-primary) 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* Centrado completo del contenido */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Mayor altura para acomodar el formulario largo */
+    min-height: 100vh; 
+    padding: 30px;
+}
+
+/* ================================================= */
+/* 💳 TARJETA DE REGISTRO (CARD) */
+/* ================================================= */
+.registro-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 500px; /* Un poco más de ancho para formularios largos */
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-heavy);
+}
+
+.card-title {
+    color: var(--color-primary);
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.card-subtitle {
+    color: var(--color-text-light);
+    font-size: 16px;
+    margin-bottom: 30px;
+}
+
+/* ================================================= */
+/* 📝 FORMULARIO E INPUTS */
+/* ================================================= */
+
+/* Grid para campos dobles (Nombre, Apellidos, Teléfono, Usuario) */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 15px 15px 15px 45px; /* Padding a la izquierda para el icono */
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    color: var(--color-text-dark);
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
+}
+
+.input-group input:focus {
+    border-color: var(--color-accent);
+    background-color: var(--card-bg);
+    box-shadow: 0 0 8px rgba(255, 87, 34, 0.2);
+    outline: none;
+}
+
+.input-group .icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-light);
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+.input-group input:focus + .icon {
+    color: var(--color-accent);
+}
+
+/* ================================================= */
+/* 🔑 BOTÓN DE REGISTRO CTA */
+/* ================================================= */
+
+.btn-registrar {
+    /* Degradado de Login, pero con un color acento más marcado para el registro */
+    background: linear-gradient(90deg, var(--color-accent) 0%, #ff4081 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-weight: 700;
+    font-size: 18px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 5px 15px rgba(255, 87, 34, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.btn-registrar:hover {
+    background: linear-gradient(90deg, #ff4081 0%, var(--color-accent) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 87, 34, 0.6);
+}
+
+
+/* 🔹 Separador */
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 30px 0;
+}
+
+.divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+.divider-text {
+    padding: 0 15px;
+    font-size: 14px;
+    color: var(--color-text-light);
+    font-weight: 500;
+}
+
+/* 🔹 Botón Google (Mantenido igual al Login para coherencia) */
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    background: var(--card-bg);
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    color: var(--color-text-dark);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+}
+
+.btn-google img {
+    width: 24px;
+    height: 24px;
+}
+
+.btn-google:hover {
+    background: #f0f0f0;
+    transform: scale(1.01);
+    border-color: #ccc;
+}
+
+/* 🔹 Enlace de Login */
+.login-link {
+    font-size: 15px;
+    color: var(--color-text-light);
+}
+
+.login-link-cta {
+    color: var(--color-primary);
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.login-link-cta:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+/* 📱 Responsive Design */
+@media (max-width: 600px) {
+    .registro-card {
+        padding: 30px 20px;
+    }
+    .form-grid {
+        grid-template-columns: 1fr; /* Una columna en móviles */
+        gap: 0;
+    }
+    .input-group {
+        margin-bottom: 15px;
+    }
+    .card-title {
+        font-size: 24px;
+    }
+}

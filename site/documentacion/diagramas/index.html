@@ -1,0 +1,1878 @@
+
+<!doctype html>
+<html lang="es" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Manual técnico completo para desarrolladores de la plataforma Drivemarket">
+      
+      
+        <meta name="author" content="Equipo Técnico Drivemarket">
+      
+      
+        <link rel="canonical" href="https://drivemarket-docs.example.com/documentacion/diagramas/">
+      
+      
+        <link rel="prev" href="../manual-tecnico/">
+      
+      
+        <link rel="next" href="../referencia-rapida/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Diagramas - Documentación Técnica</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-XXXXXXXXXX"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-XXXXXXXXXX",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#1-diagrama-entidad-relacion-er-modelo-de-datos" class="md-skip">
+          Saltar a contenido
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabecera">
+    <a href="../.." title="Documentación Técnica" class="md-header__button md-logo" aria-label="Documentación Técnica" data-md-component="logo">
+      <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -1px; margin-right: 0.25rem;">
+  <span style="color: currentColor;">DRIVE</span><span style="color: #ea580c;">MARKET</span>
+</span>
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Documentación Técnica
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Diagramas
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="orange"  aria-label="Cambiar a modo oscuro"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo oscuro" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="orange"  aria-label="Cambiar a modo claro"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Cambiar a modo claro" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Búsqueda" placeholder="Búsqueda" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Buscar">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Compartir" aria-label="Compartir" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Limpiar" aria-label="Limpiar" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando búsqueda
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/drivemarket/drivemarket" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    drivemarket/drivemarket
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Pestañas" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Inicio
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../inicio/bienvenida/" class="md-tabs__link">
+          
+  
+  
+  Inicio rápido
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Documentación
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../referencia/resumen/" class="md-tabs__link">
+          
+  
+  
+  Referencias
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navegación" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Documentación Técnica" class="md-nav__button md-logo" aria-label="Documentación Técnica" data-md-component="logo">
+      <span style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 900; letter-spacing: -1px; margin-right: 0.25rem;">
+  <span style="color: currentColor;">DRIVE</span><span style="color: #ea580c;">MARKET</span>
+</span>
+    </a>
+    Documentación Técnica
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/drivemarket/drivemarket" title="Ir al repositorio" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    drivemarket/drivemarket
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inicio rápido
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inicio rápido
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/bienvenida/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bienvenida
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/primeros-pasos/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Primeros pasos
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/guia-ejecucion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guía de ejecución
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/LEETE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lectura recomendada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../inicio/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación local
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Documentación
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice de documentación
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../manual-tecnico/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manual técnico
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagramas
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagramas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Tabla de contenidos">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Tabla de contenidos
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-diagrama-entidad-relacion-er-modelo-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Diagrama Entidad-Relación (ER) - Modelo de Datos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-flujo-de-casos-de-uso" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Flujo de Casos de Uso
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Flujo de Casos de Uso">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#caso-1-comprador-busca-y-compra-vehiculo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caso 1: Comprador busca y compra vehículo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caso-2-vendedor-publica-vehiculo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caso 2: Vendedor publica vehículo
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caso-3-administrador-revisa-reportes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caso 3: Administrador revisa reportes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-diagrama-de-clases-modelos-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Diagrama de Clases (Modelos Python)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-flujo-de-autenticacion-oauth-google" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Flujo de Autenticación OAuth Google
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-arquitectura-de-blueprints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Arquitectura de Blueprints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-diagrama-de-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Diagrama de Deployment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-diagrama-de-transacciones-de-base-de-datos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Diagrama de Transacciones de Base de Datos
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-pipeline-cicd-github-actions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Pipeline CI/CD (GitHub Actions)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-modelo-de-permisos-y-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Modelo de Permisos y Roles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-tabla-de-complejidad-de-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Tabla de Complejidad de Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../referencia-rapida/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencia rápida
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indice/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Índice maestro
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Referencias
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Referencias
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/resumen/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resumen completo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/estado/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estado del proyecto
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/instalacion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Instalación del sitio de docs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/documentacion-completada/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentación completada
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../referencia/estructura-carpetas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Estructura de carpetas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navegación" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Inicio
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Documentación
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="diagramas-tecnicos-interactivos-drivemarket">📊 DIAGRAMAS TÉCNICOS INTERACTIVOS - DRIVEMARKET<a class="headerlink" href="#diagramas-tecnicos-interactivos-drivemarket" title="Permanent link">&para;</a></h1>
+<h2 id="1-diagrama-entidad-relacion-er-modelo-de-datos">1. Diagrama Entidad-Relación (ER) - Modelo de Datos<a class="headerlink" href="#1-diagrama-entidad-relacion-er-modelo-de-datos" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>erDiagram
+    USUARIOS ||--o{ VEHICULOS : publica
+    USUARIOS ||--o{ PERFIL_VENDEDOR : tiene
+    USUARIOS ||--o{ CONVERSACIONES : participa
+    USUARIOS ||--o{ NOTIFICACIONES : recibe
+    USUARIOS ||--o{ FAVORITOS : marca
+    USUARIOS ||--o{ REPORTES : reporta
+    USUARIOS ||--o{ LOGS_ADMIN : realiza
+
+    VEHICULOS ||--o{ IMAGENES_VEHICULOS : contiene
+    VEHICULOS ||--o{ VEHICULO_CARACTERISTICAS : tiene
+    VEHICULOS ||--o{ CONVERSACIONES : es_objeto
+    VEHICULOS ||--o{ FAVORITOS : es_favorito
+    VEHICULOS ||--o{ ALERTAS_PRECIO : dispara
+
+    CONVERSACIONES ||--o{ MENSAJES : contiene
+
+    MARCAS ||--o{ MODELOS : tiene
+    MARCAS ||--o{ TIPO_MARCA : categoriza
+    TIPOS_VEHICULOS ||--o{ TIPO_MARCA : incluye
+    TIPOS_VEHICULOS ||--o{ VEHICULOS : clasifica
+
+    MODELOS ||--o{ VEHICULOS : describe
+    COLORES ||--o{ VEHICULOS : colorea
+    CARACTERISTICAS ||--o{ VEHICULO_CARACTERISTICAS : describe
+
+    USUARIOS ||--o{ CONVERSACIONES_CHATBOT : chatea
+    USUARIOS ||--o{ FAQS : crea
+    USUARIOS ||--o{ PREFERENCIAS_USUARIO : configura
+    USUARIOS ||--o{ HISTORIAL_SESIONES : registra
+
+    USUARIOS : int id PK
+    USUARIOS : string nombre
+    USUARIOS : string email UK
+    USUARIOS : string password
+    USUARIOS : string rol
+    USUARIOS : timestamp fecha_registro
+
+    VEHICULOS : int id PK
+    VEHICULOS : int id_usuario FK
+    VEHICULOS : int id_marca FK
+    VEHICULOS : int id_modelo FK
+    VEHICULOS : int precio
+    VEHICULOS : int kilometraje
+    VEHICULOS : string estado
+    VEHICULOS : string slug UK
+
+    PERFIL_VENDEDOR : int id PK
+    PERFIL_VENDEDOR : int usuario_id FK UK
+    PERFIL_VENDEDOR : string nombre_tienda
+    PERFIL_VENDEDOR : string estado_verificacion
+
+    CONVERSACIONES : int id PK
+    CONVERSACIONES : int id_vehiculo FK
+    CONVERSACIONES : int id_comprador FK
+    CONVERSACIONES : int id_vendedor FK
+
+    MENSAJES : int id PK
+    MENSAJES : int id_conversacion FK
+    MENSAJES : int id_remitente FK
+    MENSAJES : text contenido
+    MENSAJES : boolean leido
+
+    NOTIFICACIONES : int id PK
+    NOTIFICACIONES : int id_usuario FK
+    NOTIFICACIONES : string tipo
+    NOTIFICACIONES : boolean leida
+
+    FAVORITOS : int id PK
+    FAVORITOS : int id_usuario FK
+    FAVORITOS : int id_vehiculo FK
+
+    MARCAS : int id PK
+    MARCAS : string nombre
+
+    MODELOS : int id PK
+    MODELOS : int id_marca FK
+    MODELOS : string nombre</code></pre>
+<hr />
+<h2 id="2-flujo-de-casos-de-uso">2. Flujo de Casos de Uso<a class="headerlink" href="#2-flujo-de-casos-de-uso" title="Permanent link">&para;</a></h2>
+<h3 id="caso-1-comprador-busca-y-compra-vehiculo">Caso 1: Comprador busca y compra vehículo<a class="headerlink" href="#caso-1-comprador-busca-y-compra-vehiculo" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    A[Usuario Visitante] --&gt;|Navega| B[Catálogo de Vehículos]
+    B --&gt;|Aplica Filtros| C[Búsqueda por Precio/Marca]
+    C --&gt;|Selecciona| D[Detalle Vehículo]
+    D --&gt;|Interesado| E{Usuario Registrado?}
+    E --&gt;|No| F[Registrarse/Login]
+    E --&gt;|Sí| G[Agregar a Favoritos]
+    G --&gt;|Contactar| H[Enviar Mensaje a Vendedor]
+    H --&gt;|Vendedor Responde| I[Negociar Precio]
+    I --&gt;|Acuerdo| J[Coordinar Reunión]
+    J --&gt;|Confirmación| K[Transacción Exitosa]
+    F --&gt;|Login| G
+
+    style K fill:#90EE90</code></pre>
+<h3 id="caso-2-vendedor-publica-vehiculo">Caso 2: Vendedor publica vehículo<a class="headerlink" href="#caso-2-vendedor-publica-vehiculo" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    A[Vendedor] --&gt;|Accede| B[Dashboard]
+    B --&gt;|Clic en| C[Crear Anuncio]
+    C --&gt;|Completa Formulario| D[Datos Vehículo]
+    D --&gt;|Carga| E[Imágenes]
+    E --&gt;|Sistema Procesa| F[Watermark + Resize]
+    F --&gt;|Genera| G[Slug para URL]
+    G --&gt;|Valida| H{Datos Válidos?}
+    H --&gt;|No| I[Mostrar Errores]
+    H --&gt;|Sí| J[INSERT en PostgreSQL]
+    J --&gt;|Crea Índices| K[BD Actualizada]
+    K --&gt;|Notifica| L[Email Confirmación]
+    L --&gt;|Redirige| M[Ver Publicación]
+    I --&gt;|Usuario Corrige| D
+
+    style M fill:#87CEEB</code></pre>
+<h3 id="caso-3-administrador-revisa-reportes">Caso 3: Administrador revisa reportes<a class="headerlink" href="#caso-3-administrador-revisa-reportes" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>graph TD
+    A[Admin] --&gt;|Login| B[Panel Admin]
+    B --&gt;|Navega| C[Sección Reportes]
+    C --&gt;|Filtra| D[Reportes Pendientes]
+    D --&gt;|Revisa| E[Detalles Reporte]
+    E --&gt;|Investiga| F{Válido?}
+    F --&gt;|No Válido| G[Rechazar]
+    F --&gt;|Sí Válido| H[Eliminar Publicación]
+    G --&gt;|Notifica| I[Notificación Usuario]
+    H --&gt;|Notifica| J[Notificación Denunciante]
+    J --&gt;|Registra| K[Log Auditoría]
+    K --&gt;|Acción Completada| L[Dashboard Actualizado]
+
+    style L fill:#FFB6C1</code></pre>
+<hr />
+<h2 id="3-diagrama-de-clases-modelos-python">3. Diagrama de Clases (Modelos Python)<a class="headerlink" href="#3-diagrama-de-clases-modelos-python" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>classDiagram
+    class Usuario {
+        int id
+        string nombre
+        string email
+        string password
+        string rol
+        string estado
+        timestamp fecha_registro
+        +crear_usuario()
+        +validar_contraseña()
+        +cambiar_contraseña()
+    }
+
+    class PerfilVendedor {
+        int id
+        int usuario_id
+        string nombre_tienda
+        string estado_verificacion
+        string foto_id_frontal
+        string foto_id_trasera
+        +solicitar_verificacion()
+        +obtener_rating()
+    }
+
+    class Vehiculo {
+        int id
+        int id_usuario
+        int id_marca
+        int id_modelo
+        int precio
+        int kilometraje
+        string estado
+        string slug
+        int vistas
+        boolean destacado
+        +crear_vehiculo()
+        +actualizar_precio()
+        +obtener_detalles()
+        +marcar_destacado()
+    }
+
+    class Conversacion {
+        int id
+        int id_vehiculo
+        int id_comprador
+        int id_vendedor
+        timestamp fecha_creacion
+        +crear_conversacion()
+        +obtener_mensajes()
+        +obtener_ultima_actividad()
+    }
+
+    class Mensaje {
+        int id
+        int id_conversacion
+        int id_remitente
+        text contenido
+        boolean leido
+        timestamp fecha_envio
+        +marcar_leido()
+        +obtener_remitente()
+    }
+
+    class Notificacion {
+        int id
+        int id_usuario
+        string tipo
+        string titulo
+        string mensaje
+        boolean leida
+        +crear_notificacion()
+        +marcar_leida()
+        +obtener_no_leidas()
+    }
+
+    class FAQ {
+        int id
+        string pregunta
+        string respuesta
+        string categoria
+        boolean activo
+        +buscar_por_categoria()
+        +obtener_activas()
+    }
+
+    Usuario "1" -- "*" Vehiculo: publica
+    Usuario "1" -- "0..1" PerfilVendedor: tiene
+    Usuario "1" -- "*" Conversacion: participa
+    Usuario "1" -- "*" Notificacion: recibe
+    Usuario "1" -- "*" Mensaje: envía
+    Vehiculo "1" -- "*" Conversacion: es_objeto
+    Conversacion "1" -- "*" Mensaje: contiene</code></pre>
+<hr />
+<h2 id="4-flujo-de-autenticacion-oauth-google">4. Flujo de Autenticación OAuth Google<a class="headerlink" href="#4-flujo-de-autenticacion-oauth-google" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Browser as Navegador Usuario
+    participant Flask as Servidor Flask
+    participant Google as Google OAuth
+    participant DB as PostgreSQL
+
+    Browser-&gt;&gt;Flask: Clic en "Login con Google"
+    Flask-&gt;&gt;Google: Redirige a Google OAuth
+    Google-&gt;&gt;Browser: Formulario de login Google
+    Browser-&gt;&gt;Google: Credenciales usuario
+    Google-&gt;&gt;Browser: Código de autorización
+    Browser-&gt;&gt;Flask: Código + State
+    Flask-&gt;&gt;Google: Intercambia código por token
+    Google-&gt;&gt;Flask: ID Token + email
+    Flask-&gt;&gt;DB: ¿Usuario existe?
+    alt Usuario Existe
+        DB--&gt;&gt;Flask: Datos usuario
+    else Usuario Nuevo
+        Flask-&gt;&gt;DB: INSERT nuevo usuario
+        DB--&gt;&gt;Flask: Usuario creado
+    end
+    Flask-&gt;&gt;Browser: Cookie Session
+    Browser-&gt;&gt;Flask: Acceso a /users/dashboard
+    Flask-&gt;&gt;Browser: Dashboard cargado</code></pre>
+<hr />
+<h2 id="5-arquitectura-de-blueprints">5. Arquitectura de Blueprints<a class="headerlink" href="#5-arquitectura-de-blueprints" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TB
+    subgraph app["app.py (Punto Entrada)"]
+        init["Inicialización Flask&lt;br/&gt;- Config BD&lt;br/&gt;- Mail Setup&lt;br/&gt;- OAuth Google"]
+    end
+
+    subgraph blueprints["BLUEPRINTS (Controllers)"]
+        users["users_bp&lt;br/&gt;- Login/Registro&lt;br/&gt;- Perfil&lt;br/&gt;- Favoritos"]
+        admin["admin_routes&lt;br/&gt;- Dashboard&lt;br/&gt;- Usuarios&lt;br/&gt;- Reportes"]
+        vendedor["vendedores&lt;br/&gt;- Inventario&lt;br/&gt;- Analytics&lt;br/&gt;- Crear anuncio"]
+        msgs["mensajes_bp&lt;br/&gt;- Listar chats&lt;br/&gt;- Enviar msg&lt;br/&gt;- Marcar leído"]
+        notif["notificaciones&lt;br/&gt;- Centro notif&lt;br/&gt;- Marcar leído&lt;br/&gt;- Contar"]
+        soporte["soporte_routes&lt;br/&gt;- Chatbot IA&lt;br/&gt;- FAQs&lt;br/&gt;- Tickets"]
+        comp["comparador&lt;br/&gt;- Listar autos&lt;br/&gt;- Detalles&lt;br/&gt;- Análisis IA"]
+    end
+
+    subgraph helpers["HELPERS (Business Logic)"]
+        ia["asistente_ia&lt;br/&gt;- ChatGPT API&lt;br/&gt;- Análisis IA"]
+        email["email_templates&lt;br/&gt;- HTML gen&lt;br/&gt;- MJML"]
+        img["image_utils&lt;br/&gt;- Watermark&lt;br/&gt;- Resize"]
+        notif_h["notificaciones&lt;br/&gt;- Crear notif&lt;br/&gt;- Email notif"]
+        seo["seo_utils&lt;br/&gt;- Slug gen&lt;br/&gt;- Meta tags"]
+        vend["vendedor_utils&lt;br/&gt;- Rating&lt;br/&gt;- Analytics"]
+    end
+
+    subgraph models["MODELS (ORM)"]
+        usuario["Usuario"]
+        vehiculo["Vehiculo"]
+        vendedor_m["PerfilVendedor"]
+        conversacion["Conversacion"]
+        notif_m["Notificacion"]
+    end
+
+    subgraph db["DATABASE"]
+        postgres["PostgreSQL&lt;br/&gt;- usuarios&lt;br/&gt;- vehiculos&lt;br/&gt;- conversaciones&lt;br/&gt;- etc."]
+    end
+
+    init --&gt;|register| users
+    init --&gt;|register| admin
+    init --&gt;|register| vendedor
+    init --&gt;|register| msgs
+    init --&gt;|register| notif
+    init --&gt;|register| soporte
+    init --&gt;|register| comp
+
+    users --&gt;|import| helpers
+    admin --&gt;|import| helpers
+    vendedor --&gt;|import| helpers
+    msgs --&gt;|import| helpers
+    notif --&gt;|import| helpers
+    soporte --&gt;|import| helpers
+    comp --&gt;|import| helpers
+
+    helpers --&gt;|usa| models
+    models --&gt;|query| db
+
+    style init fill:#FFE4B5
+    style blueprints fill:#B0E0E6
+    style helpers fill:#98FB98
+    style models fill:#DDA0DD
+    style db fill:#F0F8FF</code></pre>
+<hr />
+<h2 id="6-diagrama-de-deployment">6. Diagrama de Deployment<a class="headerlink" href="#6-diagrama-de-deployment" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph LR
+    subgraph client["CLIENTE"]
+        browser["Navegador&lt;br/&gt;Chrome/Firefox"]
+    end
+
+    subgraph cloud["SERVIDOR PRODUCCIÓN (AWS/GCP)"]
+        lb["Load Balancer&lt;br/&gt;Nginx"]
+
+        subgraph app_servers["Servidores App"]
+            flask1["Flask Server #1&lt;br/&gt;:5000"]
+            flask2["Flask Server #2&lt;br/&gt;:5000"]
+            flask3["Flask Server #3&lt;br/&gt;:5000"]
+        end
+
+        subgraph data["Data &amp; Cache"]
+            postgres["PostgreSQL&lt;br/&gt;(Master)"]
+            postgres_rep["PostgreSQL&lt;br/&gt;(Read Replica)"]
+            redis["Redis Cache"]
+        end
+
+        subgraph storage["Storage"]
+            s3["AWS S3&lt;br/&gt;Imágenes"]
+            backup["Backup&lt;br/&gt;Diario"]
+        end
+    end
+
+    subgraph external["SERVICIOS EXTERNOS"]
+        openai["OpenAI API&lt;br/&gt;GPT-4"]
+        sendgrid["SendGrid&lt;br/&gt;Email"]
+        google["Google OAuth"]
+    end
+
+    browser --&gt;|HTTPS| lb
+    lb --&gt;|Round Robin| flask1
+    lb --&gt;|Round Robin| flask2
+    lb --&gt;|Round Robin| flask3
+
+    flask1 --&gt;|Query| postgres
+    flask2 --&gt;|Query| postgres
+    flask3 --&gt;|Query| postgres
+
+    flask1 --&gt;|Read| postgres_rep
+    flask2 --&gt;|Read| postgres_rep
+    flask3 --&gt;|Read| postgres_rep
+
+    flask1 --&gt;|Cache| redis
+    flask2 --&gt;|Cache| redis
+    flask3 --&gt;|Cache| redis
+
+    flask1 --&gt;|Upload| s3
+    s3 --&gt;|Sync| backup
+
+    flask1 --&gt;|API Call| openai
+    flask1 --&gt;|API Call| sendgrid
+    flask1 --&gt;|OAuth| google
+
+    style client fill:#FFE4B5
+    style cloud fill:#B0E0E6
+    style external fill:#FFB6C1</code></pre>
+<hr />
+<h2 id="7-diagrama-de-transacciones-de-base-de-datos">7. Diagrama de Transacciones de Base de Datos<a class="headerlink" href="#7-diagrama-de-transacciones-de-base-de-datos" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>sequenceDiagram
+    participant App as Aplicación Flask
+    participant Conn as Conexión PostgreSQL
+    participant DB as PostgreSQL (Transacción)
+
+    App-&gt;&gt;Conn: Begin Transaction
+    Conn-&gt;&gt;DB: BEGIN
+
+    App-&gt;&gt;DB: INSERT INTO usuarios
+    Note right of DB: Fila insertada (no visible aún)
+
+    App-&gt;&gt;DB: INSERT INTO perfil_vendedor&lt;br/&gt;(usuario_id = new_id)
+    Note right of DB: Ambas inserciones&lt;br/&gt;no confirmadas
+
+    App-&gt;&gt;Conn: ¿Validación OK?
+    alt Validación Exitosa
+        Conn-&gt;&gt;DB: COMMIT
+        DB--&gt;&gt;App: ✅ Cambios persistidos
+    else Error de Validación
+        Conn-&gt;&gt;DB: ROLLBACK
+        DB--&gt;&gt;App: ❌ Todo revierte
+    end</code></pre>
+<hr />
+<h2 id="8-pipeline-cicd-github-actions">8. Pipeline CI/CD (GitHub Actions)<a class="headerlink" href="#8-pipeline-cicd-github-actions" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph LR
+    A["Git Push&lt;br/&gt;main/develop"] --&gt;|Trigger| B["GitHub Actions"]
+
+    B --&gt; C1["Paso 1:&lt;br/&gt;Checkout Code"]
+    C1 --&gt; C2["Paso 2:&lt;br/&gt;Setup Python 3.9"]
+    C2 --&gt; C3["Paso 3:&lt;br/&gt;Install Dependencies"]
+    C3 --&gt; C4["Paso 4:&lt;br/&gt;Run Tests"]
+
+    C4 --&gt;|Tests OK| D["Paso 5:&lt;br/&gt;Build Image&lt;br/&gt;Docker"]
+    C4 --&gt;|Tests Fail| E["❌ Pipeline Abort&lt;br/&gt;Notify Slack"]
+
+    D --&gt; F["Paso 6:&lt;br/&gt;Push Image&lt;br/&gt;Docker Registry"]
+    F --&gt; G["Paso 7:&lt;br/&gt;Deploy Staging"]
+    G --&gt; H["Paso 8:&lt;br/&gt;Smoke Tests"]
+
+    H --&gt;|Tests OK| I["✅ Ready to Prod&lt;br/&gt;Manual Approval"]
+    H --&gt;|Tests Fail| E
+
+    I --&gt;|Approved| J["Deploy Producción&lt;br/&gt;Blue-Green"]
+    J --&gt; K["Monitoreo&lt;br/&gt;Grafana/PagerDuty"]
+
+    style A fill:#FFE4B5
+    style E fill:#FFB6C1
+    style J fill:#90EE90
+    style K fill:#87CEEB</code></pre>
+<hr />
+<h2 id="9-modelo-de-permisos-y-roles">9. Modelo de Permisos y Roles<a class="headerlink" href="#9-modelo-de-permisos-y-roles" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TD
+    User["👤 Comprador"]
+    Seller["🏪 Vendedor"]
+    Moderator["🛡️ Moderador"]
+    Editor["📝 Editor"]
+    Admin["👨‍💼 Admin"]
+    SuperAdmin["🔑 Superadmin"]
+
+    User --&gt;|Ver Catálogo| V1["Listar Vehículos"]
+    User --&gt;|Interactuar| V2["Favoritos"]
+    User --&gt;|Contactar| V3["Enviar Mensajes"]
+
+    Seller --&gt;|Mis Vehículos| S1["Crear Anuncio"]
+    Seller --&gt;|Gestión| S2["Editar/Eliminar"]
+    Seller --&gt;|Analytics| S3["Ver Estadísticas"]
+    Seller --&gt;|Mi Tienda| S4["Editar Perfil"]
+
+    Moderator --&gt;|Contenido| M1["Revisar Reportes"]
+    Moderator --&gt;|Acciones| M2["Eliminar Anuncios"]
+    Moderator --&gt;|Usuarios| M3["Bloquear Cuentas"]
+
+    Editor --&gt;|Contenido| Ed1["Editar FAQs"]
+    Editor --&gt;|Promociones| Ed2["Crear Promociones"]
+
+    Admin --&gt;|Usuarios| A1["Gestión Completa"]
+    Admin --&gt;|Reportes| A2["Ver Auditoría"]
+    Admin --&gt;|Config| A3["Ajustes Sistema"]
+
+    SuperAdmin --&gt;|TODO| SA1["Acceso Total"]
+    SuperAdmin --&gt;|Roles| SA2["Asignar Roles"]
+
+    style User fill:#B0E0E6
+    style Seller fill:#98FB98
+    style Moderator fill:#FFD700
+    style Editor fill:#DDA0DD
+    style Admin fill:#FF6347
+    style SuperAdmin fill:#8B0000,color:#fff</code></pre>
+<hr />
+<h2 id="10-tabla-de-complejidad-de-features">10. Tabla de Complejidad de Features<a class="headerlink" href="#10-tabla-de-complejidad-de-features" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TB
+    subgraph simple["🟢 SIMPLE (1-2 días)"]
+        F1["Agregar campo a form"]
+        F2["Crear página estática"]
+        F3["Cambiar estilos CSS"]
+    end
+
+    subgraph medium["🟡 MEDIO (3-5 días)"]
+        F4["Nuevo endpoint API"]
+        F5["Implementar búsqueda"]
+        F6["Dashboard simple"]
+    end
+
+    subgraph complex["🔴 COMPLEJO (1-2 semanas)"]
+        F7["Sistema notificaciones"]
+        F8["Chatbot IA"]
+        F9["Integración OAuth"]
+        F10["Comparador vehículos"]
+    end
+
+    subgraph epic["🔴🔴 ÉPICO (3+ semanas)"]
+        E1["Rediseño completo UI"]
+        E2["Migración a Microservicios"]
+        E3["Sistema de pagos"]
+    end
+
+    style simple fill:#90EE90
+    style medium fill:#FFD700
+    style complex fill:#FF6347
+    style epic fill:#8B0000,color:#fff</code></pre>
+<hr />
+<p><strong>Diagramas generados con Mermaid.js</strong><br />
+Última actualización: Mayo 2026</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Drivemarket. Todos los derechos reservados.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/drivemarket/drivemarket" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="mailto:tech@drivemarket.com" target="_blank" rel="noopener" title="" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4l208 156a48 48 0 0 0 57.6 0l208-156c12.1-9.1 19.2-23.3 19.2-38.4 0-26.5-21.5-48-48-48zM0 196v188c0 35.3 28.7 64 64 64h384c35.3 0 64-28.7 64-64V196L313.6 344.8c-34.1 25.6-81.1 25.6-115.2 0z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.path", "toc.integrate", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.select", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copiado al portapapeles", "clipboard.copy": "Copiar al portapapeles", "search.result.more.one": "1 m\u00e1s en esta p\u00e1gina", "search.result.more.other": "# m\u00e1s en esta p\u00e1gina", "search.result.none": "No se encontraron documentos", "search.result.one": "1 documento encontrado", "search.result.other": "# documentos encontrados", "search.result.placeholder": "Teclee para comenzar b\u00fasqueda", "search.result.term.missing": "Falta", "select.version": "Seleccionar versi\u00f3n"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../javascripts/extra.js"></script>
+      
+    
+  </body>
+</html>

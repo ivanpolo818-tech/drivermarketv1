@@ -1,0 +1,489 @@
+/* =========================================
+   DETAILS.CSS - ESTILOS PARA DETALLES DE VEHÍCULOS
+   Con mayor especificidad para evitar conflictos
+   ========================================= */
+
+/* 1. RESET Y BASE */
+body .detalles-wrapper.dm-detalles-container {
+    --primary: #0f172a;
+    --accent: #3b82f6;
+    --success: #10b981;
+    --gold: #f59e0b;
+    --alert: #f97316;
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --radius: 16px;
+    
+    background-color: var(--bg-body) !important;
+    font-family: 'Manrope', 'Inter', sans-serif !important;
+    color: var(--text-main) !important;
+}
+
+/* 2. CONTENEDOR PRINCIPAL */
+body .detalles-wrapper.dm-detalles-container {
+    max-width: 1280px !important;
+    margin: 40px auto !important;
+    padding: 0 20px !important;
+    box-sizing: border-box !important;
+}
+
+/* 3. HEADER Y NAVEGACIÓN */
+body .detalles-wrapper .header-nav {
+    margin-bottom: 20px !important;
+}
+
+body .detalles-wrapper .btn-back {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: var(--text-muted) !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+    transition: color 0.2s !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    font-size: 1rem !important;
+}
+
+body .detalles-wrapper .btn-back:hover {
+    color: var(--accent) !important;
+}
+
+body .detalles-wrapper .header-title-block {
+    margin-bottom: 30px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding-bottom: 20px !important;
+}
+
+body .detalles-wrapper .main-title {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    color: var(--primary) !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+}
+
+body .detalles-wrapper .subtitle-location {
+    font-size: 1rem !important;
+    color: var(--text-muted) !important;
+    margin-top: 5px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* 4. GRID LAYOUT */
+body .detalles-wrapper .detalle-grid {
+    display: grid !important;
+    grid-template-columns: 1.8fr 1fr !important;
+    gap: 40px !important;
+    align-items: start !important;
+}
+
+/* 5. GALERÍA */
+body .detalles-wrapper .galeria-container {
+    background: var(--bg-card) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+    box-shadow: var(--shadow-lg) !important;
+    margin-bottom: 40px !important;
+}
+
+body .detalles-wrapper .main-swiper {
+    width: 100% !important;
+    height: 500px !important;
+}
+
+body .detalles-wrapper .swiper-slide img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+body .detalles-wrapper .swiper-button-prev,
+body .detalles-wrapper .swiper-button-next {
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+    width: 50px !important;
+    height: 50px !important;
+}
+
+body .detalles-wrapper .swiper-button-prev:after,
+body .detalles-wrapper .swiper-button-next:after {
+    font-size: 24px !important;
+}
+
+/* 6. TARJETAS DE CONTENIDO */
+body .detalles-wrapper .content-card {
+    background: var(--bg-card) !important;
+    border-radius: var(--radius) !important;
+    padding: 30px !important;
+    box-shadow: var(--shadow-sm) !important;
+    margin-bottom: 30px !important;
+    border: 1px solid #f1f5f9 !important;
+}
+
+body .detalles-wrapper .section-title {
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    color: var(--primary) !important;
+    border-left: 4px solid var(--accent) !important;
+    padding-left: 12px !important;
+}
+
+body .detalles-wrapper .desc-text {
+    line-height: 1.8 !important;
+    color: var(--text-muted) !important;
+    font-size: 1.05rem !important;
+}
+
+/* 7. ESPECIFICACIONES */
+body .detalles-wrapper .specs-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+    gap: 15px !important;
+}
+
+body .detalles-wrapper .spec-box {
+    background: #f8fafc !important;
+    padding: 15px !important;
+    border-radius: 12px !important;
+    text-align: center !important;
+    transition: transform 0.2s, border-color 0.2s !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+body .detalles-wrapper .spec-box:hover {
+    transform: translateY(-3px) !important;
+    border-color: var(--accent) !important;
+}
+
+body .detalles-wrapper .spec-icon {
+    font-size: 1.5rem !important;
+    color: var(--accent) !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+}
+
+body .detalles-wrapper .spec-label {
+    display: block !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    color: var(--text-muted) !important;
+    font-weight: 600 !important;
+    margin-bottom: 4px !important;
+}
+
+body .detalles-wrapper .spec-value {
+    display: block !important;
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    color: var(--primary) !important;
+}
+
+/* 8. COLUMNA DERECHA (STICKY) */
+body .detalles-wrapper .sticky-wrapper {
+    position: sticky !important;
+    top: 20px !important;
+}
+
+/* 9. TARJETA DE PRECIO */
+body .detalles-wrapper .price-card.dm-price-card {
+    background: var(--bg-card) !important;
+    border-radius: var(--radius) !important;
+    padding: 30px !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid #e2e8f0 !important;
+    text-align: center !important;
+}
+
+body .detalles-wrapper .price-label {
+    text-transform: uppercase !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    color: var(--text-muted) !important;
+    letter-spacing: 1px !important;
+}
+
+body .detalles-wrapper .price-amount {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    color: var(--primary) !important;
+    margin: 10px 0 25px 0 !important;
+    letter-spacing: -1px !important;
+}
+
+/* 9.1 BADGE DE ALERTA */
+body .detalles-wrapper .alert-badge {
+    background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%) !important;
+    color: #9a3412 !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 15px !important;
+    border: 1px solid #fdba74 !important;
+}
+
+/* 10. INFO VENDEDOR */
+body .detalles-wrapper .seller-info {
+    background: #f8fafc !important;
+    padding: 15px !important;
+    border-radius: 12px !important;
+    margin-bottom: 25px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    text-align: left !important;
+}
+
+body .detalles-wrapper .seller-avatar {
+    width: 50px !important;
+    height: 50px !important;
+    background: #cbd5e1 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.2rem !important;
+    color: white !important;
+}
+
+body .detalles-wrapper .seller-details h4 {
+    margin: 0 !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+}
+
+body .detalles-wrapper .seller-details p {
+    margin: 0 !important;
+    font-size: 0.85rem !important;
+    color: var(--text-muted) !important;
+}
+
+/* 11. BOTONES DE ACCIÓN */
+body .detalles-wrapper .action-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+body .detalles-wrapper .btn-action {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    text-decoration: none !important;
+    transition: all 0.2s !important;
+    cursor: pointer !important;
+    border: none !important;
+    width: 100% !important;
+    gap: 10px !important;
+}
+
+body .detalles-wrapper .btn-chat {
+    background-color: var(--primary) !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2) !important;
+}
+
+body .detalles-wrapper .btn-chat:hover {
+    background-color: #1e293b !important;
+    transform: translateY(-2px) !important;
+}
+
+body .detalles-wrapper .btn-whatsapp {
+    background-color: var(--success) !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25) !important;
+}
+
+body .detalles-wrapper .btn-whatsapp:hover {
+    background-color: #059669 !important;
+    transform: translateY(-2px) !important;
+}
+
+body .detalles-wrapper .btn-whatsapp:disabled {
+    background-color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+body .detalles-wrapper .btn-favorite {
+    background-color: white !important;
+    color: var(--text-main) !important;
+    border: 2px solid #e2e8f0 !important;
+}
+
+body .detalles-wrapper .btn-favorite:hover {
+    border-color: var(--gold) !important;
+    color: var(--gold) !important;
+    background-color: #fffbeb !important;
+}
+
+body .detalles-wrapper .btn-favorite i {
+    font-size: 1.2rem !important;
+}
+
+/* 11.1 BOTÓN DE ALERTAS */
+body .detalles-wrapper .btn-alert {
+    background-color: white !important;
+    color: var(--alert) !important;
+    border: 2px solid #fed7aa !important;
+}
+
+body .detalles-wrapper .btn-alert:hover {
+    background-color: #ffedd5 !important;
+    border-color: var(--alert) !important;
+    transform: translateY(-2px) !important;
+}
+
+body .detalles-wrapper .btn-alert i {
+    font-size: 1.2rem !important;
+}
+
+/* 12. FORMULARIO DE ALERTAS */
+body .detalles-wrapper .alert-form {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 13. MENSAJES DE ESTADO */
+body .detalles-wrapper .status-message {
+    margin-top: 15px !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    font-size: 0.85rem !important;
+    display: none !important;
+}
+
+body .detalles-wrapper .status-message.success {
+    background: #dcfce7 !important;
+    color: #166534 !important;
+    display: block !important;
+}
+
+body .detalles-wrapper .status-message.error {
+    background: #fee2e2 !important;
+    color: #991b1b !important;
+    display: block !important;
+}
+
+body .detalles-wrapper .status-message.warning {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    display: block !important;
+}
+
+/* 14. ALERTAS */
+body .detalles-wrapper .alert-box {
+    font-size: 0.9rem !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    background: #f1f5f9 !important;
+    color: var(--text-muted) !important;
+    text-align: center !important;
+}
+
+body .detalles-wrapper .alert-box a {
+    color: var(--accent) !important;
+    font-weight: 600 !important;
+    text-decoration: underline !important;
+}
+
+/* 15. TARJETA DE SEGURIDAD */
+body .detalles-wrapper .safety-card {
+    margin-top: 20px !important;
+    padding: 20px !important;
+    background: #fff !important;
+    border-radius: 16px !important;
+    border: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    gap: 15px !important;
+    align-items: flex-start !important;
+}
+
+body .detalles-wrapper .safety-card i {
+    font-size: 1.5rem !important;
+    color: #64748b !important;
+    margin-top: 2px !important;
+}
+
+body .detalles-wrapper .safety-card h5 {
+    margin: 0 !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+}
+
+body .detalles-wrapper .safety-card p {
+    margin: 5px 0 0 !important;
+    font-size: 0.8rem !important;
+    color: #64748b !important;
+    line-height: 1.4 !important;
+}
+
+/* 16. RESPONSIVE */
+@media (max-width: 900px) {
+    body .detalles-wrapper .detalle-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    body .detalles-wrapper .main-swiper {
+        height: 300px !important;
+    }
+    
+    body .detalles-wrapper .sticky-wrapper {
+        position: static !important;
+    }
+    
+    body .detalles-wrapper .price-amount {
+        font-size: 2rem !important;
+    }
+    
+    body .detalles-wrapper .specs-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    body .detalles-wrapper .main-title {
+        font-size: 1.8rem !important;
+    }
+    
+    body .detalles-wrapper .specs-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    body .detalles-wrapper .price-amount {
+        font-size: 1.8rem !important;
+    }
+    
+    body .detalles-wrapper .content-card,
+    body .detalles-wrapper .price-card.dm-price-card {
+        padding: 20px !important;
+    }
+    
+    body .detalles-wrapper .btn-action {
+        padding: 14px !important;
+        font-size: 0.95rem !important;
+    }
+}

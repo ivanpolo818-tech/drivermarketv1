@@ -1,0 +1,415 @@
+/* ================================================= */
+/* 💎 VARIABLES & SETUP (Consistencia de Marca) */
+/* ================================================= */
+:root {
+    --primary-dark: #0f172a;
+    --primary-blue: #2563eb;
+    --primary-blue-hover: #1d4ed8;
+    --accent-orange: #f97316;
+    
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --input-bg: #f1f5f9;
+    --border-color: #e2e8f0;
+    
+    --radius-lg: 16px;
+    --radius-md: 8px;
+    
+    --shadow-card: 0 10px 40px -10px rgba(0,0,0,0.1);
+    --shadow-input-focus: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+body {
+    background-color: var(--bg-body);
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text-main);
+    line-height: 1.6;
+}
+
+/* ================================================= */
+/* 🏗️ LAYOUT & CONTAINER */
+/* ================================================= */
+.registration-wrapper {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: radial-gradient(circle at top right, #eef2ff, transparent 50%),
+                radial-gradient(circle at bottom left, #fff7ed, transparent 50%);
+}
+
+.registration-container {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 550px;
+    padding: 50px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    position: relative;
+    border: 1px solid white; /* Efecto borde sutil */
+}
+
+/* ================================================= */
+/* 🖊️ HEADER & BRANDING */
+/* ================================================= */
+.form-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.icon-brand-circle {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-dark) 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.8rem;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.form-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    margin: 0 0 10px 0;
+    letter-spacing: -0.5px;
+}
+
+.form-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* ================================================= */
+/* 📝 FORMULARIO & INPUTS (STRICT STYLE) */
+/* ================================================= */
+.secure-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--primary-dark);
+    margin-left: 4px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    pointer-events: none; /* Permite clicar a través del icono */
+    transition: color 0.3s ease;
+}
+
+/* Estilo Base del Input */
+.form-input {
+    width: 100%;
+    padding: 14px 14px 14px 50px; /* Espacio para el icono a la izquierda */
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-card);
+    border-radius: var(--radius-md);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    color: var(--text-main);
+    transition: all 0.3s ease;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.textarea-wrapper .input-icon {
+    top: 16px; /* Alinear icono arriba en textarea */
+}
+
+/* Estados del Input (Focus, Valid, Invalid) */
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-input-focus);
+    background-color: white;
+}
+
+.form-input:focus + .input-icon,
+.input-wrapper:focus-within .input-icon {
+    color: var(--primary-blue);
+}
+
+/* Validación Visual Estricta */
+.form-input:valid:not(:placeholder-shown) {
+    border-color: #10b981; /* Verde sutil */
+}
+
+.form-input:invalid:not(:placeholder-shown) {
+    border-color: var(--accent-red, #ef4444);
+}
+
+.helper-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+/* ================================================= */
+/* ✅ CHECKBOX & LEGAL */
+/* ================================================= */
+.form-check-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 10px;
+    padding: 15px;
+    background-color: var(--input-bg);
+    border-radius: var(--radius-md);
+}
+
+.custom-checkbox {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary-blue);
+    cursor: pointer;
+    margin-top: 3px;
+}
+
+.terms-label {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.4;
+    cursor: pointer;
+}
+
+.terms-label a {
+    color: var(--primary-blue);
+    font-weight: 600;
+    text-decoration: none;
+}
+.terms-label a:hover { text-decoration: underline; }
+
+/* ================================================= */
+/* 🚀 BOTONES & ACCIONES */
+/* ================================================= */
+.form-actions {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-submit-premium {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, #1e40af 100%);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-submit-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.5);
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.btn-cancel-link {
+    text-align: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.btn-cancel-link:hover {
+    color: var(--text-main);
+}
+
+/* ================================================= */
+/* 🔒 FOOTER DE SEGURIDAD */
+/* ================================================= */
+.security-badge {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* ================================================= */
+/* 📱 RESPONSIVE */
+/* ================================================= */
+@media (max-width: 576px) {
+    .registration-container {
+        padding: 30px 20px;
+    }
+    .form-title {
+        font-size: 1.5rem;
+    }
+}
+
+
+/* ================================================= */
+/* 📂 NUEVOS ESTILOS: UPLOAD & LAYOUT AVANZADO */
+/* ================================================= */
+
+/* Separadores de sección elegantes */
+.section-divider {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-light);
+    margin: 15px 0 5px 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    font-weight: 700;
+}
+
+/* Fila flexible para poner inputs lado a lado */
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+.flex-grow {
+    flex: 1;
+}
+
+/* Grid de Carga de Archivos */
+.helper-text-block {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: -5px 0 10px 0;
+}
+
+.upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+    gap: 15px;
+}
+
+/* Caja de carga personalizada */
+.upload-box {
+    position: relative;
+    height: 120px;
+}
+
+/* Escondemos el input file feo nativo */
+.file-input-hidden {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0; /* Invisible pero clickable */
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* Diseñamos el Label que actuará como el botón */
+.upload-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f8fafc;
+    border: 2px dashed #cbd5e1; /* Borde discontinuo estilo "Dropzone" */
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.upload-icon {
+    font-size: 1.8rem;
+    color: var(--text-light);
+    margin-bottom: 8px;
+    transition: color 0.3s;
+}
+
+.upload-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.upload-subtext {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Interacciones Hover y Focus */
+.upload-box:hover .upload-label,
+.file-input-hidden:focus + .upload-label {
+    border-color: var(--primary-blue);
+    background-color: #eff6ff;
+}
+
+.upload-box:hover .upload-icon {
+    color: var(--primary-blue);
+}
+
+/* Feedback visual cuando se selecciona un archivo (Javascript inline en HTML lo activa) */
+.upload-label.file-selected {
+    border-style: solid;
+    border-color: #10b981; /* Verde éxito */
+    background-color: #ecfdf5;
+}
+.upload-label.file-selected .upload-icon {
+    color: #10b981;
+    content: "\f00c"; /* Cambia a checkmark (FontAwesome unicode) si lo deseas, o usa JS */
+}
+
+/* Responsive para la fila de uploads */
+@media (max-width: 576px) {
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .upload-grid {
+        grid-template-columns: 1fr; /* Una columna en celular */
+        height: auto;
+    }
+}

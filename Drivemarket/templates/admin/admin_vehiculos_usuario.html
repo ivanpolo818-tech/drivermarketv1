@@ -1,0 +1,527 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Vehículos de {{ usuario.nombre }}{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- DELETE MODAL -->
+<div class="modal-backdrop" id="delModal">
+  <div class="modal-box">
+    <div class="modal-icon"><i class="fas fa-trash-alt"></i></div>
+    <h3>¿Eliminar vehículo?</h3>
+    <p id="modalMsg">Esta acción es <strong>irreversible</strong>.</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-btn modal-confirm" id="modalConfirmBtn">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="{{ url_for('admin.admin_usuarios') }}">Usuarios</a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="{{ url_for('admin.ver_usuario', id=usuario.id) }}">{{ usuario.nombre }}</a>
+          <i class="fas fa-chevron-right"></i>
+          <span>Vehículos</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <button class="btn-export" onclick="exportCSV()">
+          <i class="fas fa-file-csv"></i> Exportar CSV
+        </button>
+        <a href="{{ url_for('admin.admin_usuarios') }}" class="btn-back-top">
+          <i class="fas fa-arrow-left"></i> Usuarios
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- PROFILE HERO -->
+      <div class="profile-hero">
+        <div class="hero-bg"></div>
+        <div class="hero-body">
+          <div class="hero-avatar" id="heroAvatar">{{ usuario.nombre[0]|upper }}</div>
+          <div class="hero-info">
+            <h1>{{ usuario.nombre }}</h1>
+            <div class="hero-meta">
+              <span class="meta-item"><i class="fas fa-envelope"></i> {{ usuario.email }}</span>
+              <span class="meta-item"><i class="fas fa-at"></i> {{ usuario.username }}</span>
+            </div>
+            <div class="hero-badges">
+              <span class="badge-role role-{{ usuario.rol }}">
+                <i class="fas fa-{{ 'crown' if usuario.rol == 'superadmin' else ('shield-alt' if usuario.rol == 'admin' else ('gavel' if usuario.rol == 'moderador' else ('edit' if usuario.rol == 'editor' else ('store' if usuario.rol == 'vendedor' else 'user')))) }}"></i>
+                {{ usuario.rol|capitalize }}
+              </span>
+              <span class="badge-status st-{{ usuario.estado }}">
+                <span class="st-dot"></span>{{ usuario.estado|capitalize }}
+              </span>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <a href="{{ url_for('admin.ver_usuario', id=usuario.id) }}" class="ha-btn ha-indigo">
+              <i class="fas fa-user"></i> Ver perfil
+            </a>
+            <a href="{{ url_for('admin.editar_usuario', id=usuario.id) }}" class="ha-btn ha-amber">
+              <i class="fas fa-user-edit"></i> Editar
+            </a>
+          </div>
+        </div>
+      </div>
+      <!-- STAT CARDS -->
+      <div class="stat-grid">
+        <div class="stat-card" style="--acc:#6366f1">
+          <span class="stat-icon"><i class="fas fa-car"></i></span>
+          <div>
+            <div class="stat-val">{{ vehiculos|length }}</div>
+            <div class="stat-lbl">Total publicaciones</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#10b981">
+          <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+          <div>
+            <div class="stat-val">{{ vehiculos|selectattr('estado','equalto','activo')|list|length }}</div>
+            <div class="stat-lbl">Activos</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#ef4444">
+          <span class="stat-icon"><i class="fas fa-ban"></i></span>
+          <div>
+            <div class="stat-val">{{ vehiculos|selectattr('estado','ne','activo')|list|length }}</div>
+            <div class="stat-lbl">Inactivos / Reportados</div>
+          </div>
+        </div>
+        <div class="stat-card" style="--acc:#f59e0b">
+          <span class="stat-icon"><i class="fas fa-dollar-sign"></i></span>
+          <div>
+            <div class="stat-val" id="avgPriceVal">—</div>
+            <div class="stat-lbl">Precio promedio</div>
+          </div>
+        </div>
+      </div>
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="search-box-tb">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Buscar marca, modelo, año…" oninput="filterTable()">
+        </div>
+        <div class="sel-wrap">
+          <select id="estadoFilter" onchange="filterTable()">
+            <option value="">Todos los estados</option>
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+            <option value="reportado">Reportado</option>
+          </select>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+        <span class="result-count" id="resultCount">{{ vehiculos|length }} vehículos</span>
+      </div>
+      <!-- TABLE CARD -->
+      <div class="table-card">
+        <div class="table-wrap">
+          <table class="dtable" id="mainTable">
+            <thead>
+              <tr>
+                <th onclick="sortTable(0)">ID <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(1)">Vehículo <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(2)">Año <i class="fas fa-sort sort-ic"></i></th>
+                <th onclick="sortTable(3)">Precio <i class="fas fa-sort sort-ic"></i></th>
+                <th>Estado</th>
+                <th>Imagen</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              {% if vehiculos %}
+                {% for v in vehiculos %}
+                <tr class="trow"
+                    data-estado="{{ v.estado }}"
+                    data-search="{{ (v.marca or '') ~ ' ' ~ v.modelo ~ ' ' ~ v.anio|string }}">
+                  <td><span class="badge-id">#{{ v.id }}</span></td>
+                  <td>
+                    <div class="veh-cell">
+                      <div class="veh-icon-box"><i class="fas fa-car-side"></i></div>
+                      <div>
+                        <div class="veh-name">{{ v.marca or 'N/D' }} {{ v.modelo }}</div>
+                        <div class="veh-ver">{{ v.version if v.version else 'Sin versión' }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="year-badge">{{ v.anio }}</span></td>
+                  <td>
+                    <span class="price-val">${{ "{:,.0f}".format(v.precio|float) }}</span>
+                  </td>
+                  <td>
+                    {% if v.estado == 'activo' %}
+                      <span class="badge-status st-activo"><span class="st-dot"></span>Activo</span>
+                    {% elif v.estado == 'reportado' %}
+                      <span class="badge-status st-reportado"><span class="st-dot"></span>Reportado</span>
+                    {% else %}
+                      <span class="badge-status st-inactivo"><span class="st-dot"></span>Inactivo</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if v.imagen %}
+                    <img class="veh-thumb"
+                         src="{{ url_for('static', filename=v.imagen) }}"
+                         alt="{{ v.marca }} {{ v.modelo }}"
+                         onclick="openImgPreview(this.src)"
+                         title="Clic para ampliar">
+                    {% else %}
+                    <div class="no-img"><i class="fas fa-image"></i></div>
+                    {% endif %}
+                  </td>
+                  <td class="action-cell">
+                    <!-- Editar -->
+                    <a href="{{ url_for('admin.editar_vehiculo', id=v.id) }}"
+                       class="ab ab-amber" title="Editar vehículo">
+                      <i class="fas fa-edit"></i>
+                    </a>
+                    <!-- Ver publicación -->
+                    <a href="{{ url_for('detalle', id=v.id) }}"
+                       class="ab ab-cyan" title="Ver publicación" target="_blank">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                    <!-- Activar / Desactivar -->
+                    {% if v.estado == 'activo' %}
+                    <form method="POST" action="{{ url_for('admin.desactivar_vehiculo', id=v.id) }}" class="if">
+                      <button class="ab ab-orange" title="Desactivar"><i class="fas fa-ban"></i></button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('admin.activar_vehiculo', id=v.id) }}" class="if">
+                      <button class="ab ab-green" title="Activar"><i class="fas fa-check"></i></button>
+                    </form>
+                    {% endif %}
+                    <!-- Eliminar -->
+                    <button class="ab ab-red" title="Eliminar"
+                      data-vid="{{ v.id }}"
+                      data-vname="{{ v.marca or '' }} {{ v.modelo }}"
+                      data-vurl="{{ url_for('admin.borrar_vehiculo', id=v.id) }}"
+                      onclick="openDelModal(this)">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+              <tr>
+                <td colspan="7" class="empty-row">
+                  <i class="fas fa-car-side"></i>
+                  <p>Este usuario no tiene vehículos publicados.</p>
+                  <a href="{{ url_for('admin.admin_usuarios') }}">Volver a usuarios</a>
+                </td>
+              </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        <div class="table-foot">
+          <span class="tf-info">
+            <i class="fas fa-info-circle"></i>
+            Mostrando <strong id="visibleCount">{{ vehiculos|length }}</strong> de <strong>{{ vehiculos|length }}</strong> vehículos
+          </span>
+        </div>
+      </div>
+    </div><!-- /page-content -->
+    <!-- Hidden delete form -->
+    <form method="POST" id="deleteForm" style="display:none"></form>
+  </main>
+</div>
+<!-- Image preview lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lb-close"><i class="fas fa-times"></i></div>
+  <img id="lbImg" src="" alt="preview">
+</div>
+<div class="toast-cont" id="toastCont"></div>
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e5e7eb;--text:#0f172a;--text2:#64748b;
+  --primary:#6366f1;--primary2:#a855f7;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#162032;
+  --border:#334155;--text:#f1f5f9;--text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.8rem;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-export{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:color-mix(in srgb,#10b981 12%,transparent);color:#10b981;border:1px solid color-mix(in srgb,#10b981 25%,transparent);border-radius:10px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-export:hover{background:#10b981;color:#fff;}
+.btn-back-top{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-back-top:hover{border-color:var(--primary);color:var(--primary);}
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.5rem;}
+/* Hero */
+.profile-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;position:relative;}
+.hero-bg{position:absolute;top:0;left:0;right:0;height:80px;background:linear-gradient(135deg,#f59e0b,#d97706);opacity:.85;}
+.hero-body{position:relative;padding:1.2rem 1.8rem;display:flex;align-items:flex-end;gap:1.3rem;flex-wrap:wrap;}
+.hero-avatar{width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:#fff;border:4px solid var(--surface);box-shadow:0 6px 16px rgba(99,102,241,.35);margin-top:36px;flex-shrink:0;}
+.hero-info{flex:1;min-width:0;padding-top:45px;}
+.hero-info h1{font-size:1.45rem;font-weight:800;letter-spacing:-.02em;}
+.hero-meta{display:flex;align-items:center;gap:1rem;margin:.3rem 0 .6rem;flex-wrap:wrap;}
+.meta-item{display:flex;align-items:center;gap:.35rem;font-size:.8rem;color:var(--text2);}
+.meta-item i{font-size:.72rem;color:var(--primary);}
+.hero-badges{display:flex;gap:.6rem;flex-wrap:wrap;}
+.hero-actions{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding-top:45px;}
+.ha-btn{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:none;border-radius:9px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .22s;text-decoration:none;}
+.ha-indigo{background:rgba(99,102,241,.1);color:var(--primary);border:1px solid rgba(99,102,241,.2);}
+.ha-indigo:hover{background:var(--primary);color:#fff;}
+.ha-amber{background:rgba(245,158,11,.1);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.ha-amber:hover{background:#f59e0b;color:#fff;}
+/* Badges */
+.badge-id{padding:.25rem .55rem;background:rgba(99,102,241,.1);color:var(--primary);border-radius:6px;font-weight:700;font-size:.78rem;}
+.badge-role{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:700;}
+.role-admin{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.role-user{background:rgba(99,102,241,.12);color:var(--primary);border:1px solid rgba(99,102,241,.2);}
+.role-vendedor{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.badge-status{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .75rem;border-radius:20px;font-size:.75rem;font-weight:700;}
+.st-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.st-activo{background:rgba(16,185,129,.12);color:#059669;border:1px solid rgba(16,185,129,.2);}
+.st-activo .st-dot{background:#10b981;}
+.st-inactivo{background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.2);}
+.st-inactivo .st-dot{background:#ef4444;}
+.st-reportado{background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.2);}
+.st-reportado .st-dot{background:#f59e0b;}
+/* Stat grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.3rem;display:flex;align-items:center;gap:.9rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .3s;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,#6366f1);}
+.stat-card:hover{transform:translateY(-3px);}
+.stat-icon{width:42px;height:42px;border-radius:11px;background:color-mix(in srgb,var(--acc,#6366f1) 12%,transparent);color:var(--acc,#6366f1);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.stat-val{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;}
+.stat-lbl{font-size:.72rem;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;}
+.search-box-tb{display:flex;align-items:center;gap:.5rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.5rem .9rem;flex:1;min-width:200px;transition:border-color .2s,box-shadow .2s;}
+.search-box-tb:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+.search-box-tb i{color:var(--text2);font-size:.85rem;}
+.search-box-tb input{background:none;border:none;outline:none;color:var(--text);font-size:.85rem;width:100%;}
+.sel-wrap{position:relative;}
+.sel-wrap select{appearance:none;padding:.52rem 2.1rem .52rem .85rem;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-size:.83rem;cursor:pointer;outline:none;}
+.sel-wrap select:focus{border-color:var(--primary);}
+.sel-wrap .fa-chevron-down{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);font-size:.68rem;color:var(--text2);pointer-events:none;}
+.result-count{font-size:.8rem;font-weight:600;color:var(--text2);white-space:nowrap;margin-left:auto;}
+/* Table */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.table-wrap{overflow-x:auto;}
+.dtable{width:100%;border-collapse:collapse;}
+.dtable thead{background:var(--surface2);}
+.dtable th{padding:.9rem 1rem;text-align:left;font-size:.7rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+.dtable th:hover{color:var(--primary);}
+.sort-ic{font-size:.62rem;margin-left:.15rem;}
+.dtable td{padding:.9rem 1rem;border-bottom:1px solid var(--border);font-size:.85rem;vertical-align:middle;}
+.trow{transition:background .2s;animation:fadeRow .4s ease both;}
+@keyframes fadeRow{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.trow:hover{background:color-mix(in srgb,var(--primary) 4%,transparent);}
+.trow.hidden{display:none;}
+/* Vehicle cell */
+.veh-cell{display:flex;align-items:center;gap:.75rem;}
+.veh-icon-box{width:36px;height:36px;border-radius:9px;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.veh-name{font-weight:700;font-size:.87rem;}
+.veh-ver{font-size:.72rem;color:var(--text2);}
+.year-badge{padding:.25rem .6rem;background:color-mix(in srgb,#6366f1 10%,transparent);color:var(--primary);border-radius:6px;font-size:.78rem;font-weight:700;}
+.price-val{font-weight:800;color:#059669;font-size:.9rem;}
+/* Thumbnail */
+.veh-thumb{width:72px;height:46px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.veh-thumb:hover{transform:scale(1.08);box-shadow:0 4px 14px rgba(0,0,0,.15);}
+.no-img{width:72px;height:46px;border-radius:8px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:.85rem;}
+/* Action buttons */
+.action-cell{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;}
+.if{display:inline-flex;}
+.ab{width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;color:#fff;text-decoration:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);flex-shrink:0;}
+.ab:hover{transform:translateY(-3px);}
+.ab-amber{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 2px 6px rgba(245,158,11,.3);}
+.ab-cyan{background:linear-gradient(135deg,#06b6d4,#0891b2);box-shadow:0 2px 6px rgba(6,182,212,.3);}
+.ab-orange{background:linear-gradient(135deg,#f97316,#ea580c);box-shadow:0 2px 6px rgba(249,115,22,.3);}
+.ab-green{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 2px 6px rgba(16,185,129,.3);}
+.ab-red{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 2px 6px rgba(239,68,68,.3);}
+/* Empty row */
+.empty-row{text-align:center;padding:3rem;color:var(--text2);}
+.empty-row i{font-size:2.5rem;display:block;margin-bottom:.6rem;opacity:.35;}
+.empty-row p{font-size:.9rem;margin-bottom:.7rem;}
+.empty-row a{color:var(--primary);text-decoration:none;font-weight:600;}
+/* Table foot */
+.table-foot{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;border-top:1px solid var(--border);background:var(--surface2);}
+.tf-info{font-size:.8rem;color:var(--text2);display:flex;align-items:center;gap:.45rem;}
+.tf-info i{color:var(--primary);}
+/* Modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;align-items:center;justify-content:center;}
+.modal-backdrop.open{display:flex;}
+.modal-box{background:var(--surface);border-radius:20px;padding:2rem;width:355px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.8);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-icon{width:56px;height:56px;border-radius:14px;background:rgba(239,68,68,.12);color:#ef4444;font-size:1.4rem;display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;}
+.modal-box h3{font-size:1.1rem;font-weight:800;margin-bottom:.4rem;}
+.modal-box p{color:var(--text2);font-size:.83rem;margin-bottom:1.3rem;}
+.modal-actions{display:flex;gap:.65rem;}
+.modal-btn{flex:1;padding:.6rem;border-radius:9px;border:none;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.modal-cancel{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.modal-cancel:hover{background:var(--border);}
+.modal-confirm{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;}
+.modal-confirm:hover{transform:translateY(-1px);}
+/* Lightbox */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:9500;align-items:center;justify-content:center;cursor:zoom-out;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:88vw;max-height:85vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:popIn .25s ease;}
+.lb-close{position:absolute;top:1.2rem;right:1.5rem;color:#fff;font-size:1.4rem;cursor:pointer;opacity:.7;}
+.lb-close:hover{opacity:1;}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@media(max-width:1100px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .hero-body{flex-direction:column;align-items:flex-start;}
+  .hero-actions{padding-top:0;width:100%;}
+  .btn-export{display:none;}
+}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr;}}</style>
+<script>
+/* Theme */
+const ROOT=document.getElementById('adminRoot');
+const saved=localStorage.getItem('adminTheme')||'light';
+if(saved==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  var dark=ROOT.getAttribute('data-theme')==='dark';var next=dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Average price */
+(function(){
+  var rows=[...document.querySelectorAll('#tableBody .trow')];
+  var total=0,count=0;
+  rows.forEach(function(r){
+    var p=r.querySelector('.price-val');
+    if(p){var n=parseFloat(p.textContent.replace(/[$,]/g,''));if(!isNaN(n)){total+=n;count++;}}
+  });
+  var el=document.getElementById('avgPriceVal');
+  if(el&&count>0){el.textContent='$'+Math.round(total/count).toLocaleString('es-AR');}
+  else if(el){el.textContent='N/A';}
+})();
+/* Filter */
+function filterTable(){
+  var q=document.getElementById('searchInput').value.toLowerCase().trim();
+  var estado=document.getElementById('estadoFilter').value;
+  var rows=[...document.querySelectorAll('#tableBody .trow')];
+  var visible=0;
+  rows.forEach(function(r){
+    var search=r.getAttribute('data-search').toLowerCase();
+    var est=r.getAttribute('data-estado');
+    var matchQ=!q||search.includes(q);
+    var matchE=!estado||est===estado;
+    if(matchQ&&matchE){r.classList.remove('hidden');visible++;}
+    else{r.classList.add('hidden');}
+  });
+  document.getElementById('visibleCount').textContent=visible;
+  document.getElementById('resultCount').textContent=visible+' vehículo'+(visible!==1?'s':'');
+}
+/* Sort */
+var sortDir={};
+function sortTable(col){
+  var tbody=document.getElementById('tableBody');
+  var rows=[...tbody.querySelectorAll('.trow')];
+  var asc=!sortDir[col];sortDir={};sortDir[col]=asc;
+  rows.sort(function(a,b){
+    var av=a.cells[col]?a.cells[col].textContent.trim():'';
+    var bv=b.cells[col]?b.cells[col].textContent.trim():'';
+    var an=parseFloat(av.replace(/[^0-9.]/g,'')),bn=parseFloat(bv.replace(/[^0-9.]/g,''));
+    if(!isNaN(an)&&!isNaN(bn))return asc?an-bn:bn-an;
+    return asc?av.localeCompare(bv):bv.localeCompare(av);
+  });
+  rows.forEach(function(r){tbody.appendChild(r);});
+}
+/* Delete modal */
+var pendingDelUrl=null;
+function openDelModal(btn){
+  pendingDelUrl=btn.getAttribute('data-vurl');
+  var name=btn.getAttribute('data-vname').trim();
+  var vid=btn.getAttribute('data-vid');
+  document.getElementById('modalMsg').innerHTML='¿Eliminar <strong>'+name+'</strong> (#'+vid+')? Esta acción es <strong>irreversible</strong>.';
+  document.getElementById('delModal').classList.add('open');
+}
+function closeModal(){document.getElementById('delModal').classList.remove('open');pendingDelUrl=null;}
+document.getElementById('modalConfirmBtn').addEventListener('click',function(){
+  if(pendingDelUrl){var f=document.getElementById('deleteForm');f.action=pendingDelUrl;f.submit();}
+});
+document.getElementById('delModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+/* Lightbox */
+function openImgPreview(src){document.getElementById('lbImg').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
+/* CSV Export */
+function exportCSV(){
+  var rows=[...document.querySelectorAll('#mainTable tr')];
+  var csv='';
+  rows.forEach(function(r){
+    var cells=[...r.querySelectorAll('th,td')].slice(0,5);
+    csv+=cells.map(function(c){return'"'+c.textContent.trim().replace(/\s+/g,' ').replace(/"/g,'""')+'"';}).join(',')+'\n';
+  });
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='vehiculos_{{ usuario.username }}_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('CSV exportado','#10b981');
+}
+/* Toast */
+function showToast(msg,color){
+  color=color||'#6366f1';
+  var t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(function(){t.remove();},3500);
+}
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

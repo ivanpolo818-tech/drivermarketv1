@@ -1,0 +1,229 @@
+/* static/css/vendedor_inventory.css */
+
+.db-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.db-page-header h1 {
+    margin: 0 0 4px;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--t1);
+    letter-spacing: -.5px;
+    display: flex;
+    align-items: center;
+}
+
+.db-page-header p {
+    margin: 0;
+    color: var(--t2);
+    font-size: .88rem;
+}
+
+/* Notif Center */
+.notif-box { position: relative; display: flex; align-items: center; }
+.pulse-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    background: #FF5722;
+    border-radius: 50%;
+    border: 2px solid var(--card);
+    animation: pulse 2s infinite;
+    z-index: 2;
+}
+
+.notif-dropdown {
+    position: absolute;
+    top: 52px;
+    right: 0;
+    width: 320px;
+    background: var(--card);
+    border: 1px solid var(--bd);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    z-index: 1000;
+    overflow: hidden;
+    animation: slideInNotif .3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top right;
+}
+
+@keyframes slideInNotif {
+    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.notif-item {
+    transition: background .2s;
+}
+.notif-item:hover { background: var(--bd-l); }
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 87, 34, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
+}
+
+/* Filters */
+.v-filter {
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--bd);
+    background: var(--card);
+    color: var(--t2);
+    font-size: .8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: 'Inter', sans-serif;
+}
+.v-filter-on {
+    background: var(--pr) !important;
+    color: #fff !important;
+    border-color: var(--pr) !important;
+    box-shadow: 0 4px 12px rgba(255,106,0,0.2);
+}
+.v-filter:hover:not(.v-filter-on) {
+    border-color: var(--pr);
+    color: var(--pr);
+}
+
+/* Vehicle Cards */
+.vehicle-card {
+    padding: 0;
+    transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--bd);
+}
+.vehicle-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sh-md);
+}
+
+.v-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: .65rem;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: .4px;
+    color: #fff;
+    z-index: 5;
+}
+
+.v-date-tag {
+    position: absolute;
+    top: 10px;
+    left: 45px;
+    background: rgba(0,0,0,.55);
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    z-index: 5;
+}
+
+.featured-toggle {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    z-index: 10;
+    transition: all 0.2s;
+}
+.featured-toggle.active { color: #F59E0B; }
+
+.v-card-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+}
+
+.v-card-body {
+    padding: 14px 16px;
+}
+
+.v-card-title {
+    margin: 0;
+    font-size: .94rem;
+    font-weight: 700;
+    color: var(--t1);
+}
+
+/* Dropdown Menu */
+.v-menu-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--bd);
+    background: var(--card);
+    color: var(--t2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .88rem;
+    flex-shrink: 0;
+}
+.v-menu-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 34px;
+    width: 190px;
+    background: var(--card);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    box-shadow: var(--sh-md);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.v-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 15px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--t1);
+    text-decoration: none;
+    transition: background .15s;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+.v-menu-item:hover { background: var(--bd-l); }
+.v-menu-item i { width: 14px; text-align: center; }
+
+.v-price {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: var(--pr);
+}
+
+/* Dark mode specific fine-tuning */
+[data-dark] .vehicle-card { background: var(--card); border-color: var(--bd); }

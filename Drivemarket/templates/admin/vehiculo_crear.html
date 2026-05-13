@@ -1,0 +1,715 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin · Nuevo Vehículo{% endblock %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<div class="adm" id="adminRoot">
+  <aside class="adm-sidebar" id="admSidebar">
+    {% include 'admin/_sidebar.html' %}
+  </aside>
+  <div class="adm-overlay" id="admOverlay" onclick="closeSidebar()"></div>
+  <main class="adm-main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="ham-btn" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+        <nav class="breadcrumb">
+          <a href="{{ url_for('admin.admin_dashboard') }}"><i class="fas fa-home"></i></a>
+          <i class="fas fa-chevron-right"></i>
+          <a href="{{ url_for('admin.admin_vehiculos') }}">Vehículos</a>
+          <i class="fas fa-chevron-right"></i>
+          <span>Nuevo Vehículo</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="unsaved-pill" id="unsavedPill" style="display:none">
+          <i class="fas fa-circle"></i> Sin guardar
+        </div>
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema">
+          <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        <a href="{{ url_for('admin.admin_vehiculos') }}" class="btn-back-top">
+          <i class="fas fa-arrow-left"></i> Volver
+        </a>
+      </div>
+    </header>
+    <div class="page-content">
+      <!-- HEADING -->
+      <div class="page-heading">
+        <div class="heading-icon"><i class="fas fa-plus-circle"></i></div>
+        <div>
+          <h1>Publicar Nuevo Vehículo</h1>
+          <p class="subtext">Completá todos los campos para crear una nueva publicación en Drive Market.</p>
+        </div>
+      </div>
+      <!-- FLASH -->
+      <!-- FORM LAYOUT -->
+      <form id="createForm" action="{{ url_for('admin.crear_vehiculo') }}" method="POST"
+            enctype="multipart/form-data" novalidate>
+        <div class="form-layout">
+          <!-- RIGHT SIDE: Form fields -->
+          <div class="right-col">
+            <!-- 01 Identification -->
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-tag"></i>
+                <h3>01 — Identificación del Vehículo</h3>
+              </div>
+              <div class="panel-body">
+                <div class="fgrid cols2">
+                  <div class="fg">
+                    <label for="id_marca">Marca <span class="req">*</span></label>
+                    <div class="iw iw-sel">
+                      <i class="fas fa-copyright iw-ic"></i>
+                      <select id="id_marca" name="id_marca" required class="sel"
+                              onchange="markDirty();onMarcaChange()">
+                        <option value="">Seleccioná una marca…</option>
+                        {% for m in marcas %}
+                        <option value="{{ m.id }}">{{ m.nombre }}</option>
+                        {% endfor %}
+                      </select>
+                      <i class="fas fa-chevron-down sel-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="fg">
+                    <label for="id_modelo">Modelo <span class="req">*</span></label>
+                    <div class="iw iw-sel">
+                      <i class="fas fa-car iw-ic"></i>
+                      <select id="id_modelo" name="id_modelo" required class="sel" disabled
+                              onchange="markDirty();updatePreview()">
+                        <option value="">Seleccioná marca primero…</option>
+                        {% for mo in modelos %}
+                        <option value="{{ mo.id }}" data-marca="{{ mo.id_marca }}">{{ mo.nombre }}</option>
+                        {% endfor %}
+                      </select>
+                      <i class="fas fa-chevron-down sel-arrow"></i>
+                    </div>
+                  </div>
+                </div>
+                <div class="fg" style="margin-top:.9rem;">
+                  <label for="version">Versión / Acabado</label>
+                  <div class="iw">
+                    <i class="fas fa-layer-group iw-ic"></i>
+                    <input type="text" id="version" name="version"
+                           placeholder="Ej. Sport, Premium, Turbo…"
+                           oninput="markDirty();updatePreview()">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 02 Technical -->
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-cogs"></i>
+                <h3>02 — Detalles Técnicos</h3>
+              </div>
+              <div class="panel-body">
+                <div class="fgrid cols3">
+                  <div class="fg">
+                    <label for="anio">Año <span class="req">*</span></label>
+                    <div class="iw">
+                      <i class="fas fa-calendar iw-ic"></i>
+                      <input type="number" id="anio" name="anio" required
+                             min="1900" max="2030" placeholder="2024"
+                             oninput="markDirty();updatePreview()">
+                    </div>
+                  </div>
+                  <div class="fg">
+                    <label for="kilometraje">Kilometraje <span class="req">*</span></label>
+                    <div class="iw">
+                      <i class="fas fa-tachometer-alt iw-ic"></i>
+                      <input type="number" id="kilometraje" name="kilometraje" required
+                             min="0" placeholder="0"
+                             oninput="markDirty();formatKm()">
+                    </div>
+                    <small class="field-hint" id="kmHint"></small>
+                  </div>
+                  <div class="fg">
+                    <label for="placa">Placa</label>
+                    <div class="iw">
+                      <i class="fas fa-barcode iw-ic"></i>
+                      <input type="text" id="placa" name="placa"
+                             placeholder="ABC-123" style="text-transform:uppercase"
+                             oninput="markDirty()">
+                    </div>
+                  </div>
+                </div>
+                <div class="fgrid cols2" style="margin-top:.9rem;">
+                  <div class="fg">
+                    <label for="combustible">Combustible</label>
+                    <div class="iw iw-sel">
+                      <i class="fas fa-gas-pump iw-ic"></i>
+                      <select id="combustible" name="combustible" class="sel" onchange="markDirty()">
+                        <option value="">Sin especificar</option>
+                        {% for opt in ['Nafta','Diesel','GNC','Híbrido','Eléctrico'] %}
+                        <option value="{{ opt }}">{{ opt }}</option>
+                        {% endfor %}
+                      </select>
+                      <i class="fas fa-chevron-down sel-arrow"></i>
+                    </div>
+                  </div>
+                  <div class="fg">
+                    <label for="transmision">Transmisión</label>
+                    <div class="iw iw-sel">
+                      <i class="fas fa-cog iw-ic"></i>
+                      <select id="transmision" name="transmision" class="sel" onchange="markDirty()">
+                        <option value="">Sin especificar</option>
+                        {% for opt in ['Manual','Automático','CVT','Secuencial'] %}
+                        <option value="{{ opt }}">{{ opt }}</option>
+                        {% endfor %}
+                      </select>
+                      <i class="fas fa-chevron-down sel-arrow"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 03 Sale info -->
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-dollar-sign"></i>
+                <h3>03 — Precio y Ubicación</h3>
+              </div>
+              <div class="panel-body">
+                <div class="fgrid cols2">
+                  <div class="fg">
+                    <label for="precio">Precio (USD) <span class="req">*</span></label>
+                    <div class="iw">
+                      <i class="fas fa-dollar-sign iw-ic"></i>
+                      <input type="number" id="precio" name="precio" required
+                             min="0" step="0.01" placeholder="0.00"
+                             oninput="markDirty();formatPrice();updatePreview()">
+                    </div>
+                    <small class="field-hint" id="priceHint"></small>
+                  </div>
+                  <div class="fg">
+                    <label for="ciudad">Ciudad</label>
+                    <div class="iw">
+                      <i class="fas fa-map-marker-alt iw-ic"></i>
+                      <input type="text" id="ciudad" name="ciudad"
+                             placeholder="Ej. Buenos Aires, Córdoba…"
+                             oninput="markDirty()">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 04 Description -->
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-align-left"></i>
+                <h3>04 — Descripción</h3>
+              </div>
+              <div class="panel-body">
+                <div class="fg">
+                  <label for="descripcion">Descripción del vehículo</label>
+                  <div class="iw iw-ta">
+                    <textarea id="descripcion" name="descripcion" rows="5"
+                              placeholder="Describí el estado, equipamiento, historial de mantenimiento…"
+                              oninput="markDirty();updateCharCount()"></textarea>
+                  </div>
+                  <div class="char-row">
+                    <small class="field-hint">Mejor descripción = más consultas de compradores.</small>
+                    <span class="char-count" id="charCount">0 caracteres</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- 05 Images -->
+            <div class="panel-card">
+              <div class="panel-hd amber">
+                <i class="fas fa-images"></i>
+                <h3>05 — Fotos del Vehículo <span class="max-badge">Máx. 5</span></h3>
+              </div>
+              <div class="panel-body">
+                <!-- Drop zone -->
+                <div class="drop-zone" id="dropZone"
+                     onclick="document.getElementById('imagenUpload').click()"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event)">
+                  <div class="dz-placeholder" id="dzPlaceholder">
+                    <div class="dz-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <p>Clic o arrastrá hasta 5 fotos aquí</p>
+                    <small>JPG, PNG o WEBP · La primera será la imagen principal</small>
+                  </div>
+                  <div class="thumb-grid" id="thumbGrid" style="display:none"></div>
+                </div>
+                <input type="file" id="imagenUpload" name="imagen[]"
+                       accept="image/*" multiple style="display:none"
+                       onchange="handleFiles(this.files)">
+                <div class="img-actions" id="imgActions" style="display:none">
+                  <button type="button" class="btn-img-clear" onclick="clearImages()">
+                    <i class="fas fa-times"></i> Quitar todas
+                  </button>
+                  <span class="img-count-txt" id="imgCountTxt"></span>
+                </div>
+                <p class="file-hint"><i class="fas fa-info-circle"></i> Máximo 5 MB por imagen.</p>
+              </div>
+            </div>
+            <!-- Estado -->
+            <div class="panel-card">
+              <div class="panel-hd">
+                <i class="fas fa-toggle-on"></i>
+                <h3>06 — Estado inicial de publicación</h3>
+              </div>
+              <div class="panel-body">
+                <div class="estado-cards">
+                  <label class="ec ec-green ec-active">
+                    <input type="radio" name="estado" value="activo" checked>
+                    <i class="fas fa-check-circle"></i>
+                    <div><b>Activo</b><p>Visible de inmediato en el catálogo</p></div>
+                  </label>
+                  <label class="ec ec-gray">
+                    <input type="radio" name="estado" value="inactivo">
+                    <i class="fas fa-pause-circle"></i>
+                    <div><b>Inactivo</b><p>Guardar sin publicar todavía</p></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- Form footer -->
+            <div class="form-foot">
+              <a href="{{ url_for('admin.admin_vehiculos') }}" class="btn-cancel">
+                <i class="fas fa-times"></i> Cancelar
+              </a>
+              <button type="reset" class="btn-discard" onclick="resetForm()">
+                <i class="fas fa-undo"></i> Limpiar
+              </button>
+              <button type="submit" class="btn-save" id="saveBtn">
+                <i class="fas fa-rocket"></i> Publicar Vehículo
+              </button>
+            </div>
+          </div><!-- /right-col -->
+          <!-- LEFT SIDE: Preview card -->
+          <div class="left-col">
+            <div class="preview-card" id="previewCard">
+              <div class="pv-img-wrap" id="pvImgWrap">
+                <div class="pv-img-ph" id="pvImgPh">
+                  <i class="fas fa-camera"></i>
+                  <span>Sin foto aún</span>
+                </div>
+                <img id="pvMainImg" src="" alt="" style="display:none">
+                <span class="pv-badge-count" id="pvBadgeCount" style="display:none"></span>
+                <div class="pv-status-badge st-activo" id="pvStatus">
+                  <span class="st-dot"></span>Activo
+                </div>
+              </div>
+              <div class="pv-body">
+                <div class="pv-name" id="pvName">Marca · Modelo</div>
+                <div class="pv-sub" id="pvSub">Año — versión</div>
+                <div class="pv-price" id="pvPrice">$0</div>
+                <div class="pv-meta">
+                  <span><i class="fas fa-tachometer-alt"></i> <span id="pvKm">0 km</span></span>
+                  <span><i class="fas fa-map-marker-alt"></i> <span id="pvCity">—</span></span>
+                </div>
+              </div>
+            </div>
+            <!-- Tips card -->
+            <div class="panel-card" style="margin-top:1.2rem;">
+              <div class="panel-hd">
+                <i class="fas fa-lightbulb"></i>
+                <h3>Consejos</h3>
+              </div>
+              <div class="panel-body">
+                <ul class="tips-list">
+                  <li><i class="fas fa-check-circle"></i> Fotos en luz natural y desde múltiples ángulos.</li>
+                  <li><i class="fas fa-check-circle"></i> Incluí historial de mantenimiento en la descripción.</li>
+                  <li><i class="fas fa-check-circle"></i> Precio competitivo = más mensajes en las primeras 24h.</li>
+                  <li><i class="fas fa-check-circle"></i> Fotos del motor, interior y maletero aumentan la confianza.</li>
+                </ul>
+              </div>
+            </div>
+            <!-- Progress card -->
+            <div class="panel-card" style="margin-top:1.2rem;">
+              <div class="panel-hd">
+                <i class="fas fa-tasks"></i>
+                <h3>Progreso del formulario</h3>
+              </div>
+              <div class="panel-body">
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressFill"></div>
+                  </div>
+                  <span class="progress-pct" id="progressPct">0%</span>
+                </div>
+                <ul class="progress-steps" id="progressSteps">
+                  <li class="ps-item" id="ps-marca"><i class="fas fa-circle ps-dot"></i> Marca y modelo</li>
+                  <li class="ps-item" id="ps-anio"><i class="fas fa-circle ps-dot"></i> Año y km</li>
+                  <li class="ps-item" id="ps-precio"><i class="fas fa-circle ps-dot"></i> Precio</li>
+                  <li class="ps-item" id="ps-img"><i class="fas fa-circle ps-dot"></i> Fotos</li>
+                  <li class="ps-item" id="ps-desc"><i class="fas fa-circle ps-dot"></i> Descripción</li>
+                </ul>
+              </div>
+            </div>
+          </div><!-- /left-col -->
+        </div><!-- /form-layout -->
+      </form>
+    </div><!-- /page-content -->
+  </main>
+</div>
+<div class="toast-cont" id="toastCont"></div>
+<style>
+:root{
+  --bg:#f1f5f9;--surface:#fff;--surface2:#f8fafc;
+  --border:#e5e7eb;--text:#0f172a;--text2:#64748b;
+  --primary:#6366f1;--primary2:#a855f7;
+  --amber:#f59e0b;--amber2:#d97706;
+  --shadow:0 4px 24px rgba(0,0,0,.08);--radius:16px;
+  font-family:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#162032;
+  --border:#334155;--text:#f1f5f9;--text2:#94a3b8;
+  --shadow:0 4px 24px rgba(0,0,0,.35);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+.adm{display:flex;min-height:100vh;}
+.adm-sidebar{width:260px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;}
+.adm-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:150;gap:1rem;}
+.topbar-left,.topbar-right{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.ham-btn{display:none;background:none;border:none;color:var(--text);font-size:1.2rem;cursor:pointer;}
+.breadcrumb{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text2);}
+.breadcrumb a{color:var(--primary);text-decoration:none;}
+.breadcrumb .fa-chevron-right{font-size:.6rem;}
+.unsaved-pill{display:flex;align-items:center;gap:.35rem;padding:.3rem .8rem;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:8px;color:#d97706;font-size:.75rem;font-weight:700;animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.55;}}
+.unsaved-pill i{font-size:.5rem;}
+.icon-btn{background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem .65rem;color:var(--text);cursor:pointer;font-size:.95rem;transition:all .2s;}
+.icon-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-back-top{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:.82rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-back-top:hover{border-color:var(--primary);color:var(--primary);}
+.page-content{padding:1.8rem;display:flex;flex-direction:column;gap:1.4rem;}
+.page-heading{display:flex;align-items:center;gap:1rem;}
+.page-heading h1{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;}
+.subtext{color:var(--text2);font-size:.85rem;margin-top:.2rem;}
+.heading-icon{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--primary),var(--primary2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;flex-shrink:0;box-shadow:0 5px 14px rgba(99,102,241,.3);}
+.flash{display:flex;align-items:center;gap:.8rem;padding:.9rem 1.2rem;border-radius:12px;font-size:.88rem;font-weight:600;}
+.flash-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:#059669;}
+.flash-danger,.flash-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#dc2626;}
+.flash-close{margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;opacity:.6;}
+/* Layout */
+.form-layout{display:grid;grid-template-columns:1fr 300px;gap:1.3rem;align-items:start;}
+.left-col,.right-col{display:flex;flex-direction:column;gap:1.3rem;}
+.right-col{order:-1;}
+/* Panels */
+.panel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.panel-hd{display:flex;align-items:center;gap:.65rem;padding:1rem 1.3rem;border-bottom:1px solid var(--border);background:var(--surface2);}
+.panel-hd.amber{background:color-mix(in srgb,var(--amber) 6%,transparent);}
+.panel-hd.amber i{color:var(--amber);}
+.panel-hd i{color:var(--primary);font-size:.95rem;}
+.panel-hd h3{font-size:.88rem;font-weight:700;flex:1;}
+.max-badge{font-size:.65rem;font-weight:700;padding:.2rem .55rem;background:rgba(245,158,11,.12);color:#d97706;border-radius:6px;margin-left:auto;}
+.panel-body{padding:1.3rem;}
+/* Form fields */
+.fgrid{display:grid;gap:.9rem;}
+.fgrid.cols2{grid-template-columns:1fr 1fr;}
+.fgrid.cols3{grid-template-columns:1fr 1fr 1fr;}
+.fg{display:flex;flex-direction:column;gap:.35rem;}
+.fg label{font-size:.78rem;font-weight:600;color:var(--text2);}
+.req{color:#ef4444;}
+.iw{position:relative;display:flex;align-items:center;}
+.iw-ic{position:absolute;left:.85rem;color:var(--text2);font-size:.8rem;pointer-events:none;z-index:1;}
+.iw input{width:100%;padding:.63rem .85rem .63rem 2.4rem;border:1.5px solid var(--border);border-radius:10px;font-size:.86rem;color:var(--text);background:var(--surface);transition:all .2s;outline:none;}
+.iw input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.08);}
+.iw input:valid:not(:placeholder-shown){border-color:#10b981;}
+.iw-sel{position:relative;}
+.sel{width:100%;padding:.63rem 2.2rem .63rem 2.4rem;border:1.5px solid var(--border);border-radius:10px;font-size:.86rem;color:var(--text);background:var(--surface);outline:none;appearance:none;cursor:pointer;transition:all .2s;}
+.sel:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.08);}
+.sel:disabled{opacity:.5;cursor:not-allowed;}
+.sel-arrow{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);font-size:.65rem;color:var(--text2);pointer-events:none;}
+.iw-ta textarea{width:100%;padding:.65rem .85rem;border:1.5px solid var(--border);border-radius:10px;font-size:.86rem;color:var(--text);background:var(--surface);outline:none;resize:vertical;min-height:120px;transition:all .2s;line-height:1.6;}
+.iw-ta textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.08);}
+.field-hint{font-size:.72rem;color:var(--text2);line-height:1.4;}
+.char-row{display:flex;align-items:center;justify-content:space-between;margin-top:.3rem;}
+.char-count{font-size:.72rem;font-weight:600;color:var(--text2);}
+/* Drop zone */
+.drop-zone{border:2px dashed var(--border);border-radius:11px;min-height:180px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:1.2rem;transition:all .2s;background:var(--surface2);position:relative;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--amber);background:color-mix(in srgb,var(--amber) 5%,transparent);}
+.dz-placeholder{text-align:center;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:.5rem;}
+.dz-icon{font-size:2.5rem;opacity:.3;}
+.dz-placeholder p{font-size:.85rem;font-weight:600;}
+.dz-placeholder small{font-size:.72rem;opacity:.7;}
+.thumb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.7rem;width:100%;}
+.thumb-item{position:relative;height:80px;border-radius:9px;overflow:hidden;border:1px solid var(--border);}
+.thumb-item img{width:100%;height:100%;object-fit:cover;}
+.thumb-main-badge{position:absolute;top:0;left:0;background:var(--primary);color:#fff;font-size:.62rem;font-weight:700;padding:.18rem .5rem;border-bottom-right-radius:7px;}
+.thumb-remove{position:absolute;top:.25rem;right:.25rem;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.thumb-item:hover .thumb-remove{opacity:1;}
+.img-actions{display:flex;align-items:center;justify-content:space-between;margin-top:.6rem;}
+.btn-img-clear{display:flex;align-items:center;gap:.35rem;padding:.4rem .8rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#dc2626;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-img-clear:hover{background:#ef4444;color:#fff;}
+.img-count-txt{font-size:.75rem;color:var(--text2);font-weight:600;}
+.file-hint{font-size:.72rem;color:var(--text2);margin-top:.5rem;display:flex;align-items:flex-start;gap:.3rem;}
+.file-hint i{color:var(--primary);font-size:.7rem;margin-top:.1rem;}
+/* Estado cards */
+.estado-cards{display:flex;flex-direction:column;gap:.55rem;}
+.ec{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .22s;background:var(--surface2);}
+.ec input[type="radio"]{display:none;}
+.ec > i{font-size:1.1rem;flex-shrink:0;}
+.ec > div b{font-size:.83rem;font-weight:700;display:block;}
+.ec > div p{font-size:.72rem;color:var(--text2);margin-top:.1rem;}
+.ec-green > i{color:#10b981;}
+.ec-gray > i{color:#9ca3af;}
+.ec-active.ec-green{border-color:#10b981;background:rgba(16,185,129,.07);box-shadow:0 0 0 3px rgba(16,185,129,.1);}
+.ec-active.ec-gray{border-color:#6b7280;background:rgba(107,114,128,.07);box-shadow:0 0 0 3px rgba(107,114,128,.1);}
+.ec:hover:not(.ec-active){border-color:var(--primary);}
+.ec:has(input:checked){border-color:inherit;}
+/* Form footer */
+.form-foot{display:flex;align-items:center;justify-content:flex-end;gap:.7rem;flex-wrap:wrap;}
+.btn-cancel{display:flex;align-items:center;gap:.4rem;padding:.65rem 1.1rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;font-size:.83rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.btn-cancel:hover{border-color:#ef4444;color:#ef4444;}
+.btn-discard{display:flex;align-items:center;gap:.4rem;padding:.65rem 1.1rem;background:none;border:1px solid var(--border);border-radius:10px;font-size:.83rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;}
+.btn-discard:hover{border-color:var(--primary);color:var(--primary);}
+.btn-save{display:flex;align-items:center;gap:.5rem;padding:.7rem 2rem;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.3);transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(99,102,241,.4);}
+/* Preview card */
+.preview-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;position:sticky;top:5.5rem;}
+.pv-img-wrap{height:170px;background:var(--surface2);position:relative;display:flex;align-items:center;justify-content:center;}
+.pv-img-ph{display:flex;flex-direction:column;align-items:center;gap:.4rem;color:var(--text2);opacity:.4;}
+.pv-img-ph i{font-size:2.5rem;}
+.pv-img-ph span{font-size:.75rem;}
+.pv-img-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.pv-badge-count{position:absolute;top:.5rem;right:.5rem;background:rgba(0,0,0,.6);color:#fff;font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:20px;}
+.pv-status-badge{position:absolute;bottom:.5rem;left:.5rem;display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .65rem;border-radius:20px;font-size:.7rem;font-weight:700;}
+.st-activo{background:rgba(16,185,129,.85);color:#fff;}
+.st-inactivo{background:rgba(107,114,128,.8);color:#fff;}
+.st-dot{width:5px;height:5px;border-radius:50%;background:#fff;flex-shrink:0;}
+.pv-body{padding:1rem;}
+.pv-name{font-size:.95rem;font-weight:800;line-height:1.2;}
+.pv-sub{font-size:.75rem;color:var(--text2);margin:.2rem 0 .6rem;}
+.pv-price{font-size:1.3rem;font-weight:900;color:#059669;letter-spacing:-.02em;}
+.pv-meta{display:flex;gap:.8rem;margin-top:.5rem;font-size:.74rem;color:var(--text2);}
+.pv-meta i{color:var(--primary);font-size:.7rem;margin-right:.2rem;}
+/* Tips */
+.tips-list{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.tips-list li{font-size:.78rem;color:var(--text2);display:flex;align-items:flex-start;gap:.4rem;}
+.tips-list li i{color:#10b981;font-size:.72rem;margin-top:.15rem;flex-shrink:0;}
+/* Progress */
+.progress-wrap{display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem;}
+.progress-bar-bg{flex:1;height:8px;border-radius:4px;background:color-mix(in srgb,var(--primary) 10%,transparent);overflow:hidden;}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary2));border-radius:4px;transition:width .4s ease;}
+.progress-pct{font-size:.78rem;font-weight:800;color:var(--primary);}
+.progress-steps{list-style:none;display:flex;flex-direction:column;gap:.4rem;}
+.ps-item{font-size:.77rem;color:var(--text2);display:flex;align-items:center;gap:.5rem;transition:color .3s;}
+.ps-item.done{color:#059669;}
+.ps-item.done .ps-dot{color:#059669;}
+.ps-dot{font-size:.45rem;flex-shrink:0;}
+/* Toast */
+.toast-cont{position:fixed;bottom:1.5rem;right:1.5rem;display:flex;flex-direction:column;gap:.6rem;z-index:9999;}
+.toast{padding:.65rem 1.1rem;background:var(--surface);border-left:4px solid var(--primary);border-radius:10px;box-shadow:var(--shadow);font-size:.83rem;font-weight:600;min-width:210px;animation:slideToast .3s ease;}
+@keyframes slideToast{from{transform:translateX(110%);opacity:0;}to{transform:none;opacity:1;}}
+@media(max-width:1200px){.form-layout{grid-template-columns:1fr;}.left-col{order:-1;}.preview-card{position:relative;top:0;}}
+@media(max-width:768px){
+  .adm-sidebar{position:fixed;top:0;left:0;height:100%;z-index:250;transform:translateX(-100%);}
+  .adm-sidebar.open{transform:none;}
+  .adm-overlay.open{display:block;}
+  .ham-btn{display:block;}
+  .page-content{padding:1rem;}
+  .fgrid.cols2,.fgrid.cols3{grid-template-columns:1fr;}
+}
+</style>
+<script>
+/* Theme */
+var ROOT=document.getElementById('adminRoot');
+var saved=localStorage.getItem('adminTheme')||'light';
+if(saved==='dark'){ROOT.setAttribute('data-theme','dark');document.documentElement.setAttribute('data-theme','dark');document.getElementById('themeIcon').className='fas fa-sun';}
+function toggleTheme(){
+  var dark=ROOT.getAttribute('data-theme')==='dark';var next=dark?'light':'dark';
+  ROOT.setAttribute('data-theme',next);document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('adminTheme',next);
+  document.getElementById('themeIcon').className=dark?'fas fa-moon':'fas fa-sun';
+}
+/* Sidebar */
+function openSidebar(){document.getElementById('admSidebar').classList.add('open');document.getElementById('admOverlay').classList.add('open');}
+function closeSidebar(){document.getElementById('admSidebar').classList.remove('open');document.getElementById('admOverlay').classList.remove('open');}
+/* Dirty state */
+var isDirty=false;
+function markDirty(){
+  if(!isDirty){isDirty=true;document.getElementById('unsavedPill').style.display='flex';}
+}
+window.addEventListener('beforeunload',function(e){if(isDirty){e.preventDefault();e.returnValue='';}});
+document.getElementById('createForm').addEventListener('submit',function(){isDirty=false;});
+/* Marca → Modelo */
+document.getElementById('id_marca').addEventListener('change',onMarcaChange);
+function onMarcaChange(){
+  var marcaId=document.getElementById('id_marca').value;
+  var modeloSel=document.getElementById('id_modelo');
+  modeloSel.value='';
+  if(!marcaId){modeloSel.disabled=true;return;}
+  modeloSel.disabled=false;
+  [...modeloSel.options].forEach(function(o){
+    if(o.value===''){o.style.display='';}
+    else{o.style.display=(o.getAttribute('data-marca')===marcaId)?'':' none';}
+  });
+  updatePreview();
+}
+/* Live preview */
+function updatePreview(){
+  var marcaOpt=document.getElementById('id_marca');
+  var modeloOpt=document.getElementById('id_modelo');
+  var marcaTxt=marcaOpt.options[marcaOpt.selectedIndex]?marcaOpt.options[marcaOpt.selectedIndex].text:'';
+  var modeloTxt=modeloOpt.options[modeloOpt.selectedIndex]?modeloOpt.options[modeloOpt.selectedIndex].text:'';
+  var anio=document.getElementById('anio').value;
+  var version=document.getElementById('version').value;
+  var precio=parseFloat(document.getElementById('precio').value)||0;
+  var km=parseInt(document.getElementById('kilometraje').value)||0;
+  var ciudad=document.getElementById('ciudad').value||'—';
+  document.getElementById('pvName').textContent=(marcaTxt&&marcaTxt!=='Seleccioná una marca…'?marcaTxt:'Marca')+' · '+(modeloTxt&&modeloTxt!=='Seleccioná marca primero…'?modeloTxt:'Modelo');
+  document.getElementById('pvSub').textContent=(anio||'Año')+(version?' — '+version:'');
+  document.getElementById('pvPrice').textContent=precio>0?'$'+precio.toLocaleString('en-US',{minimumFractionDigits:0}):'$0';
+  document.getElementById('pvKm').textContent=km>0?km.toLocaleString('es-AR')+' km':'0 km';
+  document.getElementById('pvCity').textContent=ciudad;
+  updateProgress();
+}
+/* Formatters */
+function formatKm(){
+  var val=parseInt(document.getElementById('kilometraje').value)||0;
+  document.getElementById('kmHint').textContent=val>0?'→ '+val.toLocaleString('es-AR')+' km':'';
+  updatePreview();
+}
+function formatPrice(){
+  var val=parseFloat(document.getElementById('precio').value)||0;
+  document.getElementById('priceHint').textContent=val>0?'→ USD '+val.toLocaleString('en-US',{minimumFractionDigits:0}):'';
+  updatePreview();
+}
+/* Char count */
+function updateCharCount(){
+  var ta=document.getElementById('descripcion');
+  var len=ta.value.length;
+  var el=document.getElementById('charCount');
+  el.textContent=len+' carácter'+(len!==1?'es':'');
+  el.style.color=len>800?'#ef4444':len>400?'#f59e0b':'var(--text2)';
+  updateProgress();
+}
+/* Estado cards */
+document.querySelectorAll('.ec').forEach(function(card){
+  card.addEventListener('click',function(){
+    document.querySelectorAll('.ec').forEach(function(c){c.classList.remove('ec-active');});
+    card.classList.add('ec-active');
+    var radio=card.querySelector('input[type="radio"]');radio.checked=true;
+    var val=radio.value;
+    var badge=document.getElementById('pvStatus');
+    badge.className='pv-status-badge st-'+(val||'activo');
+    badge.innerHTML='<span class="st-dot"></span>'+(val==='activo'?'Activo':'Inactivo');
+    markDirty();
+  });
+});
+/* Image handling */
+var selectedFiles=[];
+function handleFiles(files){
+  var arr=Array.from(files);
+  if(arr.length>5){showToast('Máximo 5 imágenes permitidas','#ef4444');return;}
+  selectedFiles=arr;
+  renderThumbs();
+  markDirty();
+  updateProgress();
+}
+function handleDragOver(e){e.preventDefault();document.getElementById('dropZone').classList.add('drag-over');}
+function handleDragLeave(e){document.getElementById('dropZone').classList.remove('drag-over');}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  handleFiles(e.dataTransfer.files);
+}
+function renderThumbs(){
+  var grid=document.getElementById('thumbGrid');
+  var ph=document.getElementById('dzPlaceholder');
+  var ia=document.getElementById('imgActions');
+  grid.innerHTML='';
+  if(selectedFiles.length===0){ph.style.display='flex';grid.style.display='none';ia.style.display='none';document.getElementById('pvImgPh').style.display='flex';document.getElementById('pvMainImg').style.display='none';return;}
+  ph.style.display='none';grid.style.display='grid';ia.style.display='flex';
+  document.getElementById('imgCountTxt').textContent=selectedFiles.length+'/5 fotos seleccionadas';
+  selectedFiles.forEach(function(file,i){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var d=document.createElement('div');d.className='thumb-item';
+      d.innerHTML=(i===0?'<span class="thumb-main-badge">Principal</span>':'')+
+        '<img src="'+e.target.result+'"><button type="button" class="thumb-remove" onclick="removeThumb('+i+')"><i class="fas fa-times"></i></button>';
+      grid.appendChild(d);
+      if(i===0){
+        var pv=document.getElementById('pvMainImg');pv.src=e.target.result;pv.style.display='';
+        document.getElementById('pvImgPh').style.display='none';
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  var bc=document.getElementById('pvBadgeCount');
+  if(selectedFiles.length>1){bc.textContent='1/'+selectedFiles.length;bc.style.display='';}
+  else{bc.style.display='none';}
+}
+function removeThumb(idx){
+  selectedFiles.splice(idx,1);
+  // rebuild file input
+  renderThumbs();
+  updateProgress();
+}
+function clearImages(){
+  selectedFiles=[];
+  document.getElementById('imagenUpload').value='';
+  renderThumbs();
+  updateProgress();
+}
+/* Progress */
+function updateProgress(){
+  var steps=[
+    {id:'ps-marca',ok:!!(document.getElementById('id_marca').value&&document.getElementById('id_modelo').value)},
+    {id:'ps-anio',ok:!!(document.getElementById('anio').value&&document.getElementById('kilometraje').value)},
+    {id:'ps-precio',ok:!!document.getElementById('precio').value},
+    {id:'ps-img',ok:selectedFiles.length>0},
+    {id:'ps-desc',ok:document.getElementById('descripcion').value.trim().length>30}
+  ];
+  var done=0;
+  steps.forEach(function(s){
+    var el=document.getElementById(s.id);
+    if(s.ok){el.classList.add('done');done++;}
+    else{el.classList.remove('done');}
+  });
+  var pct=Math.round((done/steps.length)*100);
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressPct').textContent=pct+'%';
+}
+/* Reset */
+function resetForm(){
+  isDirty=false;
+  document.getElementById('unsavedPill').style.display='none';
+  selectedFiles=[];renderThumbs();updateCharCount();formatPrice();formatKm();updatePreview();
+  document.getElementById('id_modelo').disabled=true;
+  showToast('Formulario limpiado','#f59e0b');
+}
+/* Toast */
+function showToast(msg,color){
+  color=color||'#6366f1';
+  var t=document.createElement('div');t.className='toast';t.style.borderLeftColor=color;t.textContent=msg;
+  document.getElementById('toastCont').appendChild(t);
+  setTimeout(function(){t.remove();},3500);
+}
+/* Init */
+updateProgress();
+document.getElementById('ciudad').addEventListener('input',function(){markDirty();updatePreview();});
+</script>
+{% endblock %}
+{% block footer %}
+<style>@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.05);}}</style>
+<footer style="background:#ffffff;border-top:1px solid #E5E7EB;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:'Inter',sans-serif;font-size:.75rem;color:#64748b;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:dotPulse 2s ease-in-out infinite;"></div>
+    <span style="font-weight:600;">Sistema Activo</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>Drive Market Admin Panel</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="text-transform:capitalize;font-weight:700;color:#FF6A00;">{{ session.get('rol', '') }}</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <a href="{{ url_for('admin.admin_dashboard') }}" style="color:#FF6A00;font-weight:700;text-decoration:none;"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <span style="color:#cbd5e1;">·</span>
+    <a href="{{ url_for('soporte.ia_analytics') }}" style="color:#6366f1;font-weight:700;text-decoration:none;"><i class="fas fa-robot"></i> IA Analytics</a>
+    <span style="color:#cbd5e1;">·</span>
+    <span style="background:#F1F5F9;border:1px solid #E5E7EB;border-radius:6px;padding:2px 8px;font-weight:700;color:#64748b;">v2.0</span>
+    <span style="color:#cbd5e1;">·</span>
+    <span>&copy; 2026 Drive Market</span>
+  </div>
+</footer>
+{% endblock %}

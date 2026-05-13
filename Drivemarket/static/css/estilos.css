@@ -1,0 +1,400 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f0f8ff;
+    color: #000;
+}
+
+header {
+    background: linear-gradient(to right, #00bfff, #1e90ff);
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header img {
+    height: 60px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 25px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 18px;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #ffd700;
+}
+
+.hero {
+    background-image: url('../images/Fondo.jpg');
+    background-size: cover;
+    background-position: center;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.hero h1 {
+    font-size: 3em;
+    color: #000;
+}
+
+.hero h1 span.yellow {
+    color: #ffd700;
+}
+
+.hero h1 span.blue {
+    color: navy;
+}
+
+.search-bar {
+    background-color: rgba(0, 0, 139, 0.85);
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.search-bar select, .search-bar button {
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    font-size: 16px;
+}
+
+.search-bar button {
+    background-color: #3734e7;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.search-bar button:hover {
+    background-color: #2926b1;
+}
+
+.slogan {
+    margin-top: 40px;
+    font-size: 26px;
+    color: black;
+}
+
+footer {
+    background-color: #00ced1;
+    color: white;
+    text-align: center;
+    padding: 12px 20px;
+}
+
+.info-empresa {
+  padding: 50px 20px;
+  background-color: rgba(255, 255, 255, 0.98);
+  text-align: center;
+}
+
+.info-empresa h2 {
+  color: #003366;
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+
+.info-empresa p {
+  max-width: 800px;
+  margin: auto;
+  font-size: 1.1em;
+  color: #333;
+  line-height: 1.6;
+}
+
+.valores {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.valor {
+  width: 250px;
+  padding: 20px;
+  border-radius: 10px;
+  background-color: #f0f8ff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  text-align: left;
+}
+
+.valor h3 {
+  color: #007BFF;
+  margin-bottom: 10px;
+}
+
+.valor p {
+  color: #444;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 20px;
+  gap: 20px;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #ffefef;
+  padding: 15px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 10px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.sidebar a {
+  color: #007BFF;
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  text-decoration: underline;
+}
+
+/* BUSCAR VEHICULOS */
+
+.contenedor-principal {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px;
+  gap: 20px;
+}
+.filtro-lateral {
+  width: 280px;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.1); }
+
+.main {
+  flex: 1;
+  display: grid;
+  flex-direction: column;
+  gap: 20px;
+  float: left;
+  grid-template-columns: auto auto auto;
+}
+.titulovehiculos{
+  font-size: 40px;
+  margin-top: 1px;
+  margin: auto;
+  font-style: italic;
+  justify-content: right;
+}
+
+
+.vehicle-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  width: 300px;
+  
+  margin-bottom: 20px;
+  vertical-align: top;
+}
+
+.vehicle-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.vehicle-card h3 {
+  margin: 10px 0 5px;
+  color: #333;
+}
+
+.price {
+  font-size: 20px;
+  color: #000;
+  font-weight: bold;
+}
+
+.details {
+  font-size: 14px;
+  color: #555;
+}
+
+.tag {
+  display: inline-block;
+  background-color: #eee;
+  padding: 3px 6px;
+  margin: 2px 3px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.form-container {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-container h2 {
+  text-align: center;
+}
+
+.form-container input[type="email"] {
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.form-container button {
+  width: 100%;
+  padding: 10px;
+  background: #007BFF;
+  color: white;
+  border: none;
+  margin-top: 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.form-container button:hover {
+  background: #0056b3;
+}
+
+.message {
+  margin-top: 15px;
+  color: green;
+  text-align: center;
+}
+
+.bdrecuperar {    font-family: Arial, sans-serif;
+  background: #109dcc;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;}
+
+  /* BOTON DE INICIO  */
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .top-actions i {
+    font-size: 30px;
+    cursor: pointer;
+  }
+
+  .login-btn {
+    background-color: white;
+    color: #00bfff;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+
+  .login-btn:hover {
+    background-color: #e0f7ff;
+  }
+
+/* BARRA DE FILTROS */
+
+.filtro-lateral {
+  top: 80px; /* ajusta según tu header */
+  left: 0;
+  width: 280px;
+  height: calc(100% - 80px);
+  background-color: #f9f9f9;
+  padding: 20px;
+  overflow-y: auto;
+  border-right: 2px solid #ccc;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.filtro-lateral h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+}
+
+.filtro-lateral label {
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+  font-size: 14px;
+}
+
+.filtro-lateral input,
+.filtro-lateral select {
+  width: 100%;
+  padding: 6px;
+  margin-top: 5px;
+  border-radius: 5px;
+  border: 1px solid #aaa;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.filtro-lateral input[type="range"] {
+  padding: 0;
+}
+
+.filtrar-btn {
+  margin-top: 20px;
+  width: 100%;
+  background-color: #00bfff;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s; 
+}
+
+.filtrar-btn:hover {
+  background-color: #009ccc;
+}
+
+/* publicar vehiculos */
+/* === GENERAL === */

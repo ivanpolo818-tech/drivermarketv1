@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Dashboard | Drive Market{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5 mb-5">
+    <div class="row">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-primary"><i class="fas fa-chart-pie"></i> Dashboard de Usuario</h1>
+            <p class="lead text-muted mt-3">Estamos trabajando en las analíticas de tu cuenta. ¡Vuelve pronto!</p>
+            <hr class="my-4">
+            
+            <div class="row mt-5">
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0 h-100 pb-3" style="border-radius: 15px;">
+                        <div class="card-body text-center">
+                            <div class="display-1 text-warning mb-3"><i class="fas fa-star"></i></div>
+                            <h3 class="font-weight-bold">{{ estadisticas.total_favoritos }}</h3>
+                            <p class="text-muted text-uppercase small font-weight-bold">Vehículos Favoritos</p>
+                            <a href="{{ url_for('users.favoritos') }}" class="btn btn-outline-warning rounded-pill mt-2 px-4 shadow-sm">Ver Favoritos</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0 h-100 pb-3" style="border-radius: 15px;">
+                        <div class="card-body text-center">
+                            <div class="display-1 text-primary mb-3"><i class="fas fa-car-side"></i></div>
+                            <h3 class="font-weight-bold">{{ estadisticas.total_vehiculos }}</h3>
+                            <p class="text-muted text-uppercase small font-weight-bold">Mis Publicaciones</p>
+                            <a href="{{ url_for('users.mis_vehiculos') }}" class="btn btn-outline-primary rounded-pill mt-2 px-4 shadow-sm">Ver Publicaciones</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm border-0 h-100 pb-3" style="border-radius: 15px;">
+                        <div class="card-body text-center">
+                            <div class="display-1 text-info mb-3"><i class="fas fa-envelope"></i></div>
+                            <h3 class="font-weight-bold">{{ estadisticas.mensajes_sin_leer }}</h3>
+                            <p class="text-muted text-uppercase small font-weight-bold">Mensajes Sin Leer</p>
+                            <a href="{{ url_for('users.redirigir_mensajes') }}" class="btn btn-outline-info rounded-pill mt-2 px-4 shadow-sm">Ver Mensajes</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+               <a href="{{ url_for('users.perfil') }}" class="btn btn-primary rounded-pill px-5 py-2 shadow"><i class="fas fa-user-circle"></i> Volver a mi Perfil</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

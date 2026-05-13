@@ -1,0 +1,1425 @@
+{% extends "base.html" %}
+
+{% block title %}Perfil de {{ vendedor.nombre }} | Drivemarket{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vehiculos/buscar.css') }}">
+<style>
+  /* Fix minor alignment issues in profile page */
+  .main-content-grid {
+    margin-top: 2rem !important;
+  }
+  .seller-profile {
+    padding-bottom: 5rem;
+  }
+
+  /* Mobile Filters Drawer & Advisor */
+  .filters-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,23,42,.6);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+      z-index: 1040; opacity: 0; transition: opacity .3s;
+  }
+  .filters-overlay.is-open { display: block; opacity: 1; }
+  .close-filters-btn {
+      display: none; background: transparent; border: none;
+      font-size: 1.25rem; color: #64748b; cursor: pointer;
+      padding: 4px; border-radius: 8px; align-items: center; justify-content: center;
+  }
+  .close-filters-btn:hover { background: #f1f5f9; color: #0f172a; }
+  .mobile-filters-header { display: none; margin-bottom: 20px; align-items: center; justify-content: flex-end; }
+  .mobile-filters-btn {
+      align-items: center; gap: 8px;
+      background: #fff; padding: 8px 16px;
+      border: 1px solid #e2e8f0; border-radius: 10px;
+      font-size: .88rem; font-weight: 700; color: #0f172a;
+      box-shadow: 0 2px 6px rgba(0,0,0,.04); cursor: pointer;
+  }
+  @media (max-width: 992px) {
+      .mobile-filters-header { display: flex; }
+      .close-filters-btn { display: flex; }
+      .filters-sidebar { 
+          position: fixed !important; top: 0 !important; left: 0 !important; 
+          height: 100% !important; width: 320px !important; max-width: 85vw !important;
+          z-index: 1050 !important; border-radius: 0 !important;
+          margin: 0 !important; overflow-y: auto !important; padding-bottom: 80px !important;
+          transform: translateX(-100%);
+          transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .filters-sidebar.is-open { transform: translateX(0); }
+  }
+
+  /* Badge Destacado (Image 3 style) */
+  .card-badge-featured {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #F59E0B;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 900;
+    padding: 6px 12px;
+    border-radius: 20px;
+    z-index: 5;
+    box-shadow: 0 4px 10px rgba(245,158,11,0.3);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Paginación */
+  .pagination-container {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--primary-light);
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .page-link:hover, .page-link.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(235, 37,  red, 0.2);
+    transform: translateY(-2px);
+  }
+  .page-link.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="seller-profile">
+  <!-- Encabezado del vendedor (Estilo Premium) -->
+  <header class="sp-header">
+    <div class="sp-cover" {% if vendedor.foto_portada %}style="background: url('{{ url_for('static', filename='uploads/portadas/' ~ vendedor.foto_portada) }}') center/cover no-repeat;"{% endif %}></div>
+    <div class="sp-container">
+      <div class="sp-info">
+        <div class="sp-avatar">
+          {% if vendedor.logo_tienda %}
+            <img src="{{ url_for('static', filename='uploads/vendedores/' ~ vendedor.logo_tienda) }}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ vendedor.nombre_empresa or vendedor.nombre|urlencode }}&background=FF6A00&color=fff';" alt="{{ vendedor.nombre }}">
+          {% elif vendedor.foto %}
+            <img src="{{ url_for('static', filename='uploads/usuarios/' ~ vendedor.foto) }}" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ vendedor.nombre_empresa or vendedor.nombre|urlencode }}&background=FF6A00&color=fff';" alt="{{ vendedor.nombre }}">
+          {% else %}
+            <div class="sp-avatar-placeholder">
+              <span>{{ vendedor.nombre[0].upper() }}</span>
+            </div>
+          {% endif %}
+          {% if vendedor.estado_verificacion == 'aprobado' %}
+          <div class="sp-verified-badge" title="Tienda/Vendedor Verificado">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          {% endif %}
+        </div>
+        
+        <div class="sp-details">
+          <div class="sp-title-row">
+            <h1>{{ vendedor.nombre_empresa if vendedor.nombre_empresa else (vendedor.nombre ~ ' ' ~ (vendedor.apellidos if vendedor.apellidos else '')) }}</h1>
+          </div>
+          
+          <div class="sp-meta">
+            <span class="sp-stat">
+              <i class="fas fa-car-side"></i> <strong>{{ vehiculos|length }}</strong> vehículos
+            </span>
+            <span class="sp-stat">
+              <i class="fas fa-calendar-alt"></i> Miembro desde {{ vendedor.fecha_registro.strftime('%Y') if vendedor.fecha_registro else '2026' }}
+            </span>
+            {% if vendedor.direccion_negocio %}
+            <span class="sp-stat">
+              <i class="fas fa-map-marker-alt"></i> 
+              <a href="https://www.google.com/maps/search/{{ vendedor.direccion_negocio|urlencode }}" target="_blank" style="color: inherit; text-decoration: none; border-bottom: 1px dashed rgba(0,0,0,0.1);">
+                {{ vendedor.direccion_negocio }}
+              </a>
+            </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="sp-actions">
+          {% if vendedor.telefono %}
+            {% if session.get('usuario_id') %}
+            <a href="https://wa.me/{{ vendedor.telefono|replace(' ', '')|replace('+', '') }}?text=Hola,%20vi%20tu%20perfil%20en%20Drivemarket" target="_blank" class="sp-btn sp-btn-whatsapp">
+              <i class="fab fa-whatsapp"></i> Contactar
+            </a>
+            {% else %}
+            <button type="button" onclick="openAuthModal()" class="sp-btn sp-btn-whatsapp">
+              <i class="fab fa-whatsapp"></i> Contactar
+            </button>
+            {% endif %}
+          {% endif %}
+          
+          {% if session.get('usuario_id') and session.get('usuario_id') != vendedor.id %}
+          <button class="sp-btn sp-btn-outline sp-btn-danger" onclick="document.getElementById('reportUserModal').classList.add('open')">
+            <i class="fas fa-flag"></i> Reportar
+          </button>
+          {% endif %}
+
+          <div class="sp-share-container">
+            <button class="sp-btn sp-btn-outline" id="shareBtn">
+              <i class="fas fa-share-alt"></i> Compartir
+            </button>
+            <div class="sp-share-menu" id="shareMenu">
+              <div class="sp-share-header">Compartir Perfil</div>
+              <a href="https://wa.me/?text=Echa%20un%20vistazo%20al%20perfil%20de%20{{ (vendedor.nombre_empresa or vendedor.nombre)|urlencode }}%20en%20Drivemarket:%20{{ request.url|urlencode }}" target="_blank" class="sp-share-item">
+                <i class="fab fa-whatsapp" style="color: #25D366;"></i> WhatsApp
+              </a>
+              <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}" target="_blank" class="sp-share-item">
+                <i class="fab fa-facebook-f" style="color: #1877F2;"></i> Facebook
+              </a>
+              <a href="https://twitter.com/intent/tweet?url={{ request.url|urlencode }}&text=Echa%20un%20vistazo%20al%20perfil%20de%20{{ (vendedor.nombre_empresa or vendedor.nombre)|urlencode }}%20en%20Drivemarket" target="_blank" class="sp-share-item">
+                <i class="fab fa-x-twitter" style="color: #000;"></i> X (Twitter)
+              </a>
+              <hr style="margin: 8px 0; border: none; border-top: 1px solid var(--sp-border);">
+              <button class="sp-share-item" onclick="navigator.clipboard.writeText(window.location.href); alert('Enlace copiado');">
+                <i class="fas fa-link"></i> Copiar Enlace
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+
+  <section class="sp-vehicles">
+    <div class="sp-container">
+      <div class="sp-section-header">
+        <h2>Catálogo de Vehículos</h2>
+        <p>Todos los vehículos disponibles publicados por este vendedor.</p>
+      </div>
+
+      <div class="main-content-grid" style="padding-top: 0; max-width: 1400px; margin: 0 auto;">
+        {% if vehiculos %}
+        <div class="filters-overlay" id="filtersOverlay" onclick="toggleFilters()"></div>
+        <aside class="filters-sidebar" id="filterPanel" style="top: 100px;">
+          <div class="filters-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0;"><i class="fas fa-filter"></i> Filtros</h3>
+            <button type="button" class="close-filters-btn" onclick="toggleFilters()">
+                <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Búsqueda por texto -->
+          <div class="form-group">
+            <label class="form-label">Buscar vehículo</label>
+            <div class="input-wrap">
+              <input type="text" id="searchInput" class="form-input" placeholder="Ej. Toyota Corolla...">
+            </div>
+          </div>
+
+          <!-- Marca -->
+          <div class="form-group">
+            <label class="form-label">Marca</label>
+            <div class="select-wrapper">
+              <select id="brandFilter" class="form-select">
+                <option value="">Todas las marcas</option>
+              </select>
+              <i class="fas fa-chevron-down select-icon"></i>
+            </div>
+          </div>
+
+          <!-- Ordenar -->
+          <div class="form-group">
+            <label class="form-label">Ordenar por</label>
+            <div class="select-wrapper">
+              <select id="sortFilter" class="form-select">
+                <option value="recent">Más recientes</option>
+                <option value="price_asc">Menor precio</option>
+                <option value="price_desc">Mayor precio</option>
+              </select>
+              <i class="fas fa-chevron-down select-icon"></i>
+            </div>
+          </div>
+
+          <!-- Rango de Precio -->
+          <div class="form-group">
+            <label class="form-label">Rango de Precio</label>
+            <div class="input-row">
+              <input type="number" id="minPrice" class="form-input" placeholder="Min">
+              <input type="number" id="maxPrice" class="form-input" placeholder="Max">
+            </div>
+          </div>
+
+          <!-- Rango de Año -->
+          <div class="form-group">
+            <label class="form-label">Rango de Año</label>
+            <div class="input-row">
+              <input type="number" id="minYear" class="form-input" placeholder="Min">
+              <input type="number" id="maxYear" class="form-input" placeholder="Max">
+            </div>
+          </div>
+          
+          <!-- Bloque IA -->
+          <div class="sidebar-ai-block" style="margin-top: 24px; padding: 16px; background: #f8fafc; border: 1px solid #e8ecf0; border-radius: 12px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#FF7043,#FF5722); display: flex; align-items: center; justify-content: center; color: #fff; font-size: .9rem;">
+                  <i class="fas fa-robot"></i>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 3px;">
+                  <strong style="font-size: .82rem; font-weight: 800; color: #0f172a;">Prueba nuestra Inteligencia Artificial</strong>
+                  <span style="font-size: .75rem; color: #64748b; line-height: 1.45;">Nuestro Asesor Virtual interactivo te ayuda a decidir.</span>
+              </div>
+              <button onclick="window.openDriveMarketAI ? window.openDriveMarketAI() : window.location.href='/soporte/chat'" style="width: 100%; padding: 10px; border: none; border-radius: 10px; background: linear-gradient(135deg,#FF7043,#FF5722); color: #fff; font-size: .8rem; font-weight: 700; cursor: pointer; transition: transform 0.15s, opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                  Consultar Asesor Virtual
+              </button>
+          </div>
+        </aside>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <div class="results-panel" style="flex: 1;">
+          
+          <div class="mobile-filters-header">
+              <button class="mobile-filters-btn" onclick="toggleFilters()">
+                  <i class="fas fa-sliders-h"></i> Filtros
+              </button>
+          </div>
+          
+          <!-- GRILLA DE RESULTADOS -->
+          <div class="vehicles-grid" id="mainGrid">
+            {% for v in vehiculos %}
+            <div class="vehicle-card-wrapper" 
+                 data-marca="{{ v.marca|lower }}" 
+                 data-precio="{{ v.precio }}" 
+                 data-anio="{{ v.anio }}">
+                <a href="{{ url_for('detalle', id=v.id) }}" class="vehicle-card" style="text-decoration: none; color: inherit;">
+                  <div class="card-image-box">
+                    <img src="{{ url_for('static', filename=v.imagen) if v.imagen else url_for('static', filename='img/default_car.jpg') }}" alt="{{ v.marca }} {{ v.modelo }}" loading="lazy">
+                    <div class="card-overlay"></div>
+                    
+                    {% if v.destacado %}
+                    <span class="badge-featured" style="position: absolute; top: 10px; right: 10px; background: #f59e0b; color: white; padding: 4px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; z-index: 5;">
+                      Destacado
+                    </span>
+                    {% endif %}
+                    <span class="badge-state {{ v.estado|lower if v.estado else 'usado' }}">
+                        {{ v.estado|capitalize if v.estado else 'Usado' }}
+                    </span>
+                  </div>
+                  
+                  <div class="card-content">
+                    <div class="card-header-info">
+                      <h3 class="card-title">{{ v.marca }} {{ v.modelo }}</h3>
+                      <span class="card-year">{{ v.anio }}</span>
+                    </div>
+                    
+                    <div class="card-specs">
+                      <div class="spec-item"><i class="fas fa-tachometer-alt"></i> <span>{{ "{:,.0f}".format(v.kilometraje|float) }} km</span></div>
+                      <div class="spec-item"><i class="fas fa-map-marker-alt"></i> <span>{{ v.ciudad_venta }}</span></div>
+                    </div>
+                    
+                    <div class="card-divider"></div>
+                    
+                    <div class="card-footer">
+                      <div class="price-box">
+                        <span class="price-label">Precio</span>
+                        <span class="price-value">${{ "{:,.0f}".format(v.precio|float) }}</span>
+                      </div>
+                      
+                      <!-- Botón de WhatsApp integrado en el footer -->
+                      <object class="contact-obj">
+                        <a href="https://wa.me/{{ vendedor.telefono|replace('+', '')|replace(' ', '') }}?text=Hola%2C%20estoy%20interesado%20en%20el%20{{ v.marca }}%20{{ v.modelo }}%20" 
+                           target="_blank" 
+                           class="btn-contact-action">
+                          <i class="fab fa-whatsapp"></i> Contactar
+                        </a>
+                      </object>
+                    </div>
+                  </div>
+                </a>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- PAGINACIÓN -->
+          {% if total_pages > 1 %}
+          <div class="pagination-container">
+            {% if page > 1 %}
+              <a href="{{ url_for('perfil_publico', id=vendedor.id, page=page-1) }}" class="page-link"><i class="fas fa-chevron-left"></i></a>
+            {% endif %}
+            
+            {% for p in range(1, total_pages + 1) %}
+              <a href="{{ url_for('perfil_publico', id=vendedor.id, page=p) }}" 
+                 class="page-link {% if p == page %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
+            
+            {% if page < total_pages %}
+              <a href="{{ url_for('perfil_publico', id=vendedor.id, page=page+1) }}" class="page-link"><i class="fas fa-chevron-right"></i></a>
+            {% endif %}
+          </div>
+          {% endif %}
+
+        {% else %}
+          <div class="sp-empty" style="text-align: center; padding: 5rem 2rem; background: #fff; border: 2px dashed #e2e8f0; border-radius: 24px; width: 100%; grid-column: 1 / -1;">
+            <div class="sp-empty-icon" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 1.5rem;"><i class="fas fa-car-crash"></i></div>
+            <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem;">Sin vehículos disponibles</h3>
+            <p style="color: #64748b;">Este vendedor no tiene vehículos activos en este momento.</p>
+            <a href="{{ url_for('buscar') }}" class="btn-primary-full" style="display: inline-block; width: auto; margin-top: 1.5rem; padding: 12px 24px; text-decoration: none;">Volver al catálogo</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</main>
+
+<style>
+/* ── Variables & Base ── */
+:root {
+  --sp-bg: #f8fafc;
+  --sp-surface: #ffffff;
+  --sp-border: #e2e8f0;
+  --sp-text: #0f172a;
+  --sp-text-mut: #64748b;
+  --sp-primary: #ff7043;
+  --sp-primary-hover: #ff5722;
+  --sp-shadow: 0 12px 32px rgba(15,23,42,0.04);
+}
+
+.vehicles-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 24px !important;
+}
+
+@media (max-width: 1100px) {
+  .vehicles-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .vehicles-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+[data-theme="dark"] {
+  --sp-bg: #0a0a0a;
+  --sp-surface: #111;
+  --sp-border: #222;
+  --sp-text: #f1f5f9;
+  --sp-text-mut: #94a3b8;
+  --sp-shadow: 0 12px 32px rgba(0,0,0,0.5);
+}
+
+.seller-profile {
+  background: var(--sp-bg);
+  min-height: 100vh;
+  padding-bottom: 5rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.sp-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.main-content-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.filters-sidebar {
+  width: 280px;
+  position: sticky;
+  top: 100px;
+}
+
+/* ── Encabezado ── */
+.sp-header {
+  background: var(--sp-surface);
+  border-bottom: 1px solid var(--sp-border);
+  position: relative;
+}
+
+.sp-cover {
+  height: 280px;
+  background: #eee;
+  position: relative;
+  overflow: hidden;
+}
+.sp-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 100%);
+  opacity: 0.6;
+}
+
+.sp-info {
+  display: flex;
+  align-items: center; /* Centered instead of Baseline/End for a more compact row feel */
+  gap: 1.5rem;
+  margin-top: -50px;
+  padding: 1.25rem 2rem;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  position: relative;
+  z-index: 10;
+  flex-wrap: wrap;
+}
+
+[data-theme="dark"] .sp-info {
+  background: rgba(10, 10, 10, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sp-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  border: 5px solid var(--sp-surface);
+  background: var(--sp-surface);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sp-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sp-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.sp-verified-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: #10b981;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  border: 3px solid var(--sp-surface);
+  box-shadow: 0 4px 10px rgba(16,185,129,0.3);
+}
+
+.sp-details {
+  flex: 1;
+  min-width: 250px;
+  padding-bottom: 0.5rem;
+}
+
+.sp-title-row h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--sp-text);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.sp-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sp-stat {
+  font-size: 0.95rem;
+  color: var(--sp-text-mut);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sp-stat i {
+  color: var(--sp-primary);
+}
+
+.sp-stat strong {
+  color: var(--sp-text);
+  font-weight: 800;
+}
+
+.sp-actions {
+  display: flex;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+}
+
+.sp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  border: none;
+}
+
+.sp-btn-whatsapp {
+  background: #25D366;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(37, 211, 102, 0.25);
+}
+
+.sp-btn-whatsapp:hover {
+  background: #128C7E;
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+.sp-btn-outline {
+  background: transparent;
+  color: var(--sp-text);
+  border: 1px solid var(--sp-border);
+}
+
+.sp-btn-danger {
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+.sp-btn-danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.sp-btn-outline:hover {
+  border-color: var(--sp-primary);
+  color: var(--sp-primary);
+  background: color-mix(in srgb, var(--sp-primary) 5%, transparent);
+}
+
+.sp-btn-primary {
+  background: linear-gradient(135deg, var(--sp-primary), var(--sp-primary-hover));
+  color: #fff;
+}
+
+/* ── Compartir Dropdown ── */
+.sp-share-container {
+  position: relative;
+}
+
+.sp-share-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--sp-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+  width: 220px;
+  display: none;
+  flex-direction: column;
+  padding: 12px;
+  z-index: 1000;
+  animation: spFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="dark"] .sp-share-menu {
+  background: rgba(20, 20, 20, 0.95);
+}
+
+.sp-share-menu.show {
+  display: flex;
+}
+
+.sp-share-header {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--sp-text-mut);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+}
+
+.sp-share-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--sp-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sp-share-item:hover {
+  background: color-mix(in srgb, var(--sp-primary) 8%, transparent);
+  color: var(--sp-primary);
+}
+
+.sp-share-item i {
+  width: 18px;
+  text-align: center;
+}
+
+@keyframes spFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Vehículos ── */
+.sp-vehicles {
+  padding-top: 4rem;
+}
+
+.sp-section-header {
+  margin-bottom: 1.5rem;
+}
+
+.sp-section-header h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--sp-text);
+  margin: 0 0 0.4rem 0;
+}
+
+/* ── Layout & Results ── */
+.results-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sp-empty {
+  text-align: center;
+  padding: 5rem 2rem;
+  background: var(--sp-surface);
+  border: 2px dashed var(--sp-border);
+  border-radius: 24px;
+}
+
+.sp-empty-icon {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.sp-empty h3 {
+  color: var(--sp-text);
+  font-size: 1.4rem;
+  margin: 0 0 0.5rem 0;
+}
+
+@media(max-width: 900px) {
+  .sp-layout-grid {
+    grid-template-columns: 1fr;
+  }
+  .sp-sidebar {
+    position: static;
+  }
+}
+
+@media(max-width: 768px) {
+  .sp-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: -80px;
+  }
+  .sp-meta {
+    justify-content: center;
+  }
+}
+
+/* ── Modal Reportar ── */
+.sp-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  z-index: 9999; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.sp-modal-overlay.open { display: flex; animation: fadeIn .2s ease; }
+.sp-modal {
+  background: var(--sp-surface); border-radius: 20px;
+  width: 100%; max-width: 500px;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  overflow: hidden; animation: slideUp .3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sp-modal-header {
+  padding: 1.5rem; border-bottom: 1px solid var(--sp-border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.sp-modal-header h3 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: .5rem; color: var(--sp-text); }
+.sp-modal-header h3 i { color: #ef4444; }
+.sp-modal-close {
+  background: none; border: none; font-size: 1.2rem; cursor: pointer;
+  color: var(--sp-text-mut); transition: color .2s;
+}
+.sp-modal-close:hover { color: var(--sp-text); }
+.sp-modal-body { padding: 1.5rem; }
+.sp-form-group { margin-bottom: 1.2rem; }
+.sp-form-group label { display: block; font-size: .85rem; font-weight: 700; color: var(--sp-text); margin-bottom: .5rem; }
+.sp-form-group select, .sp-form-group textarea {
+  width: 100%; padding: .75rem 1rem; border: 1px solid var(--sp-border);
+  border-radius: 10px; font-family: inherit; font-size: .95rem;
+  background: var(--sp-bg); color: var(--sp-text); outline: none; box-sizing: border-box;
+}
+.sp-form-group select:focus, .sp-form-group textarea:focus { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+.sp-modal-footer {
+  padding: 1rem 1.5rem; border-top: 1px solid var(--sp-border);
+  background: var(--sp-bg); display: flex; justify-content: flex-end; gap: .75rem;
+}
+.sp-btn-cancel { background: transparent; color: var(--sp-text-mut); border: 1px solid var(--sp-border); }
+.sp-btn-cancel:hover { background: var(--sp-surface); color: var(--sp-text); }
+.sp-btn-submit { background: #ef4444; color: #fff; border: none; }
+.sp-btn-submit:hover { background: #dc2626; transform: translateY(-1px); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+
+<!-- Modal de Reporte -->
+<div id="reportUserModal" class="sp-modal-overlay">
+  <div class="sp-modal" onclick="event.stopPropagation()">
+    <div class="sp-modal-header">
+      <h3><i class="fas fa-flag"></i> Reportar a {{ vendedor.nombre }}</h3>
+      <button class="sp-modal-close" onclick="closeReportModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <form action="{{ url_for('reportar_usuario', id_reportado=vendedor.id) }}" method="POST">
+      <div class="sp-modal-body">
+        <p style="font-size: .85rem; color: var(--sp-text-mut); margin-top: 0; margin-bottom: 1.2rem;">
+          Tu reporte será revisado por nuestro equipo de administración. Esta acción es confidencial.
+        </p>
+        <div class="sp-form-group">
+          <label for="motivo">Motivo del reporte</label>
+          <select id="motivo" name="motivo" required>
+            <option value="">Selecciona un motivo...</option>
+            <option value="Fraude o estafa">Fraude o intento de estafa</option>
+            <option value="Vehículo falso o engañoso">Vehículo falso o engañoso</option>
+            <option value="Comportamiento abusivo">Comportamiento abusivo o acoso</option>
+            <option value="Vendedor no responde">El vendedor no responde nunca</option>
+            <option value="Otro">Otro motivo</option>
+          </select>
+        </div>
+        <div class="sp-form-group">
+          <label for="descripcion">Detalles (opcional pero recomendado)</label>
+          <textarea id="descripcion" name="descripcion" rows="4" placeholder="Proporciona más detalles sobre por qué estás reportando a este usuario..."></textarea>
+        </div>
+      </div>
+      <div class="sp-modal-footer">
+        <button type="button" class="sp-btn sp-btn-cancel" onclick="closeReportModal()">Cancelar</button>
+        <button type="submit" class="sp-btn sp-btn-submit">Enviar Reporte</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# MODAL: Iniciar sesión para contactar (Verde WhatsApp) #}
+<div id="authModal" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.6); z-index:10000; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(4px);" onclick="if(event.target===this) closeAuthModal()">
+    <div style="background:white; border-radius:20px; width:100%; max-width:420px; box-shadow:0 25px 50px rgba(0,0,0,0.25); overflow:hidden; animation: slideUp .3s ease;">
+        {# Header #}
+        <div style="background:linear-gradient(135deg,#10b981,#059669); padding:28px 28px 24px; text-align:center; color:white; position:relative;">
+            <button onclick="closeAuthModal()" style="position:absolute; top:14px; right:16px; background:rgba(255,255,255,0.2); border:none; color:white; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;">
+                <i class="fas fa-times"></i>
+            </button>
+            <div style="background:rgba(255,255,255,0.2); width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px;">
+                <i class="fab fa-whatsapp" style="font-size:32px;"></i>
+            </div>
+            <h3 style="margin:0 0 6px; font-size:1.2rem; font-weight:800; color:white;">Contactar al vendedor</h3>
+            <p style="margin:0; font-size:.85rem; opacity:.9; color:white;">Inicia sesión para ver el número de WhatsApp y comunicarte directamente</p>
+        </div>
+        {# Botones #}
+        <div style="padding:24px; display:flex; flex-direction:column; gap:12px;">
+            <a href="{{ url_for('login') }}" style="display:flex; align-items:center; justify-content:center; gap:10px; background:#0f172a; color:white; padding:14px; border-radius:12px; font-weight:700; font-size:15px; text-decoration:none; transition:background .2s;">
+                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </a>
+            <a href="{{ url_for('registro') }}" style="display:flex; align-items:center; justify-content:center; gap:10px; background:#eff6ff; color:#1d4ed8; padding:14px; border-radius:12px; font-weight:700; font-size:15px; text-decoration:none; border:1px solid #bfdbfe; transition:background .2s;">
+                <i class="fas fa-user-plus"></i> Crear cuenta gratis
+            </a>
+            <p style="text-align:center; font-size:12px; color:#94a3b8; margin:4px 0 0;">Es gratis y toma menos de 1 minuto</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('searchInput');
+  const brandFilter = document.getElementById('brandFilter');
+  const sortFilter = document.getElementById('sortFilter');
+  const minPriceInput = document.getElementById('minPrice');
+  const maxPriceInput = document.getElementById('maxPrice');
+  const minYearInput = document.getElementById('minYear');
+  const maxYearInput = document.getElementById('maxYear');
+  const mainGrid = document.getElementById('mainGrid');
+  const featuredGrid = document.getElementById('featuredGrid');
+  const featuredSection = document.getElementById('featuredSection');
+  
+  if (!mainGrid || !searchInput || !brandFilter || !sortFilter) return;
+
+  const cards = Array.from(document.querySelectorAll('.vehicle-card-wrapper'));
+  
+  // Assign index for original sorting
+  cards.forEach((c, i) => c.dataset.index = i);
+  
+  // Populate brand filter
+  const brands = new Set();
+  cards.forEach(card => {
+    if(card.dataset.marca) brands.add(card.dataset.marca);
+  });
+  
+  const sortedBrands = Array.from(brands).sort();
+  sortedBrands.forEach(brand => {
+    const opt = document.createElement('option');
+    opt.value = brand;
+    opt.textContent = brand;
+    brandFilter.appendChild(opt);
+  });
+
+  function renderCards(filteredCards) {
+    // Clear both grids
+    mainGrid.innerHTML = '';
+    if(featuredGrid) featuredGrid.innerHTML = '';
+    
+    const visibleFeatured = filteredCards.filter(c => c.dataset.destacado === "1");
+    const visibleRegular = filteredCards.filter(c => c.dataset.destacado === "0");
+
+    if (filteredCards.length === 0) {
+      mainGrid.innerHTML = `
+      <div class="no-results-msg">
+        <i class="fas fa-search" style="font-size: 2.5rem; color: #cbd5e1"></i>
+        <h3>No se encontraron vehÃ­culos</h3>
+        <p>Intenta ajustando tu bÃºsqueda o filtros.</p>
+      </div>`;
+      if(featuredSection) featuredSection.style.display = 'none';
+      return;
+    }
+    
+    if(featuredSection) {
+        featuredSection.style.display = visibleFeatured.length > 0 ? 'block' : 'none';
+    }
+
+    if(featuredGrid) {
+        visibleFeatured.forEach(card => featuredGrid.appendChild(card));
+    }
+    visibleRegular.forEach(card => mainGrid.appendChild(card));
+  }
+
+  function applyFilters() {
+    const term = searchInput.value.toLowerCase().trim();
+    const brand = brandFilter.value;
+    const sort = sortFilter.value;
+    
+    // Range values
+    const minP = parseFloat(minPriceInput.value) || 0;
+    const maxP = parseFloat(maxPriceInput.value) || Infinity;
+    const minY = parseInt(minYearInput.value) || 0;
+    const maxY = parseInt(maxYearInput.value) || Infinity;
+    
+    // Filter logic
+    let filtered = cards.filter(card => {
+      const cardSearch = card.dataset.search || "";
+      const matchSearch = cardSearch.includes(term);
+      const matchBrand = brand === '' || card.dataset.marca === brand;
+      
+      const price = parseFloat(card.dataset.precio) || 0;
+      const year = parseInt(card.dataset.anio) || 0;
+      
+      const matchPrice = price >= minP && price <= maxP;
+      const matchYear = year >= minY && year <= maxY;
+      
+      return matchSearch && matchBrand && matchPrice && matchYear;
+    });
+
+    // Sort logic
+    if (sort === 'price_asc') {
+      filtered.sort((a, b) => parseFloat(a.dataset.precio) - parseFloat(b.dataset.precio));
+    } else if (sort === 'price_desc') {
+      filtered.sort((a, b) => parseFloat(b.dataset.precio) - parseFloat(a.dataset.precio));
+    } else {
+      // recent/default
+      filtered.sort((a, b) => parseInt(a.dataset.index) - parseInt(b.dataset.index));
+    }
+    
+    renderCards(filtered);
+  }
+
+  // Event Listeners
+  searchInput.addEventListener('input', applyFilters);
+  brandFilter.addEventListener('change', applyFilters);
+  sortFilter.addEventListener('change', applyFilters);
+  minPriceInput.addEventListener('input', applyFilters);
+  maxPriceInput.addEventListener('input', applyFilters);
+  minYearInput.addEventListener('input', applyFilters);
+  maxYearInput.addEventListener('input', applyFilters);
+
+  // --- Manejo del Dropdown de Compartir ---
+  const shareBtn = document.getElementById('shareBtn');
+  const shareMenu = document.getElementById('shareMenu');
+
+  if (shareBtn && shareMenu) {
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      shareMenu.classList.toggle('show');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!shareMenu.contains(e.target) && e.target !== shareBtn) {
+        shareMenu.classList.remove('show');
+      }
+    });
+  }
+});
+
+function closeReportModal() {
+  document.getElementById('reportUserModal').classList.remove('open');
+}
+
+// ---- MODAL AUTH (WhatsApp) ----
+function openAuthModal() {
+    var m = document.getElementById('authModal');
+    if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+}
+function closeAuthModal() {
+    var m = document.getElementById('authModal');
+    if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+document.getElementById('reportUserModal').addEventListener('click', closeReportModal);
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeAuthModal();
+        closeReportModal();
+    }
+});
+</script>
+
+<!-- ═══════════════════════════════════════
+     ASISTENTE DE VENTAS IA (DISEÑO PREMIUM)
+     ═══════════════════════════════════════ -->
+<style>
+/* ── Launcher ── */
+/* ── Launcher rediseñado (premium + animación de atención) ── */
+@keyframes aiPulseRing {
+    0%   { transform: scale(1);   opacity: 0.55; }
+    70%  { transform: scale(1.6); opacity: 0; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes aiGlowPulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(255,112,67,0.45), 0 0 0 0 rgba(255,112,67,0.25); }
+    50%       { box-shadow: 0 12px 36px rgba(255,112,67,0.7),  0 0 0 8px rgba(255,112,67,0);  }
+}
+
+.ai-launcher-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #ff7043 0%, #e53935 100%);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 20px 12px 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s ease;
+    font-family: 'Inter', sans-serif;
+    animation: aiGlowPulse 2.8s ease-in-out infinite;
+}
+.ai-launcher-btn:hover {
+    transform: translateY(-5px) scale(1.04);
+    box-shadow: 0 18px 44px rgba(255,112,67,0.65);
+    animation: none;
+}
+
+/* Icono circular con anillo pulsante */
+.ai-btn-icon-wrap {
+    width: 46px;
+    height: 46px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+    position: relative;
+}
+.ai-btn-icon-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 19px;
+    background: rgba(255,255,255,0.28);
+    animation: aiPulseRing 2.2s ease-out infinite;
+}
+
+/* Textos del botón */
+.ai-btn-texts {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+.ai-btn-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+.ai-btn-sub {
+    font-size: 0.72rem;
+    opacity: 0.82;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ── Chat Window ── */
+.ai-window {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 380px;
+    height: 520px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1001;
+    transform: translateY(20px) scale(0.9);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s var(--ease-spring);
+}
+.ai-window.open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+[data-theme="dark"] .ai-window {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.ai-window-header {
+    background: var(--sp-primary);
+    padding: 20px;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.ai-header-info { display: flex; align-items: center; gap: 12px; }
+.ai-header-avatar {
+    width: 40px; height: 40px; background: rgba(255,255,255,0.2);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+}
+.ai-header-text h4 { margin: 0; font-size: 1rem; font-weight: 800; }
+.ai-header-text p { margin: 0; font-size: 0.75rem; opacity: 0.9; }
+.ai-status-dot {
+    display: inline-block; width: 8px; height: 8px; background: #10b981;
+    border-radius: 50%; margin-right: 4px; box-shadow: 0 0 10px #10b981;
+}
+.ai-close-btn { 
+    background: transparent; border: none; color: #fff; cursor: pointer; 
+    font-size: 1.2rem; opacity: 0.7; transition: opacity 0.2s;
+}
+.ai-close-btn:hover { opacity: 1; }
+
+.ai-messages {
+    flex: 1; padding: 20px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 16px;
+    scroll-behavior: smooth;
+    max-height: calc(100% - 130px);
+}
+.ai-msg { display: flex; flex-direction: column; max-width: 85%; }
+.ai-msg.bot { align-self: flex-start; }
+.ai-msg.user { align-self: flex-end; }
+
+.ai-bubble {
+    padding: 12px 16px; border-radius: 18px; font-size: 0.9rem; line-height: 1.5;
+    font-family: 'Inter', sans-serif;
+}
+.ai-msg.bot .ai-bubble {
+    background: var(--sp-surface); color: var(--sp-text);
+    border-radius: 18px 18px 18px 4px; border: 1px solid var(--sp-border);
+}
+.ai-msg.user .ai-bubble {
+    background: var(--sp-primary); color: #fff;
+    border-radius: 18px 18px 4px 18px; box-shadow: 0 4px 12px rgba(255,112,67,0.2);
+}
+
+.ai-typing {
+    padding: 0 20px 15px; display: flex; gap: 4px; margin-top: -10px;
+}
+.ai-typing-dot {
+    width: 6px; height: 6px; background: var(--sp-primary); border-radius: 50%;
+    animation: aiDot 1.4s infinite ease-in-out; opacity: 0.4;
+}
+.ai-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.ai-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes aiDot { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-5px); opacity: 1; } }
+
+.ai-input-area {
+    padding: 15px; border-top: 1px solid var(--sp-border);
+    display: flex; gap: 10px; background: rgba(255,255,255,0.5);
+}
+.ai-input-area input {
+    flex: 1; border: 1px solid var(--sp-border); border-radius: 14px;
+    padding: 10px 15px; font-size: 0.9rem; outline: none;
+    transition: all 0.3s; background: var(--sp-surface); color: var(--sp-text);
+}
+.ai-input-area input:focus { border-color: var(--sp-primary); box-shadow: 0 0 0 3px rgba(255,112,67,0.1); }
+#ai-send-btn {
+    width: 42px; height: 42px; border: none; border-radius: 12px;
+    background: var(--sp-primary); color: #fff; cursor: pointer;
+    transition: all 0.3s var(--ease-spring);
+    display: flex; align-items: center; justify-content: center;
+}
+#ai-send-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+#ai-send-btn:active { transform: scale(0.95); }
+
+.d-none { display: none !important; }
+
+@media (max-width: 450px) {
+    .ai-window { width: calc(100vw - 40px); right: 20px; bottom: 80px; height: 65vh; }
+    .ai-launcher-btn { bottom: 20px; right: 20px; padding: 10px 14px; border-radius: 16px; }
+    .ai-btn-title { font-size: 0.85rem; }
+    .ai-btn-sub { display: none; }
+}
+</style>
+
+<button id="ai-chat-btn" class="ai-launcher-btn" aria-label="Abrir Asesor Virtual IA">
+    <div class="ai-btn-icon-wrap">
+        <i class="fas fa-robot"></i>
+    </div>
+    <div class="ai-btn-texts">
+        <span class="ai-btn-title">Asesor Virtual IA</span>
+        <span class="ai-btn-sub">Consulta el inventario</span>
+    </div>
+</button>
+
+<div id="ai-chat-window" class="ai-window">
+    <div class="ai-window-header">
+        <div class="ai-header-info">
+            <div class="ai-header-avatar"><i class="fas fa-robot"></i></div>
+            <div class="ai-header-text">
+                <h4>Asesor Virtual</h4>
+                <p><span class="ai-status-dot"></span> En línea · Experto en Stock</p>
+            </div>
+        </div>
+        <button id="ai-close-btn" class="ai-close-btn"><i class="fas fa-times"></i></button>
+    </div>
+    
+    <div id="ai-chat-messages" class="ai-messages">
+        <div class="ai-msg bot">
+            <div class="ai-bubble">
+                ¡Hola! 👋 Soy el asesor virtual de <strong>{{ vendedor.nombre_empresa or vendedor.nombre }}</strong>. Estoy aquí para ayudarte a encontrar el vehículo perfecto de mi inventario. ¿En qué puedo asesorarte hoy?
+            </div>
+        </div>
+    </div>
+    
+    <div id="ai-typing-indicator" class="ai-typing d-none">
+        <div class="ai-typing-dot"></div>
+        <div class="ai-typing-dot"></div>
+        <div class="ai-typing-dot"></div>
+    </div>
+    
+    <form id="ai-chat-form" class="ai-input-area">
+        <input type="text" id="ai-user-input" placeholder="Pregunta sobre nuestros autos..." autocomplete="off">
+        <button type="submit" id="ai-send-btn"><i class="fas fa-paper-plane"></i></button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const launcher = document.getElementById('ai-chat-btn');
+    const aiWin    = document.getElementById('ai-chat-window');
+    const closeBtn = document.getElementById('ai-close-btn');
+    const aiForm   = document.getElementById('ai-chat-form');
+    const aiInput  = document.getElementById('ai-user-input');
+    const aiMsgs   = document.getElementById('ai-chat-messages');
+    const aiTyping = document.getElementById('ai-typing-indicator');
+
+    if (!launcher) return;
+
+    // ── Mejora 1: Historial de conversación ──
+    let chatHistory = [];
+    const MAX_HISTORY = 8;
+
+    // Toggle ventana
+    launcher.addEventListener('click', () => {
+        aiWin.classList.add('open');
+        aiInput.focus();
+    });
+    closeBtn.addEventListener('click', () => aiWin.classList.remove('open'));
+
+    // ── Mejora 2 & 5: Parser Markdown seguro (whitelist: links, bold, saltos) ──
+    function parseBotResponse(rawText) {
+        // 1. Escapar HTML para prevenir XSS
+        let safe = rawText
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        // 2. Links Markdown [texto](/ruta) → <a> sólo para rutas internas (/detalle/...)
+        safe = safe.replace(
+            /\[([^\]]{1,80})\]\((\/[^)]{1,120})\)/g,
+            '<a href="$2" target="_blank" '
+            + 'style="color:var(--sp-primary);font-weight:700;text-decoration:underline;"'
+            + '>$1 ↗</a>'
+        );
+
+        // 3. **negrita**
+        safe = safe.replace(/\*\*([^*]{1,200})\*\*/g, '<strong>$1</strong>');
+
+        // 4. Saltos de línea
+        safe = safe.replace(/\n/g, '<br>');
+
+        return safe;
+    }
+
+    // ── Enviar mensaje ──
+    aiForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = aiInput.value.trim();
+        if (!text) return;
+
+        // Mostrar mensaje del usuario (textContent — sin riesgo XSS)
+        appendMessage(text, 'user');
+
+        // Guardar en historial antes de limpiar
+        chatHistory.push({ role: 'user', content: text });
+        if (chatHistory.length > MAX_HISTORY) chatHistory = chatHistory.slice(-MAX_HISTORY);
+
+        aiInput.value = '';
+        aiTyping.classList.remove('d-none');
+        aiMsgs.scrollTop = aiMsgs.scrollHeight;
+
+        try {
+            // Enviamos el historial sin incluir el mensaje actual (va en 'message')
+            const historyToSend = chatHistory.slice(0, -1);
+
+            const response = await fetch('/vendedor/{{ vendedor.id }}/chat_ai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, history: historyToSend })
+            });
+            const data = await response.json();
+
+            aiTyping.classList.add('d-none');
+            const botReply = data.respuesta || 'Lo siento, hubo un error procesando tu consulta.';
+
+            // Guardar respuesta del bot en historial
+            chatHistory.push({ role: 'assistant', content: botReply });
+            if (chatHistory.length > MAX_HISTORY) chatHistory = chatHistory.slice(-MAX_HISTORY);
+
+            appendMessage(botReply, 'bot');
+        } catch (err) {
+            aiTyping.classList.add('d-none');
+            appendMessage('Lo siento, ocurrió un error de conexión. Intenta de nuevo.', 'bot');
+        }
+    });
+
+    // ── Renderizado seguro de mensajes ──
+    function appendMessage(text, side) {
+        const msgDiv  = document.createElement('div');
+        msgDiv.className = `ai-msg ${side}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'ai-bubble';
+
+        if (side === 'user') {
+            // Mejora 5: usuarios siempre via textContent (inmune a XSS)
+            bubble.textContent = text;
+        } else {
+            // Bot: parsear Markdown controlado con whitelist
+            bubble.innerHTML = parseBotResponse(text);
+        }
+
+        msgDiv.appendChild(bubble);
+        aiMsgs.appendChild(msgDiv);
+        aiMsgs.scrollTop = aiMsgs.scrollHeight;
+    }
+});
+
+/* Drawer de Filtros Móvil */
+window.toggleFilters = function() {
+    const panel = document.getElementById('filterPanel');
+    const overlay = document.getElementById('filtersOverlay');
+    if(panel && overlay) {
+        panel.classList.toggle('is-open');
+        overlay.classList.toggle('is-open');
+        document.body.style.overflow = panel.classList.contains('is-open') ? 'hidden' : '';
+    }
+};
+
+/* Puente Funcional para el Asesor Virtual desde Filtros */
+window.openDriveMarketAI = function() {
+    const aiWin = document.getElementById('aiWindow');
+    const aiInput = document.getElementById('aiInput');
+    if (aiWin) {
+        aiWin.classList.add('open');
+        if (aiInput) aiInput.focus();
+        
+        // Cerrar menú de filtros móvil si estuviese abierto
+        const panel = document.getElementById('filterPanel');
+        const overlay = document.getElementById('filtersOverlay');
+        if(panel && overlay) {
+            panel.classList.remove('is-open');
+            overlay.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+    }
+};
+</script>
+{% endblock %}

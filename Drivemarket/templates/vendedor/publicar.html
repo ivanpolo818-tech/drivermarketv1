@@ -1,0 +1,702 @@
+{% extends "base.html" %}
+{% block title %}Publicar Vehículo | {{ vendedor.nombre_empresa or vendedor.nombre }} - Drive Market{% endblock %}
+
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ── Stepper ── */
+.pub-stepper { display:flex; align-items:center; gap:0; margin-bottom:28px; }
+.pub-step { display:flex; align-items:center; gap:10px; flex:1; position:relative; }
+.pub-step-circle {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--card); border:2px solid var(--bd); color:var(--t2);
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.88rem;
+  transition:all .3s; flex-shrink:0;
+}
+.pub-step.active .pub-step-circle { background:var(--pr); border-color:var(--pr); color:#fff; box-shadow:0 4px 12px rgba(255,106,0,.3); }
+.pub-step.done .pub-step-circle { background:var(--ok-l); border-color:var(--ok); color:var(--ok); }
+.pub-step-label { font-size:.78rem; font-weight:700; color:var(--t3); transition:.3s; white-space:nowrap; }
+.pub-step.active .pub-step-label { color:var(--pr); }
+.pub-step.done .pub-step-label { color:var(--ok); }
+.pub-step-line { flex:1; height:2px; background:var(--bd); margin:0 8px; transition:.3s; }
+.pub-step.done + .pub-step-line { background:var(--ok); }
+
+/* ── Step panels ── */
+.pub-panel { display:none; animation:fadePub .35s ease; }
+.pub-panel.active { display:block; }
+@keyframes fadePub { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+/* ── Form controls ── */
+.pub-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.pub-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.pub-group { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+.pub-label { font-size:.8rem; font-weight:700; color:var(--t1); display:flex; align-items:center; gap:6px; }
+.pub-label i { color:var(--t3); font-size:.85rem; }
+.pub-label .req { color:var(--er); }
+.pub-label .opt { color:var(--t3); font-weight:500; font-size:.72rem; }
+.pub-input {
+  width:100%; padding:11px 14px; border-radius:10px; border:1.5px solid var(--bd);
+  font-size:.84rem; font-weight:500; font-family:'Inter',sans-serif; color:var(--t1);
+  background:var(--bg); transition:all .2s; box-sizing:border-box;
+}
+.pub-input:focus { outline:none; border-color:var(--pr); background:var(--card); box-shadow:0 0 0 3px rgba(255,106,0,.1); }
+.pub-input:disabled { opacity:.5; cursor:not-allowed; }
+.pub-input::placeholder { color:var(--t3); }
+.sel-wrap { position:relative; }
+.sel-wrap select { appearance:none; padding-right:36px; cursor:pointer; }
+.sel-arrow { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--t2); pointer-events:none; font-size:.8rem; transition:.25s; }
+.sel-wrap:focus-within .sel-arrow { color:var(--pr); transform:translateY(-50%) rotate(180deg); }
+
+/* ── Checkboxes ── */
+.pub-check-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px; }
+.pub-check {
+  display:flex; align-items:center; gap:10px; padding:12px 14px;
+  background:var(--bg); border:1.5px solid var(--bd); border-radius:10px;
+  cursor:pointer; transition:.2s; position:relative; overflow:hidden;
+}
+.pub-check:hover { border-color:var(--pr-d); background:var(--pr-l); }
+.pub-check input { position:absolute; opacity:0; }
+.pub-chk-box { width:20px; height:20px; border:2px solid var(--t3); border-radius:6px; display:flex; align-items:center; justify-content:center; transition:.2s; flex-shrink:0; }
+.pub-chk-box i { color:#fff; font-size:.65rem; opacity:0; transform:scale(.5); transition:.15s; }
+.pub-check input:checked ~ .pub-chk-box { background:var(--pr); border-color:var(--pr); }
+.pub-check input:checked ~ .pub-chk-box i { opacity:1; transform:scale(1); }
+.pub-check input:checked ~ .pub-chk-txt { font-weight:700; color:var(--t1); }
+.pub-chk-txt { font-size:.8rem; font-weight:500; color:var(--t2); transition:.2s; }
+
+/* ── Upload ── */
+.pub-upload-box {
+  border:2px dashed var(--bd); border-radius:14px; padding:40px 20px;
+  text-align:center; cursor:pointer; transition:all .25s; background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+}
+.pub-upload-box:hover { border-color:var(--pr); background:var(--pr-l); }
+.pub-up-icon { width:60px; height:60px; background:var(--card); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:var(--pr); box-shadow:var(--sh); transition:.3s; }
+.pub-upload-box:hover .pub-up-icon { background:var(--pr); color:#fff; }
+.pub-preview { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; margin-top:16px; }
+.pub-img-wrap { position:relative; width:100%; height:110px; border-radius:10px; overflow:hidden; border:1px solid var(--bd); animation:fadePub .3s ease; }
+.pub-img { width:100%; height:100%; object-fit:cover; }
+.pub-img-del { position:absolute; top:6px; right:6px; width:26px; height:26px; background:rgba(0,0,0,.55); border:none; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.65rem; transition:.2s; }
+.pub-img-del:hover { background:var(--er); }
+
+/* ── Actions ── */
+.pub-actions { display:flex; justify-content:space-between; align-items:center; margin-top:24px; padding-top:20px; border-top:1px solid var(--bd); gap:12px; }
+.pub-btn { padding:11px 24px; border-radius:10px; font-weight:800; font-size:.84rem; cursor:pointer; transition:all .2s; font-family:'Inter',sans-serif; display:inline-flex; align-items:center; gap:8px; }
+.pub-btn-back { background:var(--card); border:1.5px solid var(--bd); color:var(--t2); }
+.pub-btn-back:hover { border-color:var(--t1); color:var(--t1); }
+.pub-btn-next { background:var(--t1); border:none; color:#fff; }
+.pub-btn-next:hover { background:#000; transform:translateY(-1px); }
+.pub-btn-submit { background:linear-gradient(135deg,var(--pr),var(--pr-d)); border:none; color:#fff; box-shadow:0 6px 18px rgba(255,106,0,.35); display:none; }
+.pub-btn-submit.on { display:inline-flex; }
+.pub-btn-submit:hover { transform:translateY(-1px); box-shadow:0 10px 24px rgba(255,106,0,.45); }
+
+/* ── Section header ── */
+.pub-sec { margin-bottom:24px; padding-bottom:16px; border-bottom:1px solid var(--bd-l); }
+.pub-sec h2 { margin:0 0 4px; font-size:1.1rem; font-weight:800; color:var(--t1); display:flex; align-items:center; gap:8px; }
+.pub-sec h2 i { color:var(--pr); }
+.pub-sec p { margin:0; font-size:.78rem; color:var(--t2); }
+
+/* ── Tip card ── */
+.pub-tip { display:flex; gap:10px; padding:12px 14px; background:var(--bl-l); border-radius:10px; border-left:3px solid var(--bl); margin-bottom:20px; font-size:.78rem; color:var(--bl); font-weight:600; }
+
+@media(max-width:900px){.pub-grid-2,.pub-grid-3{grid-template-columns:1fr;}}
+@media(max-width:600px){.pub-actions{flex-direction:column-reverse;}.pub-btn{width:100%;justify-content:center;}}
+</style>
+{% endblock %}
+
+{% block content %}
+{% set active_page = 'publicar' %}
+<body class="db-page">
+<div class="db-wrap">
+  {% include 'vendedor/_sidebar.html' %}
+
+  <main class="db-main">
+    <!-- Header -->
+    <div class="db-page-header">
+      <div>
+        <h1><i class="fas fa-plus-circle" style="color:var(--pr);margin-right:10px;font-size:1.3rem;"></i>Publicar Vehículo</h1>
+        <p>Completa los 4 pasos para listar tu vehículo en Drive Market</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="chip chip-green"><i class="fas fa-shield-check"></i> Cuenta verificada</span>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div class="db-card" style="padding:20px 24px;">
+      <div class="pub-stepper" id="pubStepper">
+        <div class="pub-step active" id="si1">
+          <div class="pub-step-circle">1</div>
+          <div class="pub-step-label">Identidad</div>
+        </div>
+        <div class="pub-step-line" id="sl1"></div>
+        <div class="pub-step" id="si2">
+          <div class="pub-step-circle">2</div>
+          <div class="pub-step-label">Ficha Técnica</div>
+        </div>
+        <div class="pub-step-line" id="sl2"></div>
+        <div class="pub-step" id="si3">
+          <div class="pub-step-circle">3</div>
+          <div class="pub-step-label">Mecánica</div>
+        </div>
+        <div class="pub-step-line" id="sl3"></div>
+        <div class="pub-step" id="si4">
+          <div class="pub-step-circle"><i class="fas fa-star" style="font-size:.65rem;"></i></div>
+          <div class="pub-step-label">Extras</div>
+        </div>
+        <div class="pub-step-line" id="sl4"></div>
+        <div class="pub-step" id="si5">
+          <div class="pub-step-circle"><i class="fas fa-camera" style="font-size:.65rem;"></i></div>
+          <div class="pub-step-label">Fotos</div>
+        </div>
+      </div>
+      
+      <!-- SEO QUALITY METER (NEW) -->
+      <div style="margin-top:20px; padding:15px; background:var(--bg); border:1px solid var(--bd); border-radius:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:.75rem; font-weight:800; color:var(--t2); text-transform:uppercase; letter-spacing:.5px;">Calidad del Anuncio</span>
+          <span id="seo-label" style="font-size:.7rem; font-weight:900; padding:2px 8px; border-radius:20px; color:#fff; background:var(--t3);">Pobre</span>
+        </div>
+        <div style="width:100%; height:6px; background:var(--bd); border-radius:10px; overflow:hidden;">
+          <div id="seo-progress" style="width:10%; height:100%; background:var(--er); transition:all .5s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+        </div>
+        <p style="margin-top:8px; font-size:.68rem; color:var(--t3);"><i class="fas fa-info-circle"></i> Completa la descripción y sube más de 5 fotos para llegar a <strong>Excelente</strong>.</p>
+      </div>
+    </div>
+
+    <!-- Form card -->
+    <div class="db-card">
+      <form action="{{ url_for('vender') }}" method="POST" enctype="multipart/form-data" id="pubForm" novalidate>
+
+        <!-- ═══ STEP 1: Identidad ═══ -->
+        <div class="pub-panel active" id="panel1">
+          <div class="pub-sec">
+            <h2><i class="fas fa-car-side"></i> Identidad del Vehículo</h2>
+            <p>Selecciona los datos base para posicionar tu vehículo en las búsquedas.</p>
+          </div>
+          <div class="pub-grid-2">
+            <div class="pub-group">
+              <label class="pub-label" for="tipo"><i class="fas fa-layer-group"></i> Tipo y Carrocería <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="tipo" id="tipo" class="pub-input" required>
+                  <option value="" disabled selected>Selecciona el segmento...</option>
+                  {% for t in tipos %}
+                  <option value="{{ t.id }}">{{ t.nombre }}</option>
+                  {% endfor %}
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="marca"><i class="fas fa-copyright"></i> Marca <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="marca" id="marca" class="pub-input" disabled required>
+                  <option value="" disabled selected>Primero selecciona el segmento...</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+          </div>
+          <div class="pub-grid-2" id="contenedor-modelos">
+            <div class="pub-group">
+              <label class="pub-label" for="modelo"><i class="fas fa-cube"></i> Modelo <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="modelo" id="modelo" class="pub-input" disabled required>
+                  <option value="" disabled selected>Primero selecciona la marca...</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="version"><i class="fas fa-tag"></i> Edición / Versión <span class="opt">(Opcional)</span></label>
+              <input type="text" id="version" name="version" class="pub-input" placeholder="Ej. Sport, GT Line, X-Drive...">
+            </div>
+          </div>
+          <div class="pub-group" id="div-otro-modelo" style="display:none;">
+            <label class="pub-label" for="otro_modelo" style="color:var(--pr);"><i class="fas fa-pen"></i> Escribe tu modelo <span class="req">*</span></label>
+            <input type="text" id="otro_modelo" name="otro_modelo" class="pub-input" placeholder="Ej: Mazda 3 Touring 2.0" style="border-color:var(--pr);">
+          </div>
+        </div>
+
+        <!-- ═══ STEP 2: Ficha Técnica ═══ -->
+        <div class="pub-panel" id="panel2">
+          <div class="pub-sec">
+            <h2><i class="fas fa-clipboard-list"></i> Ficha Técnica y Precio</h2>
+            <p>Los parámetros vitales. Sé preciso — la transparencia vende más rápido.</p>
+          </div>
+          <div class="pub-grid-3">
+            <div class="pub-group">
+              <label class="pub-label" for="anio"><i class="fas fa-calendar-alt"></i> Año de ensamblaje <span class="req">*</span></label>
+              <input type="number" id="anio" name="anio" class="pub-input" placeholder="Ej. 2021" min="1950" max="2026" required>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="kilometraje"><i class="fas fa-tachometer-alt"></i> Recorrido (km) <span class="req">*</span></label>
+              <input type="number" id="kilometraje" name="kilometraje" class="pub-input" placeholder="Odómetro exacto" required>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="color"><i class="fas fa-palette"></i> Color exterior <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="color" id="color" class="pub-input" required>
+                  <option value="" disabled selected>Selecciona el color...</option>
+                  {% for c in colores %}
+                  <option value="{{ c.id }}">{{ c.nombre }}</option>
+                  {% endfor %}
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="pub-grid-2">
+            <div class="pub-group">
+              <label class="pub-label" for="precio"><i class="fas fa-dollar-sign"></i> Valor de venta ($) <span class="req">*</span></label>
+              <input type="number" id="precio" name="precio" class="pub-input" placeholder="Precio final esperado" required>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="negociable"><i class="fas fa-handshake"></i> ¿Precio negociable?</label>
+              <div class="sel-wrap">
+                <select name="negociable" id="negociable" class="pub-input">
+                  <option value="Sí" selected>Sí, acepto ofertas</option>
+                  <option value="No">No, precio fijo</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+          </div>
+          <div class="pub-grid-3">
+            <div class="pub-group">
+              <label class="pub-label" for="placa"><i class="fas fa-id-card"></i> Placa <span class="req">*</span></label>
+              <input type="text" id="placa" name="placa" class="pub-input" placeholder="XXX-000" required>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="ciudad_placa"><i class="fas fa-map-pin"></i> Ciudad de placa <span class="req">*</span></label>
+              <input type="text" id="ciudad_placa" name="ciudad_placa" class="pub-input" placeholder="Ciudad donde están registradas" required>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="ciudad_venta"><i class="fas fa-location-dot"></i> Ciudad de venta <span class="req">*</span></label>
+              <input type="text" id="ciudad_venta" name="ciudad_venta" class="pub-input" placeholder="Ciudad donde está el vehículo" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ STEP 3: Mecánica ═══ -->
+        <div class="pub-panel" id="panel3">
+          <div class="pub-sec">
+            <h2><i class="fas fa-cogs"></i> Ficha Mecánica</h2>
+            <p>Atributos técnicos del vehículo. Sé preciso para los compradores exigentes.</p>
+          </div>
+          <div class="pub-grid-3">
+            <div class="pub-group">
+              <label class="pub-label" for="transmision"><i class="fas fa-cogs"></i> Transmisión <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="transmision" id="transmision" class="pub-input" required>
+                  <option value="" disabled selected>Selecciona...</option>
+                  <option value="Automática">Automática</option>
+                  <option value="Manual">Manual</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="combustible"><i class="fas fa-gas-pump"></i> Combustible <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="combustible" id="combustible" class="pub-input" required>
+                  <option value="" disabled selected>Selecciona...</option>
+                  <option value="Gasolina">Gasolina</option>
+                  <option value="Diésel">Diésel</option>
+                  <option value="Híbrido">Híbrido</option>
+                  <option value="Eléctrico">Eléctrico</option>
+                  <option value="Gas">Gas Natural</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="motor"><i class="fas fa-dharmachakra"></i> Motor (CC / L) <span class="req">*</span></label>
+              <input type="text" id="motor" name="motor" class="pub-input" placeholder="Ej: 1600cc, 2.0L" required>
+            </div>
+          </div>
+          <div class="pub-grid-2">
+            <div class="pub-group">
+              <label class="pub-label" for="traccion"><i class="fas fa-truck-pickup"></i> Tracción <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="traccion" id="traccion" class="pub-input" required>
+                  <option value="" disabled selected>Selecciona...</option>
+                  <option value="4x2">4x2 (FWD/RWD)</option>
+                  <option value="4x4">4x4 / AWD</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+            <div class="pub-group">
+              <label class="pub-label" for="puertas"><i class="fas fa-door-open"></i> Num. Puertas <span class="req">*</span></label>
+              <div class="sel-wrap">
+                <select name="puertas" id="puertas" class="pub-input" required>
+                  <option value="" disabled selected>Selecciona...</option>
+                  <option value="2">2 Puertas</option>
+                  <option value="3">3 Puertas</option>
+                  <option value="4">4 Puertas</option>
+                  <option value="5">5 Puertas</option>
+                </select>
+                <i class="fas fa-chevron-down sel-arrow"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ STEP 4: Extras ═══ -->
+        <div class="pub-panel" id="panel4">
+          <div class="pub-sec">
+            <h2><i class="fas fa-star"></i> Extras y Titularidad</h2>
+            <p>Agrega los equipamientos y confirma el nombre comercial que verán los compradores.</p>
+          </div>
+          <div class="pub-group" style="max-width:400px;margin-bottom:20px;">
+            <label class="pub-label" for="dueno"><i class="fas fa-user-circle"></i> Nombre comercial / Titular <span class="req">*</span></label>
+            <input type="text" id="dueno" name="dueno" class="pub-input" placeholder="Como te verán los compradores..." required
+              value="{{ vendedor.nombre_empresa or vendedor.nombre or '' }}">
+          </div>
+          <div class="pub-tip"><i class="fas fa-lightbulb"></i> Los vehículos con más de 5 extras reciben un 35% más de consultas en promedio.</div>
+          
+          <!-- DESCRIPCIÓN CON IA (NEW) -->
+          <div class="pub-group" style="margin-top:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <label class="pub-label" for="descripcion"><i class="fas fa-align-left"></i> Resumen de Venta <span class="req">*</span></label>
+              <button type="button" id="btn-generar-ia" class="db-btn db-btn-ghost" style="padding:6px 12px; font-size:.75rem; border-color:var(--vi); color:var(--vi);">
+                <i class="fas fa-magic"></i> ✨ Generar con IA
+              </button>
+            </div>
+            <textarea id="descripcion" name="descripcion" class="pub-input" rows="6" placeholder="Describe el estado, equipamiento y por qué deberían comprar tu auto..."></textarea>
+            <p style="margin:4px 0 0; font-size:.65rem; color:var(--t3);">Sugerencia: Menciona si el peritaje fue reciente o si eres único dueño.</p>
+          </div>
+
+          <div style="margin-top:24px;">
+            <div style="font-size:.82rem;font-weight:700;color:var(--t1);margin-bottom:12px;"><i class="fas fa-microchip" style="color:var(--pr);margin-right:6px;"></i>Opciones y Confort</div>
+            <div class="pub-check-grid">
+              {% for c in caracteristicas %}
+              <label class="pub-check">
+                <input type="checkbox" name="caracteristicas" value="{{ c.id }}">
+                <div class="pub-chk-box"><i class="fas fa-check"></i></div>
+                <span class="pub-chk-txt">{{ c.nombre }}</span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ STEP 5: Fotos ═══ -->
+        <div class="pub-panel" id="panel5">
+          <div class="pub-sec">
+            <h2><i class="fas fa-camera"></i> Galería Visual</h2>
+            <p>Un auto entra por los ojos. Sube hasta 20 imágenes (frontal, lateral, interior, motor).</p>
+          </div>
+          <div class="pub-tip"><i class="fas fa-info-circle"></i> Las publicaciones con 8+ fotos profesionales tienen <strong>3× más</strong> de probabilidad de vender en el primer mes.</div>
+          <label for="imagenesInput" class="pub-upload-box" id="uploadBox">
+            <div class="pub-up-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+            <div>
+              <p style="margin:0 0 4px;font-size:.92rem;font-weight:700;color:var(--t1);">Haz clic o arrastra aquí</p>
+              <p style="margin:0;font-size:.78rem;color:var(--t2);">JPG, PNG • Hasta 20 archivos • Max 10MB c/u</p>
+            </div>
+            <span style="font-size:.75rem;color:var(--t3);" id="fileCount">0 archivos seleccionados</span>
+          </label>
+          <input type="file" id="imagenesInput" name="imagenes[]" accept="image/*" multiple class="hidden-file" required style="display:none;">
+          <div class="pub-preview" id="previewArea"></div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="pub-actions">
+          <button type="button" class="pub-btn pub-btn-back" id="btnPrev" style="visibility:hidden;"><i class="fas fa-arrow-left"></i> Anterior</button>
+          <div style="font-size:.78rem;color:var(--t3);" id="stepIndicatorText">Paso 1 de 5</div>
+          <div style="display:flex;gap:10px;">
+            <button type="button" class="pub-btn pub-btn-next" id="btnNext">Siguiente <i class="fas fa-arrow-right"></i></button>
+            <button type="submit" class="pub-btn pub-btn-submit" id="btnSubmit"><i class="fas fa-rocket"></i> Publicar Vehículo</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  let currentStep = 1;
+  const totalSteps = 5;
+  const btnNext = document.getElementById('btnNext');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnSubmit = document.getElementById('btnSubmit');
+
+  function updateView(){
+    document.querySelectorAll('.pub-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel'+currentStep).classList.add('active');
+    btnPrev.style.visibility = currentStep===1 ? 'hidden' : 'visible';
+    if(currentStep===totalSteps){
+      btnNext.style.display='none'; btnSubmit.classList.add('on');
+    } else {
+      btnNext.style.display='inline-flex'; btnSubmit.classList.remove('on');
+    }
+    document.getElementById('stepIndicatorText').textContent = 'Paso '+currentStep+' de '+totalSteps;
+    for(let i=1;i<=totalSteps;i++){
+      const si = document.getElementById('si'+i);
+      si.classList.remove('active','done');
+      if(i===currentStep) si.classList.add('active');
+      else if(i<currentStep) si.classList.add('done');
+      if(i<totalSteps){
+        const sl = document.getElementById('sl'+i);
+        sl.style.background = i<currentStep ? 'var(--ok)' : 'var(--bd)';
+      }
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  /* ── Cascade selectors ── */
+  const tipoSel=document.getElementById('tipo'), marcaSel=document.getElementById('marca'),
+        modeloSel=document.getElementById('modelo'), divOtro=document.getElementById('div-otro-modelo'),
+        inputOtro=document.getElementById('otro_modelo');
+
+  // --- Campo para escribir marca manualmente ---
+  let divOtraMarca = document.getElementById('div-otra-marca');
+  let inputOtraMarca = document.getElementById('otra_marca');
+
+  if (!divOtraMarca) {
+      divOtraMarca = document.createElement('div');
+      divOtraMarca.id = 'div-otra-marca';
+      divOtraMarca.className = 'pub-group';
+      divOtraMarca.style.cssText = 'display:none;';
+      divOtraMarca.innerHTML = `
+          <label class="pub-label" for="otra_marca" style="color:var(--pr);"><i class="fas fa-pen"></i> Escribe la marca <span class="req">*</span></label>
+          <input type="text" id="otra_marca" name="otra_marca" class="pub-input" placeholder="Ej: Kia, BYD, Chery..." style="border-color:var(--pr);">
+      `;
+      marcaSel.closest('.pub-group').insertAdjacentElement('afterend', divOtraMarca);
+      inputOtraMarca = document.getElementById('otra_marca');
+  }
+
+  tipoSel.addEventListener('change', function(){
+    const id=this.value;
+    marcaSel.innerHTML='<option disabled selected>Cargando...</option>'; marcaSel.disabled=true;
+    modeloSel.innerHTML='<option disabled selected>Primero selecciona la marca...</option>'; modeloSel.disabled=true;
+    divOtro.style.display='none'; inputOtro.required=false; inputOtro.value='';
+    divOtraMarca.style.display='none'; inputOtraMarca.required=false; inputOtraMarca.value='';
+    
+    if(!id) return;
+    
+    fetch('/obtener_marcas/'+id)
+      .then(r=>r.json()).then(data=>{
+        marcaSel.innerHTML='<option value="" disabled selected>Selecciona la marca...</option>';
+        data.forEach(m=>{ marcaSel.innerHTML+=`<option value="${m.id}">${m.nombre}</option>`; });
+        marcaSel.innerHTML+='<option value="otra" style="color:var(--pr);font-weight:700;">+ Otra (escribir)</option>';
+        marcaSel.disabled=false;
+      })
+      .catch(()=>{ marcaSel.innerHTML='<option disabled selected>Error al cargar</option>'; });
+  });
+
+  marcaSel.addEventListener('change', function(){
+    const id=this.value;
+    modeloSel.innerHTML='<option disabled selected>Cargando...</option>'; modeloSel.disabled=true;
+    divOtro.style.display='none'; inputOtro.required=false; inputOtro.value='';
+    
+    if(id === 'otra') {
+      divOtraMarca.style.display='flex'; inputOtraMarca.required=true; setTimeout(()=>inputOtraMarca.focus(),100);
+      modeloSel.innerHTML='<option value="otro" selected>+ Escribe el modelo manualmente</option>';
+      divOtro.style.display='flex'; inputOtro.required=true; modeloSel.disabled=false;
+      return;
+    } else {
+      divOtraMarca.style.display='none'; inputOtraMarca.required=false; inputOtraMarca.value='';
+    }
+    
+    if(!id) return;
+    
+    fetch('/obtener_modelos/'+id)
+      .then(r=>r.json()).then(data=>{
+        modeloSel.innerHTML='<option value="" disabled selected>Selecciona el modelo...</option>';
+        data.forEach(m=>{ modeloSel.innerHTML+=`<option value="${m.id}">${m.nombre}</option>`; });
+        modeloSel.innerHTML+='<option value="otro" style="color:var(--pr);font-weight:700;">+ Otro (escribir)</option>';
+        modeloSel.disabled=false;
+      })
+      .catch(()=>{ modeloSel.innerHTML='<option disabled selected>Error al cargar</option>'; });
+  });
+
+  modeloSel.addEventListener('change', function(){
+    if(this.value==='otro'){
+      divOtro.style.display='flex'; inputOtro.required=true; setTimeout(()=>inputOtro.focus(),100);
+    } else {
+      divOtro.style.display='none'; inputOtro.required=false; inputOtro.value='';
+    }
+  });
+
+  /* ── Validation ── */
+  function validateStep(){
+    const panel=document.getElementById('panel'+currentStep);
+    let inputs=panel.querySelectorAll('input[required],select[required],textarea[id="descripcion"]');
+    let valid=true;
+    if(currentStep===5 && dt.items.length===0){
+      valid=false;
+      document.getElementById('uploadBox').style.borderColor='var(--er)';
+    } else if(currentStep===5) {
+      document.getElementById('uploadBox').style.borderColor='var(--bd)';
+    }
+    inputs.forEach(inp=>{
+      if(inp.type==='file') return;
+      if(!inp.value.trim()){ valid=false; inp.style.borderColor='var(--er)'; }
+      else { inp.style.borderColor='var(--bd)'; }
+    });
+    if(!valid){
+      if(currentStep===5) alert('Sube al menos 1 imagen del vehículo.');
+      else alert('Completa los campos obligatorios marcados en rojo.');
+    }
+    return valid;
+  }
+
+  btnNext.addEventListener('click',()=>{ if(validateStep()){ currentStep++; updateView(); } });
+  btnPrev.addEventListener('click',()=>{ currentStep--; updateView(); });
+  document.getElementById('pubForm').addEventListener('submit',e=>{ if(!validateStep()) e.preventDefault(); });
+  updateView();
+
+  /* ── Image upload & preview ── */
+  const fileInput=document.getElementById('imagenesInput'), previewArea=document.getElementById('previewArea');
+  let dt=new DataTransfer();
+
+  function updateCount(){ document.getElementById('fileCount').textContent=dt.items.length+' archivo'+(dt.items.length===1?'':'s')+' seleccionado'+(dt.items.length===1?'':'s'); }
+
+  fileInput.addEventListener('change', function(e){
+    const files=e.target.files;
+    if(dt.items.length+files.length>20){ alert('Límite: 20 imágenes máximo.'); return; }
+    Array.from(files).forEach(file=>{
+      dt.items.add(file);
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const card=document.createElement('div'); card.className='pub-img-wrap';
+        card.innerHTML=`<img src="${ev.target.result}" class="pub-img"><button type="button" class="pub-img-del" title="Eliminar"><i class="fas fa-trash"></i></button>`;
+        card.querySelector('.pub-img-del').addEventListener('click',()=>{
+          card.remove();
+          let idx=-1;
+          for(let i=0;i<dt.items.length;i++) if(dt.files[i].name===file.name) idx=i;
+          if(idx!==-1){
+            let nd=new DataTransfer();
+            Array.from(dt.files).forEach((f,i)=>{ if(i!==idx) nd.items.add(f); });
+            dt=nd; fileInput.files=dt.files;
+          }
+          updateCount();
+          if(dt.items.length===0) document.getElementById('uploadBox').style.borderColor='var(--bd)';
+        });
+        previewArea.appendChild(card);
+      };
+      reader.readAsDataURL(file);
+    });
+    fileInput.files=dt.files;
+    updateCount();
+    if(dt.items.length>0) document.getElementById('uploadBox').style.borderColor='var(--bd)';
+  });
+
+  // Drag & drop
+  const uploadBox=document.getElementById('uploadBox');
+  uploadBox.addEventListener('dragover',e=>{ e.preventDefault(); uploadBox.style.borderColor='var(--pr)'; });
+  uploadBox.addEventListener('dragleave',()=>{ uploadBox.style.borderColor='var(--bd)'; });
+  uploadBox.addEventListener('drop',e=>{
+    e.preventDefault(); uploadBox.style.borderColor='var(--bd)';
+    fileInput.files=e.dataTransfer.files;
+    fileInput.dispatchEvent(new Event('change'));
+  });
+  // ==========================================
+  // ✅ AUTO-SAVE LOCALSTORAGE (DRAFTS) AISLADO
+  // ==========================================
+  const DRAFT_KEY = `publicar_draft_{{ session.get('usuario_id', 'guest') }}`;
+  const formInputs = document.querySelectorAll('input:not([type="file"]), select, textarea');
+  
+  function saveDraft() {
+      const draft = {};
+      formInputs.forEach(inp => {
+          if(inp.name && inp.type !== 'file' && inp.type !== 'hidden') {
+              if(inp.type === 'checkbox') {
+                  if(!draft[inp.name]) draft[inp.name] = [];
+                  if(inp.checked) draft[inp.name].push(inp.value);
+              } else if(inp.type === 'radio') {
+                  if(inp.checked) draft[inp.name] = inp.value;
+              } else {
+                  draft[inp.name] = inp.value;
+              }
+          }
+      });
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }
+  
+  function loadDraft() {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if(saved) {
+          try {
+              const draft = JSON.parse(saved);
+              const cascadeKeys = ['tipo', 'marca', 'modelo', 'otra_marca', 'otro_modelo'];
+              
+              Object.keys(draft).forEach(key => {
+                  if (cascadeKeys.includes(key)) return;
+                  const inps = document.querySelectorAll(`[name="${key}"]:not([type="hidden"])`);
+                  if(inps.length === 1 && inps[0].type !== 'checkbox' && inps[0].type !== 'radio') {
+                      if(inps[0].value === '') inps[0].value = draft[key];
+                  } else if(inps.length > 0 && Array.isArray(draft[key])) {
+                      inps.forEach(inp => {
+                          if(inp.type === 'checkbox' && draft[key].includes(inp.value)) inp.checked = true;
+                      });
+                  }
+              });
+              
+              const pv = document.getElementById('precio_visual');
+              if(draft['precio'] && pv) {
+                  pv.value = draft['precio'];
+                  pv.dispatchEvent(new Event('input'));
+              }
+              
+              async function restoreCascade() {
+                  const waitForEnable = (selectEl) => {
+                      return new Promise(resolve => {
+                          let interval = setInterval(() => { if(!selectEl.disabled) { clearInterval(interval); resolve(); } }, 50);
+                          setTimeout(() => { clearInterval(interval); resolve(); }, 3000); // fail-safe
+                      });
+                  };
+
+                  if(draft['tipo']) {
+                      if(tipoSel) {
+                          tipoSel.value = draft['tipo'];
+                          tipoSel.dispatchEvent(new Event('change'));
+                          if(draft['marca']) {
+                              await waitForEnable(marcaSel);
+                              marcaSel.value = draft['marca'];
+                              marcaSel.dispatchEvent(new Event('change'));
+                              if(draft['marca'] === 'otra') {
+                                  setTimeout(() => {
+                                      if(draft['otra_marca']) document.getElementById('otra_marca').value = draft['otra_marca'];
+                                      if(draft['otro_modelo']) document.getElementById('otro_modelo').value = draft['otro_modelo'];
+                                  }, 150);
+                                  return;
+                              }
+                              if(draft['modelo']) {
+                                  await waitForEnable(modeloSel);
+                                  modeloSel.value = draft['modelo'];
+                                  modeloSel.dispatchEvent(new Event('change'));
+                                  if(draft['modelo'] === 'otro' && draft['otro_modelo']) {
+                                      setTimeout(() => document.getElementById('otro_modelo').value = draft['otro_modelo'], 150);
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+              restoreCascade();
+          } catch(e) { console.error("Error cargando draft:", e); }
+      }
+  }
+  
+  formInputs.forEach(inp => {
+      inp.addEventListener('input', saveDraft);
+      inp.addEventListener('change', saveDraft);
+  });
+  
+  loadDraft();
+
+});
+</script>
+<script src="{{ url_for('static', filename='js/listing_tools.js') }}"></script>
+{% endblock %}
+
+{% block footer %}
+<div style="text-align:center; padding: 1.5rem 1rem; color: var(--text2, #64748b); font-size: 0.85rem; margin-top: 2rem;">
+  &copy; 2026 Drivemarket | <a href="/soporte" style="color:inherit; text-decoration:none; font-weight:600;">Soporte</a>
+</div>
+{% endblock %}

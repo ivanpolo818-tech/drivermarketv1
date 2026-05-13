@@ -1,0 +1,131 @@
+site_name: Documentación Técnica
+site_description: Manual técnico completo para desarrolladores de la plataforma Drivemarket
+site_author: Equipo Técnico Drivemarket
+site_url: https://drivemarket-docs.example.com
+
+repo_url: https://github.com/drivemarket/drivemarket
+repo_name: drivemarket/drivemarket
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: es
+  favicon: assets/favicon.ico
+  custom_dir: overrides
+  
+  palette:
+    - scheme: default
+      primary: white
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo oscuro
+    - scheme: slate
+      primary: black
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo claro
+  
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - toc.integrate
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.select
+    - content.tabs.link
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/chatbot.css
+
+extra_javascript:
+  - javascripts/extra.js
+  - javascripts/chatbot.js
+
+plugins:
+  - search:
+      lang:
+        - es
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: "2-4"
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      use_pygments: true
+      anchor_linenums: false
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+nav:
+  - Inicio: index.md
+  - Inicio rápido:
+      - Bienvenida: inicio/bienvenida.md
+      - Primeros pasos: inicio/primeros-pasos.md
+      - Guía de ejecución: inicio/guia-ejecucion.md
+      - Lectura recomendada: inicio/LEETE.md
+      - Instalación local: inicio/instalacion.md
+  - Documentación:
+      - Índice de documentación: documentacion/index.md
+      - Manual técnico: documentacion/manual-tecnico.md
+      - Diagramas: documentacion/diagramas.md
+      - Referencia rápida: documentacion/referencia-rapida.md
+      - Índice maestro: documentacion/indice.md
+  - Referencias:
+      - Resumen completo: referencia/resumen.md
+      - Estado del proyecto: referencia/estado.md
+      - Checklist: referencia/checklist.md
+      - Instalación del sitio de docs: referencia/instalacion.md
+      - Documentación completada: referencia/documentacion-completada.md
+      - Estructura de carpetas: referencia/estructura-carpetas.md
+
+extra:
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+  
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/drivemarket/drivemarket
+    - icon: fontawesome/solid/envelope
+      link: mailto:tech@drivemarket.com
+
+copyright: Copyright &copy; 2026 Drivemarket. Todos los derechos reservados.

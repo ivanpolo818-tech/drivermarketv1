@@ -1,0 +1,1040 @@
+{% extends 'base.html' %}
+
+{% block title %}Comparador Elite - Drive Market{% endblock %}
+
+{% block head %}
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <style>
+        /* =========================================
+           VARIABLES ULTRA PREMIUM
+           ========================================= */
+        :root { 
+            --c-brand: #FF6A00; 
+            --c-brand-gradient: linear-gradient(135deg, #FF6A00 0%, #FF4500 100%);
+            --c-dark: #09090b;
+            --c-surface: #ffffff; 
+            --c-bg: #f8fafc;
+            --c-text: #0f172a;
+            --c-text-muted: #64748b; 
+            --c-border: #e2e8f0;
+            --c-success: #10b981;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            --shadow-float: 0 25px 50px -12px rgba(0,0,0,0.15);
+            --radius-lg: 32px;
+            --transition: all 0.5s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        body { 
+            background-color: var(--c-bg); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: var(--c-text);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================
+           HERO & CONTROLES
+           ========================================= */
+        .comp-hero {
+            background: var(--c-dark);
+            padding: 80px 20px 120px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 40px 40px;
+        }
+        .hero-glow {
+            position: absolute;
+            width: 500px; height: 500px;
+            background: var(--c-brand);
+            filter: blur(200px);
+            opacity: 0.15;
+            top: -150px; left: 50%;
+            transform: translateX(-50%);
+            border-radius: 50%;
+        }
+        .comp-hero h1 { 
+            font-size: 3.5rem; 
+            font-weight: 800; 
+            margin: 0 0 16px; 
+            letter-spacing: -2px;
+            position: relative; z-index: 2;
+        }
+        .comp-hero h1 span {
+            background: var(--c-brand-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .action-bar {
+            position: relative;
+            z-index: 2;
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-glass:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+
+        .comparador-container { 
+            max-width: 1400px; 
+            margin: -60px auto 80px; 
+            padding: 0 20px; 
+            position: relative; 
+            z-index: 10; 
+        }
+
+        /* =========================================
+           RADAR VISUALIZER (NUEVO)
+           ========================================= */
+        .visualizer-card {
+            background: var(--c-surface);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--c-border);
+            display: none; /* Se oculta hasta que haya 2 vehículos */
+            grid-template-columns: 350px 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        .visualizer-info h3 { font-size: 1.8rem; font-weight: 800; margin: 0 0 10px; letter-spacing: -0.5px;}
+        .visualizer-info p { color: var(--c-text-muted); line-height: 1.6; margin-bottom: 20px;}
+        .chart-container { position: relative; height: 350px; width: 100%; display: flex; justify-content: center;}
+
+        /* =========================================
+           TABLA MATRIZ
+           ========================================= */
+        .main-card {
+            background: var(--c-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-float);
+            padding: 0;
+            border: 1px solid var(--c-border);
+            overflow: hidden;
+        }
+        .tabla-comparativa-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .tabla-comparativa { width: 100%; border-collapse: collapse; text-align: center; min-width: 1000px; }
+        .tabla-comparativa th, .tabla-comparativa td { padding: 18px 24px; border-bottom: 1px solid var(--c-border); border-right: 1px dashed var(--c-border); vertical-align: middle; }
+        .tabla-comparativa th:last-child, .tabla-comparativa td:last-child { border-right: none; }
+
+        .sticky-row th { 
+            position: sticky; top: 0; background: rgba(255,255,255,0.85); 
+            backdrop-filter: blur(20px); z-index: 20; padding: 25px 24px;
+            border-bottom: 2px solid var(--c-border);
+            transition: var(--transition);
+        }
+        .sticky-row.scrolled th {
+            padding: 15px 24px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border-bottom-color: var(--c-brand);
+        }
+        .col-header { width: 250px; text-align: left; }
+        .col-vehicle { width: 340px; }
+
+        /* Botón Ver Detalle */
+        .btn-view-detail {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--c-dark); color: white;
+            padding: 8px 16px; border-radius: 8px;
+            font-size: 0.85rem; font-weight: 700;
+            margin-top: 12px; text-decoration: none;
+            transition: var(--transition);
+        }
+        .btn-view-detail:hover { background: var(--c-brand); transform: translateX(4px); }
+
+        /* Tarjetas de Vehículo Header */
+        .card-filled {
+            position: relative; background: var(--c-surface); border-radius: 16px;
+            border: 1px solid var(--c-border); overflow: hidden; transition: var(--transition);
+        }
+        .card-filled:hover { border-color: var(--c-brand); box-shadow: var(--shadow-md); transform: translateY(-4px);}
+        .card-filled img { width: 100%; height: 180px; object-fit: cover; }
+        
+        .score-badge {
+            position: absolute; top: 12px; left: 12px;
+            background: var(--c-dark); color: #fbbf24;
+            padding: 6px 12px; border-radius: 30px;
+            font-size: 0.85rem; font-weight: 800;
+            display: flex; align-items: center; gap: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+        .score-badge.winner { background: #fbbf24; color: var(--c-dark); }
+
+        .card-body { padding: 20px; text-align: left; }
+        .card-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 8px; line-height: 1.2;}
+        .card-price { color: var(--c-brand); font-weight: 800; font-size: 1.4rem; }
+        
+        .btn-remove {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(4px);
+            border: none; border-radius: 50%; width: 36px; height: 36px;
+            color: #ef4444; cursor: pointer; transition: var(--transition);
+            display: flex; align-items: center; justify-content: center; font-size: 1.3rem; z-index: 2;
+        }
+        .btn-remove:hover { background: #ef4444; color: white; transform: scale(1.1);}
+
+        /* Slots Vacíos */
+        .empty-slot {
+            border: 2px dashed #d4d4d8; border-radius: 16px; padding: 50px 20px;
+            text-align: center; background: #fafafa; transition: var(--transition);
+            height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .empty-slot:hover { background: rgba(255, 106, 0, 0.05); border-color: var(--c-brand); transform: translateY(-4px); }
+        .empty-slot i { font-size: 3.5rem; color: #d4d4d8; margin-bottom: 16px; transition: var(--transition);}
+        .empty-slot:hover i { color: var(--c-brand); }
+        .empty-slot span { font-weight: 700; color: var(--c-text-muted); font-size: 1.1rem;}
+
+        /* Filas Datos */
+        .row-category th {
+            background: #f8fafc; text-align: left; font-size: 0.85rem; text-transform: uppercase;
+            letter-spacing: 2px; color: var(--c-text-muted); padding: 16px 24px; font-weight: 800;
+        }
+        .feature-label { text-align: left; font-weight: 700; color: var(--c-text); font-size: 1rem; }
+        .feature-label i { color: var(--c-brand); margin-right: 10px; font-size: 1.2rem; vertical-align: middle;}
+        
+        .row-data { font-weight: 600; color: var(--c-dark); font-size: 1.05rem; transition: background 0.3s; }
+        .winner-cell { background-color: rgba(16, 185, 129, 0.08) !important; color: var(--c-success); font-weight: 800;}
+        
+        /* =========================================
+           MODAL BUSQUEDA (Glassmorphism)
+           ========================================= */
+        .modal { 
+            display: none; position: fixed; inset: 0; background: rgba(9, 9, 11, 0.8); 
+            backdrop-filter: blur(12px); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-content { 
+            background: var(--c-surface); width: 95%; max-width: 1100px; height: 85vh; 
+            border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-header { padding: 30px; border-bottom: 1px solid var(--c-border); display: flex; align-items: center; gap: 20px; }
+        .modal-header h2 { margin: 0; font-size: 1.8rem; font-weight: 800; min-width: 250px;}
+        .search-wrapper { flex: 1; position: relative; }
+        .search-input {
+            width: 100%; padding: 18px 20px 18px 55px; border-radius: 16px; border: 2px solid var(--c-border); 
+            font-size: 1.1rem; font-weight: 500; transition: var(--transition); background: var(--c-bg);
+        }
+        .search-input:focus { border-color: var(--c-brand); outline: none; background: var(--c-surface); box-shadow: 0 0 0 4px rgba(255,106,0,0.1);}
+        .search-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); font-size: 1.5rem;}
+        .btn-close {
+            background: #f4f4f5; border: none; width: 48px; height: 48px; border-radius: 50%; font-size: 1.5rem; 
+            cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center;
+        }
+        .btn-close:hover { background: #fee2e2; color: #ef4444; }
+
+        .modal-body { padding: 30px; overflow-y: auto; flex: 1; background: var(--c-bg);}
+        .vehiculos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 24px; }
+
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        /* Estilos de Impresión */
+        @media print {
+            .comp-hero, .btn-remove, .action-bar, .empty-slot { display: none !important; }
+            .comparador-container { margin: 0; max-width: 100%; }
+            .main-card { box-shadow: none; border: none; }
+            .visualizer-card { break-inside: avoid; }
+        }
+
+        @media (max-width: 1024px) {
+            .visualizer-card { grid-template-columns: 1fr; gap: 30px; text-align: center; padding: 20px;}
+            .chart-container { height: 300px; }
+            .visualizer-info h3 { font-size: 1.5rem; }
+            .main-card { border-radius: 0; border-left: none; border-right: none; }
+            .comp-hero h1 { font-size: 2.2rem; }
+            .action-bar { flex-wrap: wrap; }
+            .btn-glass { padding: 8px 16px; font-size: 0.9rem; }
+        }
+
+        @media (max-width: 768px) {
+            /* Tabla UX: Eliminar el anclaje 'sticky' para vista móvil porque el usuario prefiere scroll continuo sin recortes */
+            .tabla-comparativa { min-width: 100% !important; width: max-content !important; }
+            .tabla-comparativa-wrapper { scroll-snap-type: x mandatory; padding-bottom: 20px; overflow-x: auto; }
+            
+            .col-header { 
+                width: 70px; padding: 12px 4px !important; font-size: 0.70rem; 
+                background: #f8fafc !important; 
+                vertical-align: bottom !important; 
+                border-right: 1px dashed var(--c-border) !important;
+            }
+            .feature-label { 
+                font-size: 0.75rem; padding: 12px 4px !important; 
+                background: #f8fafc !important; 
+                border-right: 1px dashed var(--c-border) !important; 
+            }
+            .feature-label i { font-size: 1.1rem; margin-right: 0; display: block; margin-bottom: 4px; color: var(--c-brand);}
+
+            .col-vehicle { width: 140px; min-width: 140px; padding: 10px 4px !important; scroll-snap-align: start; }
+            .row-data { font-size: 0.85rem; padding: 12px 4px !important; }
+            
+            /* No congelar horizontalmente la categoría para que no ampute los textos */
+            .row-category th { position: static !important; text-align: left; padding: 16px 16px !important;}
+            
+            /* Optimización de las tarjetas en la tabla principal */
+            .card-filled img { height: 130px; }
+            .card-body { padding: 14px; }
+            .card-title { font-size: 1.05rem; }
+            .card-price { font-size: 1.15rem; }
+            .empty-slot { padding: 20px 10px; }
+            .empty-slot i { font-size: 2rem; margin-bottom: 8px; }
+            
+            /* Optimización del Modal de Elección (Deslizante Inferior) */
+            .modal-content { height: 95vh; width: 100%; border-radius: 24px 24px 0 0; position: absolute; bottom: 0; box-shadow: 0 -10px 40px rgba(0,0,0,0.3); }
+            .modal-header { padding: 20px; flex-direction: column; align-items: stretch; gap: 12px; }
+            .modal-header h2 { font-size: 1.4rem; min-width: auto; }
+            .btn-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; font-size: 1.2rem; }
+            .modal-body { padding: 16px; }
+            
+            /* Modifica la grilla interior del modal para que entren 2 autos por fila */
+            .vehiculos-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+            .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+            .search-icon { font-size: 1.3rem; left: 14px; }
+            
+            /* Optimización tamaño de la IA en móvil */
+            .ia-analysis-card { padding: 20px; border-radius: 20px; margin-top: 24px; border-width: 1px;}
+            .ia-header { flex-direction: column; text-align: center; align-items: center; gap: 10px; padding-bottom: 15px; margin-bottom: 15px; }
+            .ia-title-group h3 { font-size: 1.1rem; flex-direction: column; gap: 6px; }
+            .ia-title-group p { font-size: 0.75rem !important; }
+            .ia-icon-wrapper { width: 38px; height: 38px; font-size: 18px; }
+            .ia-content { font-size: 0.95rem; line-height: 1.6; }
+            .ia-content p { margin-bottom: 12px; }
+            .ia-content li { padding-left: 20px; margin-bottom: 8px; }
+            .pulsing-brain { font-size: 38px; }
+        }
+
+        /* IA Analysis Styles */
+        .ia-analysis-card {
+            background: var(--c-surface);
+            border-radius: 24px;
+            padding: 35px;
+            margin-top: 40px;
+            border: 2px solid rgba(255, 106, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08);
+            animation: fadeInUp 0.6s ease-out;
+        }
+        .ia-analysis-card.active { display: block; }
+
+        .ia-analysis-card::after {
+            content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(255, 106, 0, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .ia-header { display: flex; align-items: center; gap: 15px; margin-bottom: 24px; border-bottom: 1px solid var(--c-border); padding-bottom: 15px; }
+        .ia-icon-wrapper {
+            width: 45px; height: 45px; background: var(--c-brand-gradient);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: white; box-shadow: 0 0 15px rgba(255, 106, 0, 0.2);
+        }
+        .ia-title-group h3 { font-size: 1.25rem; font-weight: 800; color: var(--c-text); margin: 0; display: flex; align-items: center; gap: 10px; }
+        .ia-badge { background: rgba(255, 106, 0, 0.1); color: #FF6A00; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(255, 106, 0, 0.2); }
+
+        .ia-content { color: var(--c-text); line-height: 1.9; font-size: 1.1rem; }
+        .ia-content p { margin-bottom: 16px; }
+        .ia-content strong { color: var(--c-brand); font-weight: 800; }
+        .ia-content ul { list-style: none; padding: 0; margin-bottom: 20px; }
+        .ia-content li { position: relative; padding-left: 25px; margin-bottom: 10px; }
+        .ia-content li::before { content: '→'; position: absolute; left: 0; color: #FF6A01; font-weight: 800; }
+
+        .ia-loading {
+            display: none; flex-direction: column; align-items: center; gap: 20px; padding: 60px 40px;
+            background: var(--c-surface); border-radius: 24px; margin-top: 30px;
+            border: 1px solid var(--c-border); box-shadow: var(--shadow-md);
+        }
+        .ia-loading.active { display: flex; animation: fadeIn 0.4s ease-out; }
+        
+        .pulsing-brain { font-size: 48px; color: #FF6A01; animation: pulse-ia 1.5s infinite ease-in-out; }
+        @keyframes pulse-ia {
+            0% { transform: scale(1); opacity: 0.6; filter: drop-shadow(0 0 0px #FF6A00); }
+            50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 20px #FF6A00); }
+            100% { transform: scale(1); opacity: 0.6; filter: drop-shadow(0 0 0px #FF6A00); }
+        }
+
+        .ia-btn-sparkle {
+            background: var(--c-brand-gradient) !important;
+            border: none !important; box-shadow: 0 4px 15px rgba(255, 106, 0, 0.3) !important;
+        }
+        .ia-btn-sparkle:hover { transform: translateY(-3px) scale(1.02) !important; box-shadow: 0 8px 25px rgba(255, 106, 0, 0.5) !important; }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <section class="comp-hero">
+        <div class="hero-glow"></div>
+        <h1>Comparador <span>ELITE</span></h1>
+        <p>El único motor de inteligencia visual que mapea, califica y compara vehículos en tiempo real.</p>
+        
+        <div class="action-bar">
+            <button class="btn-glass ia-btn-sparkle" onclick="ejecutarAnalisisIA()" id="btn-analizar-ia">
+                <i class='bx bxs-magic-wand'></i> DriveMarket AI
+            </button>
+            <button class="btn-glass" onclick="toggleDiferencias()" id="btn-toggle-diff">
+                <i class='bx bx-git-compare'></i> Diferencias
+            </button>
+            <button class="btn-glass" onclick="compartirComparacion()">
+                <i class='bx bx-share-alt'></i> Compartir
+            </button>
+            <button class="btn-glass" onclick="window.print()">
+                <i class='bx bx-printer'></i> PDF
+            </button>
+            <button class="btn-glass" onclick="limpiarComparador()">
+                <i class='bx bx-trash-alt'></i> Reiniciar
+            </button>
+        </div>
+    </section>
+
+    <div class="comparador-container">
+        
+        <div class="visualizer-card" id="visualizer-container">
+            <div class="visualizer-info">
+                <h3><i class='bx bx-radar' style="color: var(--c-brand);"></i> Radar de Desempeño</h3>
+                <p>El gráfico expande los puntos fuertes de cada vehículo. Una figura más grande y exterior significa una mejor relación calidad-precio global.</p>
+                <div id="radar-legend" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="radarChart"></canvas>
+            </div>
+        </div>
+
+        <div class="main-card">
+            <div class="tabla-comparativa-wrapper">
+                <table class="tabla-comparativa">
+                    <thead>
+                        <tr class="sticky-row">
+                            <th class="col-header" style="border:none">
+                                <span style="font-size: 1rem; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Modelos</span>
+                            </th>
+                            <th class="col-vehicle" id="slot-0"></th>
+                            <th class="col-vehicle" id="slot-1"></th>
+                            <th class="col-vehicle" id="slot-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="specs-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loading IA -->
+        <div id="ia-loading" class="ia-loading">
+            <i class='bx bxs-brain pulsing-brain'></i>
+            <div style="text-align: center;">
+                <span style="color: white; font-weight: 800; font-size: 1.2rem; display: block; margin-bottom: 5px;">Consultando al Cerrador Maestro...</span>
+                <span style="color: #6b7280; font-size: 0.95rem;">Estamos analizando cuál es el negocio de tu vida.</span>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Análisis de IA -->
+        <div id="ia-card" class="ia-analysis-card">
+            <div class="ia-header">
+                <div class="ia-icon-wrapper">
+                    <i class='bx bxs-zap'></i>
+                </div>
+                <div class="ia-title-group" style="flex: 1;">
+                    <h3>Análisis DriveMarket AI <span class="ia-badge">Cerrador Maestro</span></h3>
+                    <p style="color: #6b7280; font-size: 0.8rem; margin: 0;">Análisis en tiempo real basado en especificaciones técnicas y mercado hoy.</p>
+                </div>
+            </div>
+            <div id="ia-content" class="ia-content">
+                <!-- Se llena vía JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal" id="modal-seleccion">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Elige un vehículo</h2>
+                <div class="search-wrapper">
+                    <i class='bx bx-search search-icon'></i>
+                    <input type="text" id="buscar-vehiculo" class="search-input" placeholder="Buscar por marca, modelo o versión...">
+                </div>
+                <button class="btn-close" onclick="cerrarModal()"><i class='bx bx-x'></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="vehiculos-grid" id="vehiculos-grid"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let vehiculosSeleccionados = [null, null, null];
+    let vehiculosBD = [];
+    let posicionActiva = null;
+    let radarChartInstance = null;
+    let mostrarSoloDiferencias = false;
+
+    // Sincronizar scroll header
+    window.addEventListener('scroll', () => {
+        const headerRow = document.querySelector('.sticky-row');
+        if (window.scrollY > 400) {
+            headerRow?.classList.add('scrolled');
+        } else {
+            headerRow?.classList.remove('scrolled');
+        }
+    });
+
+    function saveState() {
+        const ids = vehiculosSeleccionados.map(v => v ? v.id : null);
+        sessionStorage.setItem('dm_comparador_ids', JSON.stringify(ids));
+    }
+
+    async function loadState() {
+        // 1. Cargar desde URL si existen IDs
+        const urlParams = new URLSearchParams(window.location.search);
+        const idsUrl = urlParams.get('ids');
+        
+        const saved = sessionStorage.getItem('dm_comparador_ids');
+        let idsToLoad = [];
+        const initialId = {{ vehiculo_id_inicial | default('null') }};
+        
+        if (idsUrl) {
+            idsToLoad = idsUrl.split(',').map(id => parseInt(id)).slice(0, 3);
+        } else if (initialId) {
+            // Si venimos de un detalle de vehículo con id inicial
+            idsToLoad = [initialId, null, null];
+        } else if (saved) {
+            idsToLoad = JSON.parse(saved);
+        }
+
+        if (idsToLoad.length > 0 && vehiculosBD.length > 0) {
+            idsToLoad.forEach((id, i) => {
+                if (id) {
+                    const v = vehiculosBD.find(x => x.id === id);
+                    if (v) vehiculosSeleccionados[i] = v;
+                }
+            });
+            actualizarInterfaz();
+        } else {
+            // Render inicial (vacio) para que no salga bug visual
+            actualizarInterfaz();
+        }
+    }
+
+    // Análisis con IA - Tono Agresivo de Ventas
+    async function ejecutarAnalisisIA() {
+        const ids = vehiculosSeleccionados.filter(v => v !== null).map(v => v.id);
+        
+        if (ids.length < 2) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Selección insuficiente',
+                text: 'Necesito al menos 2 máquinas para decirte cuál es el negocio de tu vida.',
+                background: '#1a1a1a',
+                color: '#fff',
+                confirmButtonColor: '#FF6A00'
+            });
+            return;
+        }
+
+        const btn = document.getElementById('btn-analizar-ia');
+        const loading = document.getElementById('ia-loading');
+        const card = document.getElementById('ia-card');
+        const content = document.getElementById('ia-content');
+
+        // UI State
+        btn.disabled = true;
+        card.classList.remove('active');
+        loading.classList.add('active');
+        
+        // Scroll al loading
+        loading.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        try {
+            const res = await fetch('/api/comparador/analizar-ia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vehiculo_ids: ids })
+            });
+            
+            const data = await res.json();
+            
+            if (data.error) throw new Error(data.error);
+
+            // Formatear markdown básico de la IA
+            let html = data.analisis
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negritas
+                .replace(/\n\n/g, '</p><p>') // Párrafos
+                .replace(/\n/g, '<br>') // Saltos de línea
+                .replace(/^- (.*)/gm, '<li>$1</li>'); // Listas simples
+
+            if (html.includes('<li>')) {
+                html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            }
+
+            content.innerHTML = `<p>${html}</p>`;
+            
+            loading.classList.remove('active');
+            card.classList.add('active');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        } catch (e) {
+            console.error(e);
+            loading.classList.remove('active');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de Conexión',
+                text: 'El Cerrador Maestro está en una llamada. Intenta de nuevo en un momento.',
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // Paleta de colores para los 3 vehículos
+    const chartColors = [
+        { bg: 'rgba(255, 106, 0, 0.2)', border: '#FF6A00' }, // Naranja DriveMarket
+        { bg: 'rgba(37, 99, 235, 0.2)', border: '#2563eb' }, // Azul Tech
+        { bg: 'rgba(16, 185, 129, 0.2)', border: '#10b981' }  // Verde Eco
+    ];
+
+    // Helper para imágenes
+    function getImagenUrl(path) {
+        if (!path) return '/static/img/default_car.jpg';
+        if (path.startsWith('http') || path.startsWith('/')) return path;
+        return '/static/' + path;
+    }
+
+    // Formateadores
+    const fmtCopeso = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    const fmtNum = new Intl.NumberFormat('es-CO');
+
+    // Estructura Profesional de Specs
+    const specificationGroups = [
+        {
+            title: "Datos Principales",
+            specs: [
+                { label: 'Precio', key: 'precio', icon: 'bx-dollar-circle', type: 'currency', highlight: 'min' },
+                { label: 'Año', key: 'anio', icon: 'bx-calendar', type: 'number', highlight: 'max' },
+                { label: 'Ubicación', key: 'ciudad_venta', icon: 'bx-map', type: 'text' }
+            ]
+        },
+        {
+            title: "Motor & Desempeño",
+            specs: [
+                { label: 'Kilometraje', key: 'kilometraje', icon: 'bx-tachometer', type: 'number', suffix: ' km', highlight: 'min' },
+                { label: 'Transmisión', key: 'transmision', icon: 'bx-cog', type: 'text' },
+                { label: 'Combustible', key: 'combustible', icon: 'bx-gas-pump', type: 'text' },
+                { label: 'Motor (cc)', key: 'cilindraje', icon: 'bx-slider', type: 'text' }
+            ]
+        },
+        {
+            title: "Carrocería",
+            specs: [
+                { label: 'Tipo', key: 'tipo', icon: 'bx-car', type: 'text' },
+                { label: 'Color', key: 'color', icon: 'bx-palette', type: 'text' },
+                { label: 'Puertas', key: 'puertas', icon: 'bx-door-open', type: 'text' }
+            ]
+        }
+    ];
+
+    async function cargarBD() {
+        try {
+            const res = await fetch('/api/comparador/vehiculos');
+            const data = await res.json();
+            
+            // Validar que la respuesta es un array
+            if (Array.isArray(data)) {
+                vehiculosBD = data;
+            } else {
+                console.error("❌ API comparador no devolvió un array:", data);
+                vehiculosBD = [];
+            }
+            
+            await loadState(); // Cargar persistencia después de tener la data
+            actualizarInterfaz();
+        } catch (e) { 
+            console.error("Error cargando BD:", e); 
+            vehiculosBD = [];
+        }
+    }
+
+    function abrirModal(index) {
+        posicionActiva = index;
+        document.getElementById('modal-seleccion').classList.add('active');
+        document.getElementById('buscar-vehiculo').value = '';
+        renderListaModal();
+        document.getElementById('buscar-vehiculo').focus();
+    }
+
+    function cerrarModal() {
+        document.getElementById('modal-seleccion').classList.remove('active');
+    }
+
+    function limpiarComparador() {
+        vehiculosSeleccionados = [null, null, null];
+        actualizarInterfaz();
+    }
+
+    function seleccionarVehiculo(id) {
+        const v = vehiculosBD.find(x => x.id === id);
+        vehiculosSeleccionados[posicionActiva] = v;
+        saveState();
+        cerrarModal();
+        actualizarInterfaz();
+    }
+
+    function removerVehiculo(index) {
+        vehiculosSeleccionados[index] = null;
+        saveState();
+        actualizarInterfaz();
+    }
+
+    function toggleDiferencias() {
+        mostrarSoloDiferencias = !mostrarSoloDiferencias;
+        const btn = document.getElementById('btn-toggle-diff');
+        if (mostrarSoloDiferencias) {
+            btn.classList.add('active');
+            btn.style.background = 'var(--c-brand)';
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = '';
+        }
+        actualizarInterfaz();
+    }
+
+    function compartirComparacion() {
+        const ids = vehiculosSeleccionados.filter(v => v).map(v => v.id).join(',');
+        if (!ids) return alert("Agrega vehículos para compartir.");
+        
+        const url = new URL(window.location.href);
+        url.searchParams.set('ids', ids);
+        
+        navigator.clipboard.writeText(url.href).then(() => {
+            alert("¡Enlace de comparación copiado al portapapeles!");
+        });
+    }
+
+    function parseValue(val) {
+        if(val === undefined || val === null || val === '') return null;
+        if(typeof val === 'string') {
+            const num = parseFloat(val.replace(/[^0-9.-]+/g,""));
+            return isNaN(num) ? val : num;
+        }
+        return val;
+    }
+
+    // ALGORITMO: DriveMarket Score (0 a 10)
+    function calculateScores() {
+        const scores = [0, 0, 0];
+        const activos = vehiculosSeleccionados.map((v, i) => v ? {v, i} : null).filter(x => x !== null);
+        if(activos.length < 2) return scores;
+
+        // Encontrar min/max para normalizar
+        let maxYear = Math.max(...activos.map(x => x.v.anio || 0));
+        let minPrice = Math.min(...activos.map(x => x.v.precio || 9999999999));
+        let minKm = Math.min(...activos.map(x => x.v.kilometraje || 9999999));
+
+        activos.forEach(item => {
+            let pts = 5; // Base score
+            // Año: +1.5 pt por ser el más nuevo, +0.5 por estar cerca
+            if(item.v.anio === maxYear) pts += 2;
+            else if(item.v.anio >= maxYear - 2) pts += 1;
+            
+            // Precio: +2 pts por ser el más barato
+            if(item.v.precio === minPrice) pts += 1.5;
+            
+            // Km: +1.5 pts por tener el menor Km
+            if(item.v.kilometraje === minKm) pts += 1.5;
+            
+            scores[item.i] = Math.min((pts).toFixed(1), 10); // Cap at 10
+        });
+        
+        return scores;
+    }
+
+    function actualizarInterfaz() {
+        const scores = calculateScores();
+        const maxScore = Math.max(...scores);
+
+        // 1. Renderizar Cabeceras
+        vehiculosSeleccionados.forEach((v, i) => {
+            const container = document.getElementById(`slot-${i}`);
+            if (!v) {
+                container.innerHTML = `
+                    <div class="empty-slot" onclick="abrirModal(${i})">
+                        <i class='bx bx-car'></i>
+                        <span>Haz clic para añadir</span>
+                    </div>`;
+            } else {
+                let badgeHtml = '';
+                if(scores[i] > 0) {
+                    const isWinner = scores[i] === maxScore;
+                    badgeHtml = `<div class="score-badge ${isWinner ? 'winner' : ''}">
+                                    <i class='bx ${isWinner ? 'bxs-trophy' : 'bxs-star'}'></i> Score: ${scores[i]}/10
+                                 </div>`;
+                }
+
+                const slug = v.slug || v.id;
+                container.innerHTML = `
+                    <div class="card-filled" style="border-bottom: 4px solid ${chartColors[i].border}">
+                        ${badgeHtml}
+                        <button class="btn-remove" onclick="removerVehiculo(${i})" title="Quitar"><i class='bx bx-x'></i></button>
+                        <img src="${getImagenUrl(v.imagen)}" alt="Vehículo">
+                        <div class="card-body">
+                            <div class="card-title">${v.marca} ${v.modelo}</div>
+                            <div class="card-price">${fmtCopeso.format(v.precio)}</div>
+                            <a href="/vehiculo/${slug}" class="btn-view-detail">
+                                <i class='bx bx-right-arrow-alt'></i> Ver Detalle
+                            </a>
+                        </div>
+                    </div>`;
+            }
+        });
+
+        // 2. Renderizar Tabla
+        const tbody = document.getElementById('specs-body');
+        const hasVehicles = vehiculosSeleccionados.some(v => v !== null);
+        
+        if (!hasVehicles) {
+            tbody.innerHTML = `<tr><td colspan="4" style="padding: 100px; color: var(--c-text-muted); font-size: 1.2rem;">
+                <i class='bx bx-git-compare' style="font-size: 4rem; display:block; margin-bottom: 15px; color: #cbd5e1;"></i>
+                Comienza agregando vehículos a las columnas superiores para desatar el análisis.</td></tr>`;
+            document.getElementById('visualizer-container').style.display = 'none';
+            return;
+        }
+
+        let html = '';
+        specificationGroups.forEach(group => {
+            let groupHtml = `<tr class="row-category"><th colspan="4"><i class='bx ${group.specs[0].icon}' style="margin-right:8px; font-size: 1.2rem; vertical-align: middle;"></i>${group.title}</th></tr>`;
+            let rowsInGroup = 0;
+            
+            group.specs.forEach(spec => {
+                const values = vehiculosSeleccionados.filter(v => v).map(v => String(v[spec.key] || '').toLowerCase().trim());
+                const sonIguales = values.length > 1 && values.every(v => v === values[0]);
+
+                if (mostrarSoloDiferencias && sonIguales) return;
+
+                rowsInGroup++;
+                let bestValue = null;
+                if (spec.highlight) {
+                    const validValues = vehiculosSeleccionados
+                        .filter(v => v !== null && v[spec.key] != null)
+                        .map(v => parseValue(v[spec.key]));
+                    
+                    if(validValues.length > 1) {
+                        if (spec.highlight === 'min') bestValue = Math.min(...validValues);
+                        if (spec.highlight === 'max') bestValue = Math.max(...validValues);
+                    }
+                }
+
+                groupHtml += `<tr>`;
+                groupHtml += `<td class="feature-label"><i class='bx ${spec.icon}'></i> ${spec.label}</td>`;
+                
+                vehiculosSeleccionados.forEach(v => {
+                    if (!v) {
+                        groupHtml += `<td class="row-data" style="background: #fafafa">-</td>`;
+                    } else {
+                        let rawValue = v[spec.key];
+                        let displayValue = '-';
+                        let isWinner = false;
+
+                        if (rawValue != null && rawValue !== '') {
+                            if (spec.type === 'currency') displayValue = fmtCopeso.format(rawValue);
+                            else if (spec.type === 'number') displayValue = fmtNum.format(rawValue) + (spec.suffix || '');
+                            else displayValue = String(rawValue).charAt(0).toUpperCase() + String(rawValue).slice(1);
+                            
+                            if (spec.highlight && bestValue !== null && parseValue(rawValue) === bestValue) {
+                                isWinner = true;
+                            }
+                        } else {
+                            displayValue = 'N/D';
+                        }
+
+                        const cellClass = isWinner ? 'row-data winner-cell' : 'row-data';
+                        groupHtml += `<td class="${cellClass}">${displayValue}</td>`;
+                    }
+                });
+                groupHtml += `</tr>`;
+            });
+
+            if (rowsInGroup > 0) html += groupHtml;
+        });
+        tbody.innerHTML = html;
+
+        // 3. Actualizar Gráfico Radar
+        actualizarRadarChart();
+    }
+
+    // ==========================================
+    // LÓGICA DEL GRÁFICO RADAR (CHART.JS)
+    // ==========================================
+    function actualizarRadarChart() {
+        const activos = vehiculosSeleccionados.filter(v => v !== null);
+        const container = document.getElementById('visualizer-container');
+        
+        if (activos.length < 2) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'grid';
+
+        let maxPrice = Math.max(...activos.map(v => v.precio || 1));
+        let maxKm = Math.max(...activos.map(v => v.kilometraje || 1));
+        let maxYear = Math.max(...activos.map(v => v.anio || 2000));
+        let minYear = Math.min(...activos.map(v => v.anio || 1990));
+
+        const datasets = [];
+        let legendHtml = '';
+
+        vehiculosSeleccionados.forEach((v, index) => {
+            if(v) {
+                let scoreEcono = 100 - ((v.precio / maxPrice) * 100) + 20;
+                let scoreUso = 100 - ((v.kilometraje / maxKm) * 100) + 20;
+                let scoreAño = maxYear === minYear ? 100 : ((v.anio - minYear) / (maxYear - minYear)) * 100;
+                
+                scoreEcono = Math.min(Math.max(scoreEcono, 20), 100);
+                scoreUso = Math.min(Math.max(scoreUso, 20), 100);
+                scoreAño = Math.min(Math.max(scoreAño, 20), 100);
+
+                datasets.push({
+                    label: `${v.marca} ${v.modelo}`,
+                    data: [scoreEcono, scoreAño, scoreUso],
+                    backgroundColor: chartColors[index].bg,
+                    borderColor: chartColors[index].border,
+                    pointBackgroundColor: chartColors[index].border,
+                    borderWidth: 4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    tension: 0.2
+                });
+
+                legendHtml += `
+                    <div class="radar-legend-item" 
+                         onmouseover="highlightRadarDataset(${datasets.length - 1})" 
+                         onmouseout="resetRadarDatasets()"
+                         style="display: flex; align-items: center; gap: 12px; font-weight: 700; cursor: pointer; padding: 8px; border-radius: 8px; transition: var(--transition);">
+                        <span style="width: 14px; height: 14px; border-radius: 3px; background: ${chartColors[index].border}; border: 2px solid white; box-shadow: 0 0 0 1px ${chartColors[index].border}"></span>
+                        ${v.marca} ${v.modelo}
+                    </div>
+                `;
+            }
+        });
+
+        document.getElementById('radar-legend').innerHTML = legendHtml;
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        if(radarChartInstance) radarChartInstance.destroy();
+
+        radarChartInstance = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Economía (Precio)', 'Modernidad (Año)', 'Desgaste (Menor Km)'],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(0,0,0,0.1)', lineWidth: 2 },
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        suggestedMin: 0,
+                        suggestedMax: 110,
+                        pointLabels: { 
+                            font: { size: 14, family: "'Plus Jakarta Sans'", weight: '800' }, 
+                            color: 'var(--c-text)' 
+                        },
+                        ticks: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(9, 9, 11, 0.95)',
+                        titleFont: { family: "'Plus Jakarta Sans'", size: 15, weight: '800' },
+                        bodyFont: { family: "'Plus Jakarta Sans'", size: 13 },
+                        padding: 15,
+                        cornerRadius: 12,
+                        displayColors: true
+                    }
+                }
+            }
+        });
+    }
+
+    function highlightRadarDataset(idx) {
+        radarChartInstance.data.datasets.forEach((ds, i) => {
+            ds.borderColor = (i === idx) ? ds.borderColor : 'rgba(200,200,200,0.2)';
+            ds.backgroundColor = (i === idx) ? ds.backgroundColor : 'rgba(200,200,200,0.05)';
+        });
+        radarChartInstance.update('none');
+    }
+
+    function resetRadarDatasets() {
+        radarChartInstance.data.datasets.forEach((ds, i) => {
+            const indexOrig = vehiculosSeleccionados.findIndex(v => v && `${v.marca} ${v.modelo}` === ds.label);
+            if (indexOrig !== -1) {
+                ds.borderColor = chartColors[indexOrig].border;
+                ds.backgroundColor = chartColors[indexOrig].bg;
+            }
+        });
+        radarChartInstance.update('none');
+    }
+
+    function renderListaModal() {
+        const query = document.getElementById('buscar-vehiculo').value.toLowerCase();
+        const idsSeleccionados = vehiculosSeleccionados.filter(v => v !== null).map(v => v.id);
+        
+        const filtrados = vehiculosBD.filter(v => 
+            !idsSeleccionados.includes(v.id) && 
+            `${v.marca} ${v.modelo} ${v.anio}`.toLowerCase().includes(query)
+        );
+        
+        const grid = document.getElementById('vehiculos-grid');
+
+        if(filtrados.length === 0) {
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--c-text-muted);">
+                <i class='bx bx-search' style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                No se encontraron vehículos.</div>`;
+            return;
+        }
+
+        grid.innerHTML = filtrados.map(v => `
+            <div class="card-filled" style="cursor:pointer; border: 1px solid #e4e8ef; height: 100%; display: flex; flex-direction: column;" onclick="seleccionarVehiculo(${v.id})">
+                <img src="${getImagenUrl(v.imagen)}" style="border-bottom: 1px solid #f1f5f9; flex-shrink: 0; height: 120px; object-fit: cover;">
+                <div class="card-body" style="padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight:800; font-size:0.95rem; line-height: 1.2; color:var(--c-dark); margin-bottom:6px;">${v.marca} ${v.modelo}</div>
+                        <div style="font-size:0.75rem; color:var(--c-text-muted); margin-bottom:12px;">${v.anio} • ${fmtNum.format(v.kilometraje)} km</div>
+                    </div>
+                    <div style="color:var(--c-brand); font-size:1.1rem; font-weight:800">${fmtCopeso.format(v.precio)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    document.getElementById('buscar-vehiculo').addEventListener('input', renderListaModal);
+    document.addEventListener('DOMContentLoaded', cargarBD);
+</script>
+{% endblock %}

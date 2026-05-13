@@ -1,0 +1,280 @@
+/* ================================================= */
+/* 💎 VARIABLES & SETUP */
+/* ================================================= */
+:root {
+    --primary-blue: #2563eb;
+    --primary-dark: #0f172a;
+    --accent-amber: #f59e0b; /* Color de espera/proceso */
+    --accent-green: #10b981;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --radius-lg: 20px;
+    --radius-circle: 50%;
+}
+
+body {
+    background-color: var(--bg-body);
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text-main);
+}
+
+/* ================================================= */
+/* 🏗️ LAYOUT & CARD */
+/* ================================================= */
+.status-wrapper {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: radial-gradient(circle at center, #eff6ff 0%, #f1f5f9 100%);
+}
+
+.status-card {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 600px;
+    padding: 50px 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-top: 5px solid var(--accent-amber); /* Detalle de color superior */
+}
+
+/* ================================================= */
+/* ⏳ ICONO ANIMADO (PULSE) */
+/* ================================================= */
+.pulse-icon-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-circle {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+    border-radius: var(--radius-circle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2rem;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 10px 20px rgba(245, 158, 11, 0.4);
+}
+
+/* Anillos de animación */
+.pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-circle);
+    border: 2px solid var(--accent-amber);
+    opacity: 0;
+    animation: pulse-ring 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.pulse-ring.delay {
+    animation-delay: 0.5s;
+}
+
+@keyframes pulse-ring {
+    0% { width: 80px; height: 80px; opacity: 0.8; }
+    100% { width: 150px; height: 150px; opacity: 0; }
+}
+
+/* ================================================= */
+/* 📝 TEXTOS */
+/* ================================================= */
+.status-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+    margin-bottom: 15px;
+}
+
+.status-message {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+/* ================================================= */
+/* 🛤️ TRACKER / LÍNEA DE TIEMPO */
+/* ================================================= */
+.timeline-container {
+    display: flex;
+    align-items: flex-start; /* Alinear arriba para que el texto no rompa el layout */
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 40px;
+    padding: 0 10px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
+    width: 80px; /* Ancho fijo para alinear texto */
+}
+
+.step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-circle);
+    background-color: #e2e8f0;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.3s;
+    border: 3px solid var(--bg-card); /* Borde blanco para separar de la línea */
+}
+
+.step-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-align: center;
+}
+
+/* Estilo: Completado */
+.step.completed .step-icon {
+    background-color: var(--accent-green);
+    color: white;
+}
+.step.completed .step-text {
+    color: var(--accent-green);
+}
+
+/* Estilo: Actual (Procesando) */
+.step.current .step-icon {
+    background-color: var(--accent-amber);
+    color: white;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2); /* Halo de luz */
+}
+.step.current .step-text {
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+/* Líneas Conectoras */
+.step-line {
+    position: absolute;
+    top: 20px; /* Mitad del icono (40px / 2) */
+    height: 3px;
+    background-color: #e2e8f0;
+    width: calc(50% - 60px); /* Cálculo para ajustar entre iconos */
+    z-index: 1;
+}
+
+.step-line:nth-child(2) { left: 50px; } /* Primera línea */
+.step-line:nth-child(4) { right: 50px; } /* Segunda línea */
+
+.step-line.active-line {
+    background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-amber) 100%);
+}
+
+/* ================================================= */
+/* ℹ️ INFO BOX & ACCIONES */
+/* ================================================= */
+.info-box {
+    background-color: #eff6ff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    color: var(--primary-blue);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.info-box i {
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.btn-secondary {
+    padding: 12px 25px;
+    background-color: #f1f5f9;
+    color: var(--text-main);
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-secondary:hover {
+    background-color: #e2e8f0;
+    color: var(--primary-dark);
+}
+
+.btn-contact {
+    padding: 12px 25px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-contact:hover {
+    color: var(--primary-blue);
+    text-decoration: underline;
+}
+
+/* ================================================= */
+/* 📱 RESPONSIVE */
+/* ================================================= */
+@media (max-width: 480px) {
+    .status-card {
+        padding: 40px 20px;
+    }
+    .status-title {
+        font-size: 1.5rem;
+    }
+    .step-text {
+        font-size: 0.65rem;
+    }
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .btn-secondary, .btn-contact {
+        justify-content: center;
+        width: 100%;
+    }
+}
