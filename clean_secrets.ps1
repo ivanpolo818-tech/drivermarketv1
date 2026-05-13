@@ -20,7 +20,7 @@ Get-ChildItem -Path "." -File -Recurse -Include "*.py", "*.md", ".env" | ForEach
     
     if ($modified) {
         Set-Content $_.FullName $content -Encoding UTF8
-        Write-Host "  ✓ Secretos reemplazados"
+        Write-Host "  [OK] Secretos reemplazados"
     }
 }
-Write-Host "Completado"
+Write-Host "Script completado"
